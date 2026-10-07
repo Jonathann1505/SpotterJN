@@ -12,9 +12,16 @@ build/
 # TypeScript cache
 *.tsbuildinfo
 
-# Capacitor (se generan al agregar plataformas nativas)
+# Capacitor native projects
 ios/
-android/
+android/local.properties
+android/.gradle/
+android/.idea/
+android/**/build/
+android/.kotlin/
+android/captures/
+android/*.iml
+*.hprof
 
 # Variables de entorno (claves de API, base de datos, etc.)
 .env
@@ -25,6 +32,7 @@ android/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+*.log
 
 # Editor / Sistema operativo
 .vscode/*
