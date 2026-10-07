@@ -1,0 +1,7 @@
+{
+  "name": "spotterjn-app",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "react-vite"
+}

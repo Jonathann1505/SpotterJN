@@ -1,0 +1,44 @@
+# Dependencias
+node_modules/
+
+# Build / compilación
+dist/
+www/
+build/
+
+# Vite
+*.local
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Capacitor native projects
+ios/
+android/local.properties
+android/.gradle/
+android/.idea/
+android/**/build/
+android/.kotlin/
+android/captures/
+android/*.iml
+*.hprof
+
+# Variables de entorno (claves de API, base de datos, etc.)
+.env
+.env.local
+.env.*.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# Editor / Sistema operativo
+.vscode/*
+!.vscode/extensions.json
+.DS_Store
+Thumbs.db
+
+# Caché de Ionic
+.ionic/
