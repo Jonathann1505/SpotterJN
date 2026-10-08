@@ -4,9 +4,7 @@ SpotterJN es un proyecto académico de Computación Móvil para apoyar a persona
 
 ## Estado actual
 
-La aplicación está construida con **Ionic React, React, TypeScript y Vite**. En este momento muestra una pantalla básica de inicio de sesión. No hay una API, base de datos, autenticación funcional, recomendaciones con IA ni modo sin conexión configurados en este repositorio.
-
-Capacitor todavía no está listo para generar o ejecutar la aplicación nativa: `ionic.config.json` identifica el proyecto como `react-vite` y contiene una sección `integrations.capacitor` vacía, pero `@capacitor/core`, `@capacitor/cli` y `@capacitor/android` no están declarados en `package.json`; tampoco existen `capacitor.config.*` ni el proyecto nativo `android/`.
+La aplicación está construida con **Ionic React, React, TypeScript, Vite y Capacitor**. El flujo de **Supabase Auth** incluye registro, inicio de sesión, persistencia y cierre de sesión. Las funciones de entrenamiento siguen siendo objetivos académicos y no están implementadas.
 
 ## Tecnologías y alcance
 
@@ -16,7 +14,8 @@ Capacitor todavía no está listo para generar o ejecutar la aplicación nativa:
 | Desarrollo y compilación web | Configurados: `npm run dev`, `npm run build` y `npm run preview` |
 | Aplicación Android | Capacitor Android configurado; requiere Android Studio, SDK y emulador instalados para ejecutarse |
 | Pruebas automatizadas | Configuradas con Vitest y Testing Library |
-| API, base de datos, autenticación e IA | No incluidas/configuradas en este repositorio |
+| Autenticación | Supabase Auth: registro, inicio, sesión persistente y cierre |
+| Datos de perfil, tablas propias, RLS e IA | No implementados |
 
 Los módulos de cuenta, perfil y rutina, registro de sesiones, progresión, explicaciones con IA, modo sin conexión y guía de máquinas son parte de la visión del proyecto y deberán implementarse por separado.
 
@@ -27,17 +26,33 @@ SpotterJN/
 ├── src/
 │   ├── App.tsx
 │   ├── main.tsx
+│   ├── context/
+│   │   └── SesionContext.tsx
+│   ├── pages/
+│   │   ├── AuthPages.css
+│   │   ├── Consentimientos.tsx
+│   │   ├── Hoy.tsx
+│   │   ├── Login.tsx
+│   │   ├── Login.css
+│   │   └── Registro.tsx
+│   ├── services/
+│   │   ├── auth.ts
+│   │   └── supabase.ts
+│   ├── types/
+│   │   └── consentimientos.ts
+│   ├── utils/
+│   │   └── validaciones.ts
+│   ├── vite-env.d.ts
 │   ├── theme/
 │   │   └── variables.css
 │   ├── test/
 │   │   └── setup.ts
 │   ├── App.test.tsx
-│   └── pages/
-│       ├── Login.tsx
-│       └── Login.css
+│   └── pages/*.test.tsx
 ├── AGENTS.md
 ├── android/                      # Proyecto nativo Capacitor
 ├── index.html
+├── .env.example
 ├── ionic.config.json
 ├── capacitor.config.ts
 ├── package.json
@@ -48,7 +63,7 @@ SpotterJN/
 
 ## Requisitos
 
-- Node.js 20 o superior y npm.
+- Node.js 22 o superior y npm.
 - Para Android: Android Studio, Android SDK API 35, Platform Tools (`adb`) y un emulador o dispositivo con depuración USB.
 
 ## Instalar y ejecutar en web
@@ -71,6 +86,45 @@ npm run preview
 
 La compilación estática se genera en `dist/`.
 
+## Supabase y variables de entorno
+
+1. Crea un proyecto en [Supabase](https://supabase.com/dashboard) y copia su URL y clave **anon/publicable** desde la configuración API del proyecto.
+2. En la raíz del repositorio, crea `.env` tomando `.env.example` como referencia:
+
+   ```dotenv
+   VITE_SUPABASE_URL=
+   VITE_SUPABASE_ANON_KEY=
+   ```
+
+   Coloca localmente los valores de tu proyecto en esas variables. No compartas ni confirmes `.env`. La clave `service_role` y las claves `sb_secret_` son secretas y nunca deben incluirse en la app cliente.
+3. En Supabase, durante el desarrollo, desactiva **Authentication > Providers > Email > Confirm email** para permitir que el registro cree una sesión inmediatamente. La confirmación y sus enlaces de retorno no forman parte del alcance actual.
+
+El cliente Supabase se centraliza en `src/services/supabase.ts` y falla explícitamente si falta una variable requerida.
+
+Las rutas de acceso y registro usan `/login`, `/consentimientos` y `/registro`; la ruta protegida `/hoy` requiere una sesión. Consentimientos y registro transmiten la autorización opcional de datos de salud y la fecha ISO de aceptación en los metadatos del usuario de Supabase Auth.
+
+La sesión persiste mediante los tokens que administra Supabase en el almacenamiento de la aplicación. **No se afirma que cumpla la persistencia de 30 días indicada por RF-01**: la duración efectiva depende de la configuración y renovación de sesiones de Supabase y queda pendiente verificarla en el proyecto.
+
+### Probar el flujo en web
+
+1. Inicia Vite con `npm run dev` y abre la URL local.
+2. Entra a **Crear cuenta**, acepta ser mayor de edad y los términos; la autorización de datos de salud es opcional.
+3. Registra un correo nuevo y una contraseña de al menos ocho caracteres con una letra y un número.
+4. Cierra sesión desde **Hoy** y confirma el cierre.
+5. Inicia sesión con la misma cuenta. Cierra y vuelve a abrir la aplicación para comprobar si Supabase restaura la sesión.
+6. En Supabase, verifica el usuario en **Authentication > Users**.
+
+### Probar el flujo en Android
+
+Con `.env` configurado y el emulador encendido, sincroniza y ejecuta:
+
+```bash
+npx cap sync android
+npm run android:run
+```
+
+Realiza en el emulador los mismos pasos de registro, cierre, inicio y reapertura que en web. La confirmación por correo y los enlaces profundos de Android no forman parte de esta etapa.
+
 ## Pruebas y validación
 
 Ejecuta las pruebas automatizadas con:
@@ -84,6 +138,8 @@ Para ejecutar las pruebas en modo watch mientras desarrollas:
 ```bash
 npm run test:watch
 ```
+
+La suite automatizada cubre validaciones, el estado habilitado de los botones, errores de login y registro, consentimientos obligatorios y la redirección de `/hoy` sin sesión. Las pruebas simulan el servicio de autenticación y no llaman al proyecto Supabase real.
 
 Valida también tipos y compilación de producción:
 
