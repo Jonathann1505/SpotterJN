@@ -62,7 +62,7 @@
   gap: 0.55rem;
   margin: 0;
   color: var(--spotter-accent);
-  font-size: 0.68rem;
+  font-size: 0.875rem;
   font-weight: 750;
   letter-spacing: 0.13em;
 }
@@ -148,7 +148,7 @@
   align-items: center;
   gap: 0.4rem;
   color: var(--spotter-muted);
-  font-size: 0.55rem;
+  font-size: 0.875rem;
   font-weight: 700;
   letter-spacing: 0.08em;
 }
@@ -164,7 +164,7 @@
   gap: 0.5rem;
   margin: 0.25rem 0 0;
   color: var(--spotter-muted);
-  font-size: 0.8rem;
+  font-size: 0.875rem;
 }
 
 .intro-footnote ion-icon {
@@ -200,6 +200,34 @@
   margin-top: 1.75rem;
 }
 
+.login-password-wrapper {
+  position: relative;
+}
+
+.password-toggle {
+  position: absolute;
+  z-index: 2;
+  right: 0.35rem;
+  bottom: 0.25rem;
+  --color: var(--spotter-muted);
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  margin: 0;
+}
+
+.auth-field-error,
+.auth-form-error {
+  margin: -0.7rem 0 0;
+  color: #ff858d;
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
+.auth-form-error {
+  margin: 0;
+  text-align: center;
+}
+
 .login-field {
   --background: #151820;
   --border-color: rgb(255 255 255 / 12%);
@@ -218,7 +246,7 @@
 .login-field::part(label) {
   margin-bottom: 0.55rem;
   color: #c2c9d5;
-  font-size: 0.78rem;
+  font-size: 0.875rem;
   font-weight: 600;
 }
 
@@ -253,7 +281,7 @@
 .login-disclaimer {
   margin: 1rem 0 0;
   color: var(--spotter-muted);
-  font-size: 0.72rem;
+  font-size: 0.875rem;
   line-height: 1.55;
   text-align: center;
 }
@@ -309,7 +337,7 @@
   }
 
   .progress-tag {
-    font-size: 0.48rem;
+    font-size: 0.875rem;
   }
 }
 
