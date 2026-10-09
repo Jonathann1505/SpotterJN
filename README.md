@@ -31,11 +31,14 @@ SpotterJN/
 │   │   └── SesionContext.tsx
 │   ├── pages/
 │   │   ├── AuthPages.css
+│   │   ├── AvisoMedico.tsx
 │   │   ├── Consentimientos.tsx
+│   │   ├── CuestionarioSalud.tsx
 │   │   ├── Hoy.tsx
 │   │   ├── Login.tsx
 │   │   ├── Login.css
-│   │   └── Registro.tsx
+│   │   ├── Registro.tsx
+│   │   └── Salud.css
 │   ├── repositories/
 │   │   ├── repositorios.ts       # interfaces de perfil, salud y rutina
 │   │   ├── local.ts              # implementación local (Capacitor Preferences)

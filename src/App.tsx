@@ -10,7 +10,9 @@ import {
 import { IonReactRouter } from '@ionic/react-router';
 import type { PropsWithChildren } from 'react';
 import { Redirect, Route } from 'react-router-dom';
+import AvisoMedico from './pages/AvisoMedico';
 import Consentimientos from './pages/Consentimientos';
+import CuestionarioSalud from './pages/CuestionarioSalud';
 import Hoy from './pages/Hoy';
 import Login from './pages/Login';
 import Registro from './pages/Registro';
@@ -76,6 +78,12 @@ function RutasAplicacion() {
         </Route>
         <Route exact path="/hoy">
           {sesion ? <Hoy /> : <Redirect to="/login" />}
+        </Route>
+        <Route exact path="/aviso-medico">
+          {sesion ? <AvisoMedico /> : <Redirect to="/login" />}
+        </Route>
+        <Route exact path="/salud">
+          {sesion ? <CuestionarioSalud /> : <Redirect to="/login" />}
         </Route>
         <Route exact path="/terminos">
           <IonPage>

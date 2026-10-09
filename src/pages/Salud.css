@@ -1,0 +1,10 @@
+.salud-banner {
+  margin-top: 1rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid #f59e0b;
+  border-radius: 0.75rem;
+  background: rgb(245 158 11 / 14%);
+  color: var(--spotter-text);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
