@@ -28,6 +28,11 @@ describe('App', () => {
       expect(screen.getByRole('heading', { name: /cada repetición te acerca más/i })).toBeInTheDocument();
     });
     expect(screen.getByRole('heading', { name: 'Inicia sesión' })).toBeInTheDocument();
+    expect(screen.queryByText('TU ENTRENAMIENTO, CON PROPÓSITO')).not.toBeInTheDocument();
+    expect(screen.queryByText('EL PROGRESO EMPIEZA HOY')).not.toBeInTheDocument();
+    expect(screen.queryByText('Tu ritmo. Tu progreso. Tu camino.')).not.toBeInTheDocument();
+    expect(container.querySelector('.progress-art')).not.toBeInTheDocument();
+    expect(container.querySelector('.intro-footnote')).not.toBeInTheDocument();
     expect(container.querySelectorAll('ion-input')).toHaveLength(2);
     expect(container.querySelector('ion-input[type="email"]')).toHaveAttribute('autocomplete', 'email');
     expect(container.querySelector('ion-input[type="password"]')).toHaveAttribute(

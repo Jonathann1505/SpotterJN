@@ -79,3 +79,10 @@
 - Pruebas posteriores identificaron HTTP 404; añadido un mensaje dirigido a verificar Project URL y disponibilidad del proyecto.
 - Añadidas pruebas para clave pública inválida, HTTP 404, HTTP sin código, error de red y código desconocido.
 - Revisar en el dashboard que `VITE_SUPABASE_URL` local coincida con Project Settings > API > Project URL y que el proyecto esté activo; no solicitar ni inspeccionar `.env`.
+
+### 2026-10-08 — Simplificación visual de inicio de sesión
+
+- Retiradas de Login las frases promocionales solicitadas y sus elementos decorativos asociados; se conservan el encabezado, el formulario y el enlace de registro.
+- Eliminados los estilos que quedaron sin uso para el arte decorativo.
+- Añadidas aserciones para verificar que los textos y elementos retirados no reaparezcan.
+- Verificación: `npm test` y `npm run build` completados.

@@ -6,7 +6,7 @@ import {
   IonInput,
   IonPage,
 } from '@ionic/react';
-import { eye, eyeOff, barbell, checkmarkCircle, shieldCheckmark } from 'ionicons/icons';
+import { eye, eyeOff, barbell } from 'ionicons/icons';
 import { Link, useHistory } from 'react-router-dom';
 import { iniciarSesion } from '../services/auth';
 import { esCorreoValido } from '../utils/validaciones';
@@ -58,10 +58,6 @@ function Login() {
             </div>
 
             <div className="intro-copy">
-              <p className="eyebrow">
-                <span className="eyebrow-dot" aria-hidden="true" />
-                TU ENTRENAMIENTO, CON PROPÓSITO
-              </p>
               <h1 id="login-title" className="login-title">
                 Cada repetición{' '}
                 <br />
@@ -72,23 +68,6 @@ function Login() {
                 entrenamiento a la vez.
               </p>
             </div>
-
-            <div className="progress-art" aria-hidden="true">
-              <div className="progress-orbit progress-orbit-outer" />
-              <div className="progress-orbit progress-orbit-inner" />
-              <div className="progress-emblem">
-                <IonIcon icon={barbell} />
-              </div>
-              <div className="progress-tag">
-                <IonIcon icon={checkmarkCircle} />
-                <span>EL PROGRESO EMPIEZA HOY</span>
-              </div>
-            </div>
-
-            <p className="intro-footnote">
-              <IonIcon icon={shieldCheckmark} aria-hidden="true" />
-              Tu ritmo. Tu progreso. Tu camino.
-            </p>
           </section>
 
           <section className="login-panel" aria-labelledby="form-title">
