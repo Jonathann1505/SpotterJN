@@ -34,6 +34,7 @@ export interface EjercicioRutina {
   nombre: string;
   series: number;
   repeticiones: number;
+  pesoInicialKg: number;
 }
 
 export interface DiaRutina {

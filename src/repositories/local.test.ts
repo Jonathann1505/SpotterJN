@@ -30,7 +30,7 @@ describe('repositorios locales', () => {
   it('guarda y recupera la rutina asignada', async () => {
     const rutina: RutinaAsignada = {
       cuestionario: { experiencia: 'ninguna', diasPorSemana: 3, equipo: ['maquinas'] },
-      dias: [{ nombre: 'Día 1', ejercicios: [{ id: 'prensa', nombre: 'Prensa', series: 3, repeticiones: 10 }] }],
+      dias: [{ nombre: 'Día 1', ejercicios: [{ id: 'prensa', nombre: 'Prensa', series: 3, repeticiones: 10, pesoInicialKg: 40 }] }],
       asignadaEn: '2026-10-09T10:00:00.000Z',
     };
     await rutinaLocal.guardar(rutina);
