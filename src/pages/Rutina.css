@@ -1,0 +1,42 @@
+.rutina-pregunta {
+  margin: 1.25rem 0 0.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.rutina-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.rutina-chip {
+  min-height: 2.75rem;
+  margin: 0;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.rutina-chip-activo {
+  --background: var(--ion-color-primary);
+  --color: var(--ion-color-primary-contrast);
+}
+
+.rutina-stepper {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.rutina-stepper ion-button {
+  min-width: 3rem;
+  min-height: 3rem;
+  font-size: 1.25rem;
+}
+
+.rutina-stepper-valor {
+  min-width: 2rem;
+  font-size: 1.75rem;
+  font-weight: 700;
+  text-align: center;
+}
