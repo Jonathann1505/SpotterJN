@@ -15,7 +15,8 @@ La aplicación está construida con **Ionic React, React, TypeScript, Vite y Cap
 | Aplicación Android | Capacitor Android configurado; requiere Android Studio, SDK y emulador instalados para ejecutarse |
 | Pruebas automatizadas | Configuradas con Vitest y Testing Library |
 | Autenticación | Supabase Auth: registro, inicio, sesión persistente y cierre |
-| Datos de perfil, tablas propias, RLS e IA | No implementados |
+| Perfil, salud y rutina (M2) | En desarrollo: almacenamiento local con Capacitor Preferences detrás de interfaces de repositorio, sin cifrado; la migración a Supabase queda pendiente |
+| Tablas propias en Supabase, RLS e IA | No implementados |
 
 Los módulos de cuenta, perfil y rutina, registro de sesiones, progresión, explicaciones con IA, modo sin conexión y guía de máquinas son parte de la visión del proyecto y deberán implementarse por separado.
 
@@ -35,6 +36,10 @@ SpotterJN/
 │   │   ├── Login.tsx
 │   │   ├── Login.css
 │   │   └── Registro.tsx
+│   ├── repositories/
+│   │   ├── repositorios.ts       # interfaces de perfil, salud y rutina
+│   │   ├── local.ts              # implementación local (Capacitor Preferences)
+│   │   └── almacenLocal.ts
 │   ├── services/
 │   │   ├── auth.ts
 │   │   └── supabase.ts
