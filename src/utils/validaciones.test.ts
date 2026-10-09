@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { esContrasenaValida, esCorreoValido } from './validaciones';
+import { esContrasenaValida, esCorreoValido, esNombreValido } from './validaciones';
 
 describe('esCorreoValido', () => {
   it('acepta un correo con usuario y dominio', () => {
@@ -22,5 +22,18 @@ describe('esContrasenaValida', () => {
     ['válida123', true],
   ])('valida la contraseña según los requisitos', (contrasena, esperada) => {
     expect(esContrasenaValida(contrasena)).toBe(esperada);
+  });
+});
+
+describe('esNombreValido', () => {
+  it('rechaza nombres vacíos o de solo espacios', () => {
+    expect(esNombreValido('')).toBe(false);
+    expect(esNombreValido('   ')).toBe(false);
+  });
+
+  it('acepta hasta 40 caracteres', () => {
+    expect(esNombreValido('Nayeli')).toBe(true);
+    expect(esNombreValido('a'.repeat(40))).toBe(true);
+    expect(esNombreValido('a'.repeat(41))).toBe(false);
   });
 });

@@ -9,3 +9,10 @@ export function esContrasenaValida(contrasena: string): boolean {
     /\d/u.test(contrasena)
   );
 }
+
+export const LONGITUD_MAXIMA_NOMBRE = 40;
+
+export function esNombreValido(nombre: string): boolean {
+  const limpio = nombre.trim();
+  return limpio.length > 0 && limpio.length <= LONGITUD_MAXIMA_NOMBRE;
+}
