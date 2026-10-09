@@ -8,3 +8,8 @@
   font-size: 0.875rem;
   line-height: 1.5;
 }
+
+.salud-check ion-checkbox {
+  flex: 0 0 auto;
+  width: 1.25rem;
+}

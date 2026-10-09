@@ -63,7 +63,7 @@ function CuestionarioSalud() {
             <h1 id="salud-title">Cuestionario de salud</h1>
             <p>Marca si tienes alguna de estas condiciones.</p>
             {CONDICIONES_SALUD.map((condicion) => (
-              <IonItem key={condicion} className="auth-check-row" lines="none">
+              <IonItem key={condicion} className="auth-check-row salud-check" lines="none">
                 <IonCheckbox
                   checked={condiciones.includes(condicion)}
                   onIonChange={(evento) => alternarCondicion(condicion, evento.detail.checked === true)}
@@ -72,7 +72,7 @@ function CuestionarioSalud() {
                 <IonLabel>{ETIQUETAS[condicion]}</IonLabel>
               </IonItem>
             ))}
-            <IonItem className="auth-check-row" lines="none">
+            <IonItem className="auth-check-row salud-check" lines="none">
               <IonCheckbox
                 checked={ninguna}
                 onIonChange={(evento) => alternarNinguna(evento.detail.checked === true)}
