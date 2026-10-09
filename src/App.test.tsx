@@ -49,4 +49,15 @@ describe('App', () => {
       expect(screen.getByRole('heading', { name: 'Inicia sesión' })).toBeInTheDocument();
     });
   });
+  it.each(['/aviso-medico', '/salud', '/cuestionario-rutina', '/rutina', '/perfil'])(
+    'redirige %s a login cuando no existe sesión',
+    async (ruta) => {
+      window.history.replaceState({}, '', ruta);
+      render(<App />);
+
+      await waitFor(() => {
+        expect(screen.getByRole('heading', { name: 'Inicia sesión' })).toBeInTheDocument();
+      });
+    },
+  );
 });
