@@ -40,3 +40,30 @@
   font-weight: 700;
   text-align: center;
 }
+
+.rutina-dias ion-accordion ion-item {
+  --background: transparent;
+  --color: var(--spotter-text);
+  --min-height: 3.25rem;
+  font-weight: 600;
+}
+
+.rutina-ejercicios {
+  margin: 0;
+  padding: 0.25rem 1rem 0.75rem;
+  background: transparent;
+  list-style: none;
+}
+
+.rutina-ejercicios li {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.5rem 0;
+  border-top: 1px solid rgb(255 255 255 / 8%);
+  font-size: 0.875rem;
+}
+
+.rutina-ejercicios li span {
+  color: var(--spotter-muted);
+}
