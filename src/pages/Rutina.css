@@ -67,3 +67,10 @@
 .rutina-ejercicios li span {
   color: var(--spotter-muted);
 }
+
+.perfil-unidad {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1rem;
+}
