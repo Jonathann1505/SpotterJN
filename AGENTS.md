@@ -71,3 +71,11 @@
 - Vite informa que el chunk principal supera 500 kB minificados; es una advertencia de optimización, no bloquea el build.
 - La sincronización Android finalizó correctamente; no se inició un emulador ni se realizó una prueba manual contra el proyecto Supabase.
 - `.env` permanece ignorado y sin seguimiento en Git; verificarlo de nuevo inmediatamente antes de cada `git add`.
+
+### 2026-10-08 — Diagnóstico de errores de autenticación
+
+- Reportado fallo genérico al registrarse e iniciar sesión tanto en Android como en web.
+- Mejorada la traducción para códigos de configuración comunes, códigos desconocidos y errores sin respuesta HTTP, sin exponer mensajes crudos del proveedor.
+- Pruebas posteriores identificaron HTTP 404; añadido un mensaje dirigido a verificar Project URL y disponibilidad del proyecto.
+- Añadidas pruebas para clave pública inválida, HTTP 404, HTTP sin código, error de red y código desconocido.
+- Revisar en el dashboard que `VITE_SUPABASE_URL` local coincida con Project Settings > API > Project URL y que el proyecto esté activo; no solicitar ni inspeccionar `.env`.
