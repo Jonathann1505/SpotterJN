@@ -28,16 +28,24 @@ SpotterJN/
 │   ├── App.tsx
 │   ├── main.tsx
 │   ├── context/
+│   │   ├── PerfilContext.tsx     # perfil y unidad de peso (kg/lb)
 │   │   └── SesionContext.tsx
+│   ├── data/
+│   │   └── ejercicios.ts         # catálogo de ejercicios de las rutinas
 │   ├── pages/
 │   │   ├── AuthPages.css
 │   │   ├── AvisoMedico.tsx
 │   │   ├── Consentimientos.tsx
+│   │   ├── CuestionarioRutina.tsx
 │   │   ├── CuestionarioSalud.tsx
 │   │   ├── Hoy.tsx
+│   │   ├── Hoy.css
 │   │   ├── Login.tsx
 │   │   ├── Login.css
+│   │   ├── Perfil.tsx
 │   │   ├── Registro.tsx
+│   │   ├── Rutina.css
+│   │   ├── RutinaAsignada.tsx
 │   │   └── Salud.css
 │   ├── repositories/
 │   │   ├── repositorios.ts       # interfaces de perfil, salud y rutina
@@ -47,8 +55,11 @@ SpotterJN/
 │   │   ├── auth.ts
 │   │   └── supabase.ts
 │   ├── types/
-│   │   └── consentimientos.ts
+│   │   ├── consentimientos.ts
+│   │   └── perfil.ts
 │   ├── utils/
+│   │   ├── rutina.ts             # asignación de la rutina inicial
+│   │   ├── unidades.ts           # conversión kg/lb
 │   │   └── validaciones.ts
 │   ├── vite-env.d.ts
 │   ├── theme/
@@ -93,6 +104,17 @@ npm run preview
 ```
 
 La compilación estática se genera en `dist/`.
+
+## Perfil y rutina (M2)
+
+El flujo de primera vez, tras iniciar sesión, es: `Hoy` redirige a `/aviso-medico` si no hay respuestas de salud (RF-05), después a `/cuestionario-rutina` si no hay rutina (RF-06), que asigna una rutina predefinida y la muestra en `/rutina`. `/perfil` permite editar nombre (1 a 40 caracteres), meta principal y unidad de peso kg/lb (RF-07); la unidad se aplica de inmediato en `Hoy` y en la rutina. `Hoy` muestra la próxima sesión con sus ejercicios, series y repeticiones (RF-08).
+
+Limitaciones actuales:
+
+- Los datos de M2 se guardan en el dispositivo con Capacitor Preferences, detrás de las interfaces de `src/repositories/repositorios.ts`. No están cifrados ni se sincronizan con Supabase; RNF-11 (cifrado en reposo y separación en backend) queda pendiente.
+- Los pesos que muestra `Hoy` son los iniciales del catálogo (`src/data/ejercicios.ts`), no cálculos de progresión: dependen de M3 y M4. Hasta que exista el historial de sesiones, la "próxima sesión" es siempre el primer día de la rutina.
+- El botón «Empezar entrenamiento» navega a `/sesion`, que aún no existe (M3).
+- El cuestionario de rutina se asigna con plantillas fijas según días y equipo, sin IA.
 
 ## Supabase y variables de entorno
 
