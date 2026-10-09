@@ -1,0 +1,68 @@
+.hoy-sesion {
+  margin-bottom: 1rem;
+  padding: 1.25rem;
+  border: 1px solid rgb(255 255 255 / 9%);
+  border-radius: 1.25rem;
+  background: var(--spotter-surface);
+  color: var(--spotter-text);
+}
+
+.hoy-etiqueta {
+  margin: 0;
+  color: var(--spotter-accent);
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.hoy-sesion h1 {
+  margin: 0.25rem 0 0.75rem;
+  font-size: 1.5rem;
+}
+
+.hoy-ejercicios {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hoy-ejercicios li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  border-top: 1px solid rgb(255 255 255 / 8%);
+}
+
+.hoy-ejercicios li div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  font-size: 0.875rem;
+}
+
+.hoy-ejercicios li div span {
+  color: var(--spotter-muted);
+}
+
+.hoy-peso {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.hoy-peso small {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--spotter-muted);
+}
+
+.hoy-peso-corporal {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--spotter-muted);
+}
