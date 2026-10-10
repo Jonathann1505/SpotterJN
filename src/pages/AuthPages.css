@@ -1,0 +1,87 @@
+.auth-page {
+  --background: var(--spotter-page-background);
+}
+
+.auth-page-content {
+  display: grid;
+  min-height: 100%;
+  place-items: center;
+  padding: max(1rem, env(safe-area-inset-top)) 1rem max(1rem, env(safe-area-inset-bottom));
+}
+
+.auth-page-card {
+  width: min(100%, 34rem);
+  padding: clamp(1.25rem, 5vw, 2rem);
+  border: 1px solid rgb(255 255 255 / 9%);
+  border-radius: 1.25rem;
+  background: var(--spotter-surface);
+  color: var(--spotter-text);
+}
+
+.auth-page-card h1 {
+  margin-top: 0;
+  font-size: clamp(1.5rem, 5vw, 2rem);
+}
+
+.auth-page-card p,
+.auth-page-card ion-label,
+.auth-page-card ion-button,
+.auth-page-card a {
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.auth-page-card ion-item {
+  --background: transparent;
+  --color: var(--spotter-text);
+  --min-height: 3.5rem;
+}
+
+.auth-page-card ion-input {
+  --color: var(--spotter-text);
+  --placeholder-color: var(--spotter-muted);
+  font-size: 0.9rem;
+}
+
+.auth-page-card ion-item.auth-check-row {
+  --inner-padding-end: 0;
+  --padding-start: 0;
+}
+
+.auth-page-card ion-checkbox {
+  --size: 1.25rem;
+  margin-inline-end: 0.85rem;
+}
+
+.auth-page-card ion-button.auth-submit {
+  min-height: 3rem;
+  margin-top: 1rem;
+}
+
+.auth-inline-error {
+  margin: 0.4rem 0 0.8rem;
+  color: #ff858d;
+  font-size: 0.875rem;
+}
+
+.auth-inline-message {
+  color: var(--spotter-accent);
+}
+
+.auth-password-control {
+  position: relative;
+}
+
+.auth-password-control ion-input {
+  padding-inline-end: 3rem;
+}
+
+.auth-password-control ion-button {
+  position: absolute;
+  z-index: 2;
+  right: 0.25rem;
+  bottom: 0.15rem;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  margin: 0;
+}
