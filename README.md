@@ -27,17 +27,22 @@ SpotterJN/
 ├── src/
 │   ├── App.tsx
 │   ├── main.tsx
+│   ├── components/
+│   │   ├── PantallaSJ.tsx       # estructura y botón del estilo de perfil y progreso
+│   │   └── AnimacionEjercicio.tsx # animación del ejercicio en iframe aislado
 │   ├── context/
 │   │   ├── PerfilContext.tsx     # perfil y unidad de peso (kg/lb)
 │   │   └── SesionContext.tsx
 │   ├── data/
-│   │   └── ejercicios.ts         # catálogo de ejercicios de las rutinas
+│   │   ├── ejercicios.ts         # catálogo de ejercicios de las rutinas
+│   │   └── guias.ts              # guía de cada ejercicio (ajuste, movimiento, ubicación)
 │   ├── pages/
 │   │   ├── AuthPages.css
 │   │   ├── AvisoMedico.tsx
 │   │   ├── Consentimientos.tsx
 │   │   ├── CuestionarioRutina.tsx
 │   │   ├── CuestionarioSalud.tsx
+│   │   ├── FichaEjercicio.tsx
 │   │   ├── Hoy.tsx
 │   │   ├── Hoy.css
 │   │   ├── Login.tsx
@@ -115,6 +120,14 @@ Limitaciones actuales:
 - Los pesos que muestra `Hoy` son los iniciales del catálogo (`src/data/ejercicios.ts`), no cálculos de progresión: dependen de M3 y M4. Hasta que exista el historial de sesiones, la "próxima sesión" es siempre el primer día de la rutina.
 - El botón «Empezar entrenamiento» navega a `/sesion`, que aún no existe (M3).
 - El cuestionario de rutina se asigna con plantillas fijas según días y equipo, sin IA.
+
+## Ficha de ejercicio (M5, RF-21)
+
+Cada ejercicio tiene una ficha en `/ejercicio/:id` con su animación, cómo ajustar la máquina, cómo hacer el movimiento y dónde suele estar. Se abre desde el botón de ayuda de cada ejercicio en `Hoy`. La primera vez muestra el aviso «Primera vez con esta máquina» y el botón «Listo, empezar series»; al pulsarlo se guarda que la ficha ya se vio (Capacitor Preferences) y no vuelve a mostrarse el aviso, aunque la ficha puede reabrirse con el botón de ayuda.
+
+- Las animaciones son archivos HTML autocontenidos en `public/ejercicios/` (hoy solo `press-banca.html`), que se muestran en un `iframe` con `sandbox="allow-scripts"`. Se pausan al tocarlas y no se inician si el sistema pide menos movimiento.
+- El contenido de cada guía está en `src/data/guias.ts`. Los ejercicios sin guía usan un texto provisional y no muestran animación.
+- «Listo, empezar series» navega a `/sesion`, que aún no existe (M3), y el botón de cambiar ejercicio (RF-14) no está implementado.
 
 ## Supabase y variables de entorno
 
