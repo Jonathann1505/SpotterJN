@@ -1,16 +1,16 @@
 import type { PerfilUsuario, RespuestasSalud, RutinaAsignada } from '../types/perfil';
 
 export interface PerfilRepositorio {
-  obtener(): Promise<PerfilUsuario | null>;
-  guardar(perfil: PerfilUsuario): Promise<void>;
+  obtener(usuarioId: string): Promise<PerfilUsuario | null>;
+  guardar(usuarioId: string, perfil: PerfilUsuario): Promise<void>;
 }
 
 export interface SaludRepositorio {
-  obtener(): Promise<RespuestasSalud | null>;
-  guardar(respuestas: RespuestasSalud): Promise<void>;
+  obtener(usuarioId: string): Promise<RespuestasSalud | null>;
+  guardar(usuarioId: string, respuestas: RespuestasSalud): Promise<void>;
 }
 
 export interface RutinaRepositorio {
-  obtener(): Promise<RutinaAsignada | null>;
-  guardar(rutina: RutinaAsignada): Promise<void>;
+  obtener(usuarioId: string): Promise<RutinaAsignada | null>;
+  guardar(usuarioId: string, rutina: RutinaAsignada): Promise<void>;
 }

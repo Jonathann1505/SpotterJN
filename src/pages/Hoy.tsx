@@ -1,55 +1,55 @@
 import { useEffect, useState } from 'react';
-import { IonAlert, IonSpinner, useIonToast } from '@ionic/react';
+import { IonSpinner } from '@ionic/react';
 import { Redirect, useHistory } from 'react-router-dom';
 import { BotonSJ, PantallaSJ } from '../components/PantallaSJ';
 import { usePerfil } from '../context/PerfilContext';
 import { rutinaLocal, saludLocal } from '../repositories/local';
-import { cerrarSesion } from '../services/auth';
 import type { RespuestasSalud, RutinaAsignada } from '../types/perfil';
 import { pesoEnUnidad } from '../utils/unidades';
+import { useSesion } from '../context/SesionContext';
+import CerrarSesion from '../components/CerrarSesion';
 
 interface DatosHoy {
+  usuarioId: string;
   salud: RespuestasSalud | null;
   rutina: RutinaAsignada | null;
 }
 
 function Hoy() {
-  const [alertaAbierta, setAlertaAbierta] = useState(false);
   const [datos, setDatos] = useState<DatosHoy | null>(null);
-  const [mostrarToast] = useIonToast();
   const { perfil } = usePerfil();
+  const { sesion } = useSesion();
+  const usuarioId = sesion?.user.id ?? null;
   const history = useHistory();
 
   useEffect(() => {
     let activo = true;
-    void Promise.all([saludLocal.obtener(), rutinaLocal.obtener()])
+    if (usuarioId === null) {
+      setDatos(null);
+      return () => {
+        activo = false;
+      };
+    }
+
+    setDatos(null);
+    void Promise.all([saludLocal.obtener(usuarioId), rutinaLocal.obtener(usuarioId)])
       .then(([salud, rutina]) => {
         if (activo) {
-          setDatos({ salud, rutina });
+          setDatos({ usuarioId, salud, rutina });
         }
       })
       .catch(() => {
         if (activo) {
-          setDatos({ salud: null, rutina: null });
+          setDatos({ usuarioId, salud: null, rutina: null });
         }
       });
 
     return () => {
       activo = false;
     };
-  }, []);
+  }, [usuarioId]);
 
-  const confirmarCierreSesion = async (): Promise<void> => {
-    const resultado = await cerrarSesion();
-    if (!resultado.ok) {
-      await mostrarToast({ message: resultado.mensaje, duration: 3000, color: 'danger' });
-      return;
-    }
-
-    history.replace('/login');
-  };
-
-  if (datos === null) {
+  if (datos === null || !sesion || datos.usuarioId !== sesion.user.id) {
     return (
       <PantallaSJ titulo="Hoy">
         <IonSpinner aria-label="Cargando tu sesión" />
@@ -66,24 +66,24 @@ function Hoy() {
   }
 
   // Hasta que exista el historial de sesiones (M3), la próxima sesión es el primer día de la rutina.
-  const sesion = datos.rutina.dias[0];
+  const proximaSesion = datos.rutina.dias[0];
 
   return (
     <PantallaSJ
       mostrarLogo
       etiqueta="Próxima sesión"
-      titulo={sesion.nombre}
+      titulo={proximaSesion.nombre}
       reglaBajoTitulo
       pie={
         <>
           <BotonSJ onClick={() => history.push('/sesion')}>Empezar entrenamiento</BotonSJ>
           <BotonSJ variante="secundario" onClick={() => history.push('/perfil')}>Perfil</BotonSJ>
-          <BotonSJ variante="texto" onClick={() => setAlertaAbierta(true)}>Cerrar sesión</BotonSJ>
+          <CerrarSesion />
         </>
       }
     >
       <ul className="sj-lista sj-lista-hoy">
-        {sesion.ejercicios.map((ejercicio) => (
+        {proximaSesion.ejercicios.map((ejercicio) => (
           <li key={ejercicio.id}>
             <span>
               <strong>{ejercicio.nombre}</strong>
@@ -100,20 +100,6 @@ function Hoy() {
           </li>
         ))}
       </ul>
-      <IonAlert
-        isOpen={alertaAbierta}
-        header="Cerrar sesión"
-        message="¿Quieres cerrar tu sesión?"
-        buttons={[
-          { text: 'Cancelar', role: 'cancel', handler: () => setAlertaAbierta(false) },
-          {
-            text: 'Cerrar sesión',
-            role: 'confirm',
-            handler: () => void confirmarCierreSesion(),
-          },
-        ]}
-        onDidDismiss={() => setAlertaAbierta(false)}
-      />
     </PantallaSJ>
   );
 }

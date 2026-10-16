@@ -4,6 +4,7 @@ import { BotonSJ, PantallaSJ } from '../components/PantallaSJ';
 import { rutinaLocal } from '../repositories/local';
 import { DIAS_MAXIMOS, DIAS_MINIMOS, asignarRutina } from '../utils/rutina';
 import { EQUIPOS, EXPERIENCIAS, type EquipoGimnasio, type Experiencia } from '../types/perfil';
+import { useSesion } from '../context/SesionContext';
 
 const ETIQUETAS_EXPERIENCIA: Record<Experiencia, string> = {
   ninguna: 'Ninguna',
@@ -26,6 +27,7 @@ function CuestionarioRutina() {
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const history = useHistory();
+  const { sesion } = useSesion();
   const completo = experiencia !== null && equipo.length > 0;
 
   const alternarEquipo = (item: EquipoGimnasio): void => {
@@ -36,11 +38,18 @@ function CuestionarioRutina() {
     if (experiencia === null || equipo.length === 0 || guardando) {
       return;
     }
+    if (!sesion) {
+      setError('No hay una sesión activa. Inicia sesión e inténtalo de nuevo.');
+      return;
+    }
 
     setGuardando(true);
     setError(null);
     try {
-      await rutinaLocal.guardar(asignarRutina({ experiencia, diasPorSemana: dias, equipo }));
+      await rutinaLocal.guardar(
+        sesion.user.id,
+        asignarRutina({ experiencia, diasPorSemana: dias, equipo }),
+      );
       history.replace('/rutina');
     } catch {
       setError('No se pudo guardar tu rutina. Inténtalo de nuevo.');

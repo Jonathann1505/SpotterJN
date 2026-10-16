@@ -10,10 +10,13 @@ import {
 import { guardarJson, leerJson } from './almacenLocal';
 import type { PerfilRepositorio, RutinaRepositorio, SaludRepositorio } from './repositorios';
 
-const CLAVE_PERFIL = 'spotter.perfil';
-// La salud va en una clave aparte del perfil identificable (RNF-11, separación de datos).
-const CLAVE_SALUD = 'spotter.salud';
-const CLAVE_RUTINA = 'spotter.rutina';
+function crearClave(usuarioId: string, tipo: 'perfil' | 'salud' | 'rutina'): string {
+  if (!usuarioId) {
+    throw new Error('Se requiere una sesión para acceder a los datos locales.');
+  }
+
+  return `spotter.usuario.${encodeURIComponent(usuarioId)}.${tipo}`;
+}
 
 function esObjeto(valor: unknown): valor is Record<string, unknown> {
   return typeof valor === 'object' && valor !== null && !Array.isArray(valor);
@@ -55,16 +58,16 @@ function esRutina(valor: unknown): valor is RutinaAsignada {
 }
 
 export const perfilLocal: PerfilRepositorio = {
-  obtener: () => leerJson(CLAVE_PERFIL, esPerfil),
-  guardar: (perfil) => guardarJson(CLAVE_PERFIL, perfil),
+  obtener: (usuarioId) => leerJson(crearClave(usuarioId, 'perfil'), esPerfil),
+  guardar: (usuarioId, perfil) => guardarJson(crearClave(usuarioId, 'perfil'), perfil),
 };
 
 export const saludLocal: SaludRepositorio = {
-  obtener: () => leerJson(CLAVE_SALUD, esSalud),
-  guardar: (respuestas) => guardarJson(CLAVE_SALUD, respuestas),
+  obtener: (usuarioId) => leerJson(crearClave(usuarioId, 'salud'), esSalud),
+  guardar: (usuarioId, respuestas) => guardarJson(crearClave(usuarioId, 'salud'), respuestas),
 };
 
 export const rutinaLocal: RutinaRepositorio = {
-  obtener: () => leerJson(CLAVE_RUTINA, esRutina),
-  guardar: (rutina) => guardarJson(CLAVE_RUTINA, rutina),
+  obtener: (usuarioId) => leerJson(crearClave(usuarioId, 'rutina'), esRutina),
+  guardar: (usuarioId, rutina) => guardarJson(crearClave(usuarioId, 'rutina'), rutina),
 };

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { IonInput } from '@ionic/react';
 import { useHistory } from 'react-router-dom';
 import { BotonSJ, PantallaSJ } from '../components/PantallaSJ';
+import CerrarSesion from '../components/CerrarSesion';
 import { usePerfil } from '../context/PerfilContext';
 import { METAS_PRINCIPALES, type MetaPrincipal, type UnidadPeso } from '../types/perfil';
 import { LONGITUD_MAXIMA_NOMBRE, esNombreValido } from '../utils/validaciones';
@@ -63,6 +64,7 @@ function Perfil() {
       pie={
         <>
           <BotonSJ onClick={() => void guardar()}>Guardar cambios</BotonSJ>
+          <CerrarSesion />
           <BotonSJ variante="texto" onClick={() => history.goBack()}>Volver</BotonSJ>
         </>
       }
