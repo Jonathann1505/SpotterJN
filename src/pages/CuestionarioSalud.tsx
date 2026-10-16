@@ -1,10 +1,9 @@
+import './Salud.css';
 import { useState } from 'react';
-import { IonButton, IonCheckbox, IonContent, IonItem, IonLabel, IonPage } from '@ionic/react';
 import { useHistory } from 'react-router-dom';
+import { BotonSJ, PantallaSJ } from '../components/PantallaSJ';
 import { saludLocal } from '../repositories/local';
 import { CONDICIONES_SALUD, type CondicionSalud } from '../types/perfil';
-import './AuthPages.css';
-import './Salud.css';
 
 const ETIQUETAS: Record<CondicionSalud, string> = {
   'dolor-articular': 'Dolor articular',
@@ -23,16 +22,15 @@ function CuestionarioSalud() {
   const hayCondicion = condiciones.length > 0;
   const respondido = ninguna || hayCondicion;
 
-  const alternarCondicion = (condicion: CondicionSalud, marcada: boolean): void => {
+  const alternarCondicion = (condicion: CondicionSalud): void => {
     setNinguna(false);
     setCondiciones((actuales) =>
-      marcada
-        ? actuales.includes(condicion) ? actuales : [...actuales, condicion]
-        : actuales.filter((c) => c !== condicion),
+      actuales.includes(condicion) ? actuales.filter((c) => c !== condicion) : [...actuales, condicion],
     );
   };
 
-  const alternarNinguna = (marcada: boolean): void => {
+  const alternarNinguna = (): void => {
+    const marcada = !ninguna;
     setNinguna(marcada);
     if (marcada) {
       setCondiciones([]);
@@ -56,48 +54,46 @@ function CuestionarioSalud() {
   };
 
   return (
-    <IonPage>
-      <IonContent className="auth-page">
-        <main className="auth-page-content">
-          <section className="auth-page-card" aria-labelledby="salud-title">
-            <h1 id="salud-title">Cuestionario de salud</h1>
-            <p>Marca si tienes alguna de estas condiciones.</p>
-            {CONDICIONES_SALUD.map((condicion) => (
-              <IonItem key={condicion} className="auth-check-row salud-check" lines="none">
-                <IonCheckbox
-                  checked={condiciones.includes(condicion)}
-                  onIonChange={(evento) => alternarCondicion(condicion, evento.detail.checked === true)}
-                  aria-label={ETIQUETAS[condicion]}
-                />
-                <IonLabel>{ETIQUETAS[condicion]}</IonLabel>
-              </IonItem>
-            ))}
-            <IonItem className="auth-check-row salud-check" lines="none">
-              <IonCheckbox
-                checked={ninguna}
-                onIonChange={(evento) => alternarNinguna(evento.detail.checked === true)}
-                aria-label="Ninguna de las anteriores"
-              />
-              <IonLabel>Ninguna de las anteriores</IonLabel>
-            </IonItem>
-            {hayCondicion ? (
-              <div className="salud-banner" role="alert">
-                Te recomendamos consultar a un médico antes de empezar a entrenar.
-              </div>
-            ) : null}
-            {error ? <p className="auth-inline-error" role="alert">{error}</p> : null}
-            <IonButton
-              className="auth-submit"
-              expand="block"
-              disabled={!respondido || guardando}
-              onClick={() => void continuar()}
+    <PantallaSJ
+      etiqueta="Tu salud primero"
+      titulo="Cuestionario de salud"
+      reglaBajoTitulo
+      pie={
+        <BotonSJ deshabilitado={!respondido || guardando} onClick={() => void continuar()}>
+          {hayCondicion ? 'Entiendo el riesgo y continúo' : 'Continuar'}
+        </BotonSJ>
+      }
+    >
+      <p className="sj-texto">Marca si tienes alguna de estas condiciones.</p>
+      <div role="group" aria-label="Condiciones de salud">
+        {CONDICIONES_SALUD.map((condicion) => {
+          const marcada = condiciones.includes(condicion);
+          return (
+            <button
+              key={condicion}
+              type="button"
+              role="checkbox"
+              aria-checked={marcada}
+              className="sj-opcion"
+              onClick={() => alternarCondicion(condicion)}
             >
-              {hayCondicion ? 'Entiendo el riesgo y continúo' : 'Continuar'}
-            </IonButton>
-          </section>
-        </main>
-      </IonContent>
-    </IonPage>
+              <span className="sj-opcion-marca" aria-hidden="true">{marcada ? '✓' : ''}</span>
+              {ETIQUETAS[condicion]}
+            </button>
+          );
+        })}
+        <button type="button" role="checkbox" aria-checked={ninguna} className="sj-opcion" onClick={alternarNinguna}>
+          <span className="sj-opcion-marca" aria-hidden="true">{ninguna ? '✓' : ''}</span>
+          Ninguna de las anteriores
+        </button>
+      </div>
+      {hayCondicion ? (
+        <div className="sj-aviso" role="alert">
+          Te recomendamos consultar a un médico antes de empezar a entrenar.
+        </div>
+      ) : null}
+      {error ? <p className="sj-error" role="alert">{error}</p> : null}
+    </PantallaSJ>
   );
 }
 

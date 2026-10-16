@@ -6,10 +6,6 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import CuestionarioSalud from './CuestionarioSalud';
 import { saludLocal } from '../repositories/local';
 
-function marcar(elemento: Element, checked: boolean): void {
-  fireEvent(elemento, new CustomEvent('ionChange', { bubbles: true, detail: { checked } }));
-}
-
 function renderizar() {
   return render(
     <IonApp>
@@ -30,42 +26,41 @@ describe('CuestionarioSalud', () => {
   afterEach(cleanup);
 
   it('mantiene el botón deshabilitado hasta responder', () => {
-    const { container } = renderizar();
-    const boton = container.querySelector('ion-button.auth-submit');
+    const { container, getByRole } = renderizar();
+    const boton = container.querySelector('ion-button.sj-boton');
 
     expect(boton).toHaveAttribute('disabled');
-    marcar(container.querySelectorAll('ion-checkbox')[3], true);
+    fireEvent.click(getByRole('checkbox', { name: 'Ninguna de las anteriores' }));
     expect(boton).toHaveAttribute('disabled', 'false');
   });
 
   it('muestra el aviso médico y cambia el botón si se marca una condición', () => {
     const { container, getByRole } = renderizar();
 
-    marcar(container.querySelectorAll('ion-checkbox')[0], true);
+    fireEvent.click(getByRole('checkbox', { name: 'Dolor articular' }));
 
     expect(getByRole('alert')).toHaveTextContent(/consultar a un médico/i);
-    expect(container.querySelector('ion-button.auth-submit')).toHaveTextContent(
-      'Entiendo el riesgo y continúo',
-    );
+    expect(container.querySelector('ion-button.sj-boton')).toHaveTextContent('Entiendo el riesgo y continúo');
   });
 
   it('"Ninguna" limpia las condiciones y viceversa', () => {
-    const { container, queryByRole } = renderizar();
-    const casillas = container.querySelectorAll('ion-checkbox');
+    const { getByRole, queryByRole } = renderizar();
 
-    marcar(casillas[1], true);
-    marcar(casillas[3], true);
+    fireEvent.click(getByRole('checkbox', { name: 'Problema cardíaco' }));
+    fireEvent.click(getByRole('checkbox', { name: 'Ninguna de las anteriores' }));
     expect(queryByRole('alert')).not.toBeInTheDocument();
+    expect(getByRole('checkbox', { name: 'Problema cardíaco' })).toHaveAttribute('aria-checked', 'false');
 
-    marcar(casillas[2], true);
+    fireEvent.click(getByRole('checkbox', { name: 'Embarazo' }));
     expect(queryByRole('alert')).toBeInTheDocument();
+    expect(getByRole('checkbox', { name: 'Ninguna de las anteriores' })).toHaveAttribute('aria-checked', 'false');
   });
 
   it('guarda las respuestas y avanza al cuestionario de rutina', async () => {
-    const { container, findByText } = renderizar();
+    const { container, getByRole, findByText } = renderizar();
 
-    marcar(container.querySelectorAll('ion-checkbox')[1], true);
-    fireEvent.click(container.querySelector('ion-button.auth-submit') as Element);
+    fireEvent.click(getByRole('checkbox', { name: 'Problema cardíaco' }));
+    fireEvent.click(container.querySelector('ion-button.sj-boton') as Element);
 
     expect(await findByText('siguiente pantalla')).toBeInTheDocument();
     await waitFor(async () => {

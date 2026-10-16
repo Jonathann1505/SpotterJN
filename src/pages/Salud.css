@@ -1,15 +1,10 @@
-.salud-banner {
+.sj-aviso {
   margin-top: 1rem;
   padding: 0.85rem 1rem;
-  border: 1px solid #f59e0b;
-  border-radius: 0.75rem;
-  background: rgb(245 158 11 / 14%);
-  color: var(--spotter-text);
-  font-size: 0.875rem;
+  border: 2px solid #1a1a1a;
+  background: #ffd9a0;
+  color: #1a1a1a;
+  font-size: 0.9375rem;
+  font-weight: 600;
   line-height: 1.5;
-}
-
-.salud-check ion-checkbox {
-  flex: 0 0 auto;
-  width: 1.25rem;
 }
