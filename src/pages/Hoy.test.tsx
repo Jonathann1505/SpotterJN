@@ -1,4 +1,4 @@
-import { cleanup, render } from '@testing-library/react';
+import { cleanup, fireEvent, render } from '@testing-library/react';
 import { IonApp } from '@ionic/react';
 import { MemoryRouter, Route } from 'react-router-dom';
 import { Preferences } from '@capacitor/preferences';
@@ -21,6 +21,9 @@ function renderizar() {
           </Route>
           <Route path="/cuestionario-rutina">
             <p>cuestionario de rutina</p>
+          </Route>
+          <Route path="/ejercicio/:id">
+            <p>ficha de ejercicio</p>
           </Route>
         </MemoryRouter>
       </ProveedorPerfil>
@@ -65,5 +68,16 @@ describe('Hoy', () => {
     const { findAllByText } = renderizar();
 
     expect((await findAllByText('lb', { exact: false, selector: 'small' })).length).toBeGreaterThan(0);
+  });
+
+  it('abre la ficha del ejercicio desde el botón de ayuda', async () => {
+    await saludLocal.guardar(salud);
+    await rutinaLocal.guardar(rutina);
+    const { findByRole, findByText } = renderizar();
+
+    const primero = rutina.dias[0].ejercicios[0];
+    fireEvent.click(await findByRole('button', { name: `Ver la ficha de ${primero.nombre}` }));
+
+    expect(await findByText('ficha de ejercicio')).toBeInTheDocument();
   });
 });

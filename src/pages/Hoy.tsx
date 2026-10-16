@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { IonAlert, IonSpinner, useIonToast } from '@ionic/react';
+import { IonAlert, IonIcon, IonSpinner, useIonToast } from '@ionic/react';
+import { helpCircleOutline } from 'ionicons/icons';
 import { Redirect, useHistory } from 'react-router-dom';
 import { BotonSJ, PantallaSJ } from '../components/PantallaSJ';
 import { usePerfil } from '../context/PerfilContext';
@@ -86,7 +87,15 @@ function Hoy() {
         {sesion.ejercicios.map((ejercicio) => (
           <li key={ejercicio.id}>
             <span>
-              <strong>{ejercicio.nombre}</strong>
+              <button
+                type="button"
+                className="sj-enlace-ejercicio"
+                aria-label={`Ver la ficha de ${ejercicio.nombre}`}
+                onClick={() => history.push(`/ejercicio/${ejercicio.id}`)}
+              >
+                <strong>{ejercicio.nombre}</strong>
+                <IonIcon icon={helpCircleOutline} aria-hidden="true" />
+              </button>
               <small className="sj-suave sj-bloque">{ejercicio.series}x{ejercicio.repeticiones}</small>
             </span>
             {ejercicio.pesoInicialKg > 0 ? (

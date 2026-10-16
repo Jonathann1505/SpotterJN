@@ -432,3 +432,22 @@
   margin-top: 0.2rem;
   font-size: 1.5rem;
 }
+
+.sj-enlace-ejercicio {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--sj-ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sj-enlace-ejercicio ion-icon {
+  flex: 0 0 auto;
+  color: var(--sj-blue-ink);
+  font-size: 1.25rem;
+}
