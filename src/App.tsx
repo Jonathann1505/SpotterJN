@@ -19,6 +19,7 @@ import Login from './pages/Login';
 import Perfil from './pages/Perfil';
 import Registro from './pages/Registro';
 import RutinaAsignada from './pages/RutinaAsignada';
+import SesionEntrenamiento from './pages/SesionEntrenamiento';
 import { ProveedorPerfil } from './context/PerfilContext';
 import { ProveedorSesion, useSesion } from './context/SesionContext';
 
@@ -97,6 +98,9 @@ function RutasAplicacion() {
         </Route>
         <Route exact path="/perfil">
           {sesion ? <Perfil /> : <Redirect to="/login" />}
+        </Route>
+        <Route exact path="/sesion">
+          {sesion ? <SesionEntrenamiento /> : <Redirect to="/login" />}
         </Route>
         <Route exact path="/terminos">
           <IonPage>
