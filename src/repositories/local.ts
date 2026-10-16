@@ -8,12 +8,18 @@ import {
   type RutinaAsignada,
 } from '../types/perfil';
 import { guardarJson, leerJson } from './almacenLocal';
-import type { PerfilRepositorio, RutinaRepositorio, SaludRepositorio } from './repositorios';
+import type {
+  FichasVistasRepositorio,
+  PerfilRepositorio,
+  RutinaRepositorio,
+  SaludRepositorio,
+} from './repositorios';
 
 const CLAVE_PERFIL = 'spotter.perfil';
 // La salud va en una clave aparte del perfil identificable (RNF-11, separación de datos).
 const CLAVE_SALUD = 'spotter.salud';
 const CLAVE_RUTINA = 'spotter.rutina';
+const CLAVE_FICHAS_VISTAS = 'spotter.fichasVistas';
 
 function esObjeto(valor: unknown): valor is Record<string, unknown> {
   return typeof valor === 'object' && valor !== null && !Array.isArray(valor);
@@ -67,4 +73,18 @@ export const saludLocal: SaludRepositorio = {
 export const rutinaLocal: RutinaRepositorio = {
   obtener: () => leerJson(CLAVE_RUTINA, esRutina),
   guardar: (rutina) => guardarJson(CLAVE_RUTINA, rutina),
+};
+
+function esListaDeTextos(valor: unknown): valor is string[] {
+  return Array.isArray(valor) && valor.every((elemento) => typeof elemento === 'string');
+}
+
+export const fichasVistasLocal: FichasVistasRepositorio = {
+  obtener: async () => (await leerJson(CLAVE_FICHAS_VISTAS, esListaDeTextos)) ?? [],
+  marcarVista: async (idEjercicio) => {
+    const vistas = (await leerJson(CLAVE_FICHAS_VISTAS, esListaDeTextos)) ?? [];
+    if (!vistas.includes(idEjercicio)) {
+      await guardarJson(CLAVE_FICHAS_VISTAS, [...vistas, idEjercicio]);
+    }
+  },
 };

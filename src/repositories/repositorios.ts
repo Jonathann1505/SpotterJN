@@ -14,3 +14,8 @@ export interface RutinaRepositorio {
   obtener(): Promise<RutinaAsignada | null>;
   guardar(rutina: RutinaAsignada): Promise<void>;
 }
+
+export interface FichasVistasRepositorio {
+  obtener(): Promise<string[]>;
+  marcarVista(idEjercicio: string): Promise<void>;
+}

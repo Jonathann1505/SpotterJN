@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { Preferences } from '@capacitor/preferences';
-import { perfilLocal, rutinaLocal, saludLocal } from './local';
+import { fichasVistasLocal, perfilLocal, rutinaLocal, saludLocal } from './local';
 import type { PerfilUsuario, RespuestasSalud, RutinaAsignada } from '../types/perfil';
 
 beforeEach(async () => {
@@ -42,5 +42,20 @@ describe('repositorios locales', () => {
     await Preferences.set({ key: 'spotter.salud', value: JSON.stringify({ condiciones: ['otra'], respondidoEn: 'x' }) });
     expect(await perfilLocal.obtener()).toBeNull();
     expect(await saludLocal.obtener()).toBeNull();
+  });
+
+  it('registra las fichas de ejercicio vistas sin duplicarlas', async () => {
+    expect(await fichasVistasLocal.obtener()).toEqual([]);
+
+    await fichasVistasLocal.marcarVista('press-banca');
+    await fichasVistasLocal.marcarVista('press-banca');
+    await fichasVistasLocal.marcarVista('remo-maquina');
+
+    expect(await fichasVistasLocal.obtener()).toEqual(['press-banca', 'remo-maquina']);
+  });
+
+  it('ignora una lista de fichas vistas corrupta', async () => {
+    await Preferences.set({ key: 'spotter.fichasVistas', value: JSON.stringify([1, 2]) });
+    expect(await fichasVistasLocal.obtener()).toEqual([]);
   });
 });
