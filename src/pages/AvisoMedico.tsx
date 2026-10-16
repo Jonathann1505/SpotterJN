@@ -1,35 +1,28 @@
-import { IonButton, IonContent, IonPage } from '@ionic/react';
 import { useHistory } from 'react-router-dom';
-import './AuthPages.css';
+import { BotonSJ, PantallaSJ } from '../components/PantallaSJ';
 
 function AvisoMedico() {
   const history = useHistory();
 
   return (
-    <IonPage>
-      <IonContent className="auth-page">
-        <main className="auth-page-content">
-          <section className="auth-page-card" aria-labelledby="aviso-title">
-            <h1 id="aviso-title">Aviso médico</h1>
-            <p>
-              SpotterJN ofrece orientación general para personas que empiezan a entrenar y no
-              reemplaza la valoración de un profesional de la salud.
-            </p>
-            <p>
-              Si sientes dolor, mareo o molestias durante el ejercicio, detente y consulta a un
-              médico o a un profesional del entrenamiento.
-            </p>
-            <IonButton
-              className="auth-submit"
-              expand="block"
-              onClick={() => history.push('/salud')}
-            >
-              Entendido
-            </IonButton>
-          </section>
-        </main>
-      </IonContent>
-    </IonPage>
+    <PantallaSJ
+      etiqueta="Tu salud primero"
+      titulo="Aviso médico"
+      reglaBajoTitulo
+      pie={<BotonSJ onClick={() => history.push('/salud')}>Entendido</BotonSJ>}
+    >
+      <p className="sj-texto">
+        SpotterJN te guía con pesos y series, pero no reemplaza a un médico ni a un entrenador certificado.
+      </p>
+      <p className="sj-texto">
+        Si sientes dolor, mareo o falta de aire, detente. Durante la sesión siempre tendrás el botón
+        «Sentí dolor».
+      </p>
+      <p className="sj-texto">
+        Ahora te haremos unas preguntas cortas sobre tu salud. Tus respuestas se guardan separadas de tu
+        perfil.
+      </p>
+    </PantallaSJ>
   );
 }
 
