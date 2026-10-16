@@ -33,7 +33,7 @@ describe('Perfil', () => {
   it('no guarda un nombre vacío y muestra el error', async () => {
     const { container, findByRole } = renderizar();
 
-    fireEvent.click(container.querySelector('ion-button.auth-submit') as Element);
+    fireEvent.click(container.querySelector('ion-button.sj-boton') as Element);
 
     expect(await findByRole('alert')).toHaveTextContent(/nombre es obligatorio/i);
     expect(await perfilLocal.obtener()).toBeNull();
@@ -43,7 +43,7 @@ describe('Perfil', () => {
     const { container, findByRole } = renderizar();
 
     escribirNombre(container, 'a'.repeat(41));
-    fireEvent.click(container.querySelector('ion-button.auth-submit') as Element);
+    fireEvent.click(container.querySelector('ion-button.sj-boton') as Element);
 
     expect(await findByRole('alert')).toBeInTheDocument();
     expect(await perfilLocal.obtener()).toBeNull();
@@ -54,20 +54,17 @@ describe('Perfil', () => {
 
     escribirNombre(container, '  Nayeli  ');
     fireEvent.click(getByRole('radio', { name: 'Tonificar' }));
-    fireEvent.click(container.querySelector('ion-button.auth-submit') as Element);
+    fireEvent.click(container.querySelector('ion-button.sj-boton') as Element);
 
     expect(await findByRole('status')).toHaveTextContent('Perfil actualizado.');
     expect(await perfilLocal.obtener()).toEqual({ nombre: 'Nayeli', meta: 'tonificar', unidadPeso: 'kg' });
   });
 
   it('cambia la unidad de peso de inmediato', async () => {
-    const { container } = renderizar();
+    const { getByRole } = renderizar();
 
     await act(async () => {
-      fireEvent(
-        container.querySelector('ion-toggle') as Element,
-        new CustomEvent('ionChange', { bubbles: true, detail: { checked: true } }),
-      );
+      fireEvent.click(getByRole('radio', { name: 'lb' }));
     });
 
     await waitFor(async () => {

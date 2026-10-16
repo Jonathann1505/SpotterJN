@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react';
-import { IonButton, IonChip, IonContent, IonInput, IonPage, IonToggle } from '@ionic/react';
+import { IonInput } from '@ionic/react';
 import { useHistory } from 'react-router-dom';
+import { BotonSJ, PantallaSJ } from '../components/PantallaSJ';
 import { usePerfil } from '../context/PerfilContext';
 import { METAS_PRINCIPALES, type MetaPrincipal, type UnidadPeso } from '../types/perfil';
 import { LONGITUD_MAXIMA_NOMBRE, esNombreValido } from '../utils/validaciones';
-import './AuthPages.css';
-import './Rutina.css';
 
 const ETIQUETAS_META: Record<MetaPrincipal, string> = {
   fuerza: 'Ganar fuerza',
@@ -13,6 +12,8 @@ const ETIQUETAS_META: Record<MetaPrincipal, string> = {
   tonificar: 'Tonificar',
   resistencia: 'Resistencia',
 };
+
+const UNIDADES: readonly UnidadPeso[] = ['kg', 'lb'];
 
 function Perfil() {
   const { perfil, guardarPerfil } = usePerfil();
@@ -55,65 +56,67 @@ function Perfil() {
   };
 
   return (
-    <IonPage>
-      <IonContent className="auth-page">
-        <main className="auth-page-content">
-          <section className="auth-page-card" aria-labelledby="perfil-title">
-            <h1 id="perfil-title">Tu perfil</h1>
+    <PantallaSJ
+      etiqueta="Tu cuenta"
+      titulo="Tu perfil"
+      reglaBajoTitulo
+      pie={
+        <>
+          <BotonSJ onClick={() => void guardar()}>Guardar cambios</BotonSJ>
+          <BotonSJ variante="texto" onClick={() => history.goBack()}>Volver</BotonSJ>
+        </>
+      }
+    >
+      <span className="sj-campo-etiqueta" id="etiqueta-nombre">Nombre</span>
+      <IonInput
+        className="sj-input"
+        aria-label="Nombre"
+        maxlength={LONGITUD_MAXIMA_NOMBRE + 10}
+        value={nombre}
+        onIonInput={(evento) => setNombre(String(evento.detail.value ?? ''))}
+        onIonBlur={() => setNombreTocado(true)}
+      />
+      {nombreTocado && !nombreValido ? (
+        <p className="sj-error" role="alert">
+          El nombre es obligatorio y admite hasta {LONGITUD_MAXIMA_NOMBRE} caracteres.
+        </p>
+      ) : null}
 
-            <IonInput
-              label="Nombre"
-              labelPlacement="stacked"
-              fill="outline"
-              maxlength={LONGITUD_MAXIMA_NOMBRE + 10}
-              value={nombre}
-              onIonInput={(evento) => setNombre(String(evento.detail.value ?? ''))}
-              onIonBlur={() => setNombreTocado(true)}
-            />
-            {nombreTocado && !nombreValido ? (
-              <p className="auth-inline-error" role="alert">
-                El nombre es obligatorio y admite hasta {LONGITUD_MAXIMA_NOMBRE} caracteres.
-              </p>
-            ) : null}
+      <h2 className="sj-subtitulo" id="pregunta-meta">Meta principal</h2>
+      <div className="sj-segmentos sj-segmentos-columna" role="radiogroup" aria-labelledby="pregunta-meta">
+        {METAS_PRINCIPALES.map((opcion) => (
+          <button
+            key={opcion}
+            type="button"
+            role="radio"
+            aria-checked={meta === opcion}
+            className="sj-segmento"
+            onClick={() => setMeta(opcion)}
+          >
+            {ETIQUETAS_META[opcion]}
+          </button>
+        ))}
+      </div>
 
-            <h2 className="rutina-pregunta" id="pregunta-meta">Meta principal</h2>
-            <div className="rutina-chips" role="radiogroup" aria-labelledby="pregunta-meta">
-              {METAS_PRINCIPALES.map((opcion) => (
-                <IonChip
-                  key={opcion}
-                  role="radio"
-                  aria-checked={meta === opcion}
-                  className={meta === opcion ? 'rutina-chip rutina-chip-activo' : 'rutina-chip'}
-                  onClick={() => setMeta(opcion)}
-                >
-                  {ETIQUETAS_META[opcion]}
-                </IonChip>
-              ))}
-            </div>
+      <h2 className="sj-subtitulo" id="pregunta-unidad">Unidad de peso</h2>
+      <div className="sj-segmentos" role="radiogroup" aria-labelledby="pregunta-unidad">
+        {UNIDADES.map((unidad) => (
+          <button
+            key={unidad}
+            type="button"
+            role="radio"
+            aria-checked={perfil.unidadPeso === unidad}
+            className="sj-segmento"
+            onClick={() => void cambiarUnidad(unidad)}
+          >
+            {unidad}
+          </button>
+        ))}
+      </div>
 
-            <h2 className="rutina-pregunta" id="pregunta-unidad">Unidad de peso</h2>
-            <div className="perfil-unidad" role="group" aria-labelledby="pregunta-unidad">
-              <span aria-hidden="true">kg</span>
-              <IonToggle
-                checked={perfil.unidadPeso === 'lb'}
-                aria-label="Usar libras en lugar de kilogramos"
-                onIonChange={(evento) => void cambiarUnidad(evento.detail.checked ? 'lb' : 'kg')}
-              />
-              <span aria-hidden="true">lb</span>
-            </div>
-
-            {mensaje ? <p className="auth-inline-message" role="status">{mensaje}</p> : null}
-            {error ? <p className="auth-inline-error" role="alert">{error}</p> : null}
-            <IonButton className="auth-submit" expand="block" onClick={() => void guardar()}>
-              Guardar cambios
-            </IonButton>
-            <IonButton expand="block" fill="clear" onClick={() => history.goBack()}>
-              Volver
-            </IonButton>
-          </section>
-        </main>
-      </IonContent>
-    </IonPage>
+      {mensaje ? <p className="sj-ok" role="status">{mensaje}</p> : null}
+      {error ? <p className="sj-error" role="alert">{error}</p> : null}
+    </PantallaSJ>
   );
 }
 
