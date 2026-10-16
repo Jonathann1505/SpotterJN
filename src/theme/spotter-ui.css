@@ -385,3 +385,50 @@
   aspect-ratio: 1 / 1;
   border: 0;
 }
+
+/* Ficha de ejercicio */
+.sj-mascota {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.sj-mascota .sj-logo {
+  flex: 0 0 auto;
+  width: 3.5rem;
+  margin: 0;
+}
+
+.sj-burbuja {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  background: #e4e4e0;
+  font-size: 0.9375rem;
+  line-height: 1.4;
+}
+
+.sj-subtitulo-ficha {
+  margin-top: 1.25rem;
+}
+
+.sj-separador {
+  margin: 0 0 0.25rem;
+  border: 0;
+  border-top: 1px solid #b9b9b9;
+}
+
+.sj-ubicacion {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin: 1rem 0 0;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.sj-ubicacion ion-icon {
+  flex: 0 0 auto;
+  margin-top: 0.2rem;
+  font-size: 1.5rem;
+}
