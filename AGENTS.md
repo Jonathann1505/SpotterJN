@@ -96,3 +96,12 @@
 - Los registros anteriores sin ID no se migran ni se eliminan; la versión actual no los lee. No atribuirlos automáticamente a un usuario.
 - La separación por usuario en Preferences no cifra los datos ni sustituye el almacenamiento backend/RLS, pendiente junto con la sincronización a Supabase.
 - Validación final: suite completa de Vitest aprobada (83 pruebas en 17 archivos) y `npm run build` aprobado. Vite mantiene la advertencia existente por el bundle principal superior a 500 kB minificados.
+
+### 2026-10-16 — Esqueleto de sesión y temporizador de descanso (M3/RF-11)
+
+- Creada la rama `feature/sesion-entrenamiento` desde `feature/cerrar-sesion`, que conserva los cambios de acceso y M2. Los cambios locales de Gradle continúan en el stash previo; no reaplicarlos automáticamente.
+- Añadida la ruta protegida `/sesion`: muestra los ejercicios de la primera jornada de la rutina del usuario, sugiere volver a Hoy y no registra ni persiste entrenamiento (M3 sigue incompleto).
+- Añadido el componente independiente de descanso RF-11: inicia en 90 segundos, presenta el progreso circular mm:ss y permite sumar/restar 30 segundos y saltar. No se integra con `/sesion`.
+- Pendiente: persistir sesiones y series (resto de M3/RF-10), conectar el temporizador con el entrenamiento y cualquier recuperación de contraseña (RF-03).
+- La duración predeterminada del temporizador es 90 segundos y comienza automáticamente.
+- Verificación final: 91 pruebas en 19 archivos aprobadas; `npm run build` aprobado con la advertencia de Vite por el bundle principal superior a 500 kB minificados.

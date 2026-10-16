@@ -4,7 +4,7 @@ SpotterJN es un proyecto académico de Computación Móvil para apoyar a persona
 
 ## Estado actual
 
-La aplicación está construida con **Ionic React, React, TypeScript, Vite y Capacitor**. El flujo de **Supabase Auth** incluye registro, inicio de sesión, persistencia y cierre de sesión. Las funciones de entrenamiento siguen siendo objetivos académicos y no están implementadas.
+La aplicación está construida con **Ionic React, React, TypeScript, Vite y Capacitor**. El flujo de **Supabase Auth** incluye registro, inicio de sesión, persistencia y cierre de sesión. Hay una pantalla básica para consultar la primera jornada y un temporizador de descanso reutilizable; el registro de entrenamiento todavía no está implementado.
 
 ## Tecnologías y alcance
 
@@ -16,6 +16,7 @@ La aplicación está construida con **Ionic React, React, TypeScript, Vite y Cap
 | Pruebas automatizadas | Configuradas con Vitest y Testing Library |
 | Autenticación | Supabase Auth: registro, inicio, sesión persistente y cierre local en este dispositivo |
 | Perfil, salud y rutina (M2) | En desarrollo: almacenamiento local por usuario con Capacitor Preferences detrás de interfaces de repositorio, sin cifrado; la migración a Supabase queda pendiente |
+| Sesión y descanso (M3/RF-11) | `/sesion` muestra la primera jornada sin registrarla; temporizador de descanso independiente con cuenta regresiva y controles |
 | Tablas propias en Supabase, RLS e IA | No implementados |
 
 Los módulos de cuenta, perfil y rutina, registro de sesiones, progresión, explicaciones con IA, modo sin conexión y guía de máquinas son parte de la visión del proyecto y deberán implementarse por separado.
@@ -27,6 +28,9 @@ SpotterJN/
 ├── src/
 │   ├── App.tsx
 │   ├── main.tsx
+│   ├── components/
+│   │   ├── CerrarSesion.tsx
+│   │   └── TemporizadorDescanso.tsx
 │   ├── context/
 │   │   ├── PerfilContext.tsx     # perfil y unidad de peso (kg/lb)
 │   │   └── SesionContext.tsx
@@ -46,6 +50,7 @@ SpotterJN/
 │   │   ├── Registro.tsx
 │   │   ├── Rutina.css
 │   │   ├── RutinaAsignada.tsx
+│   │   ├── SesionEntrenamiento.tsx
 │   │   └── Salud.css
 │   ├── repositories/
 │   │   ├── repositorios.ts       # interfaces de perfil, salud y rutina
@@ -67,6 +72,7 @@ SpotterJN/
 │   ├── test/
 │   │   └── setup.ts
 │   ├── App.test.tsx
+│   ├── components/*.test.tsx
 │   └── pages/*.test.tsx
 ├── AGENTS.md
 ├── android/                      # Proyecto nativo Capacitor
@@ -114,8 +120,12 @@ Limitaciones actuales:
 - Los datos de M2 se guardan en el dispositivo con Capacitor Preferences, detrás de las interfaces de `src/repositories/repositorios.ts` y bajo claves asociadas al ID del usuario autenticado. No están cifrados ni se sincronizan con Supabase; RNF-11 (cifrado en reposo y separación en backend) queda pendiente.
 - Los datos guardados por versiones anteriores en claves locales sin usuario no se migran automáticamente ni se borran: la app actual no los muestra. Tras actualizar, cada usuario deberá volver a completar el flujo M2 para generar sus datos asociados a su cuenta.
 - Los pesos que muestra `Hoy` son los iniciales del catálogo (`src/data/ejercicios.ts`), no cálculos de progresión: dependen de M3 y M4. Hasta que exista el historial de sesiones, la "próxima sesión" es siempre el primer día de la rutina.
-- El botón «Empezar entrenamiento» navega a `/sesion`, que aún no existe (M3).
+- `/sesion` muestra los ejercicios de la primera jornada y permite volver a Hoy. Es un esqueleto visual: todavía no registra series, pesos ni historial (M3).
 - El cuestionario de rutina se asigna con plantillas fijas según días y equipo, sin IA.
+
+## Sesión de entrenamiento (M3)
+
+La ruta protegida `/sesion`, accesible desde «Empezar entrenamiento» en Hoy, carga y muestra los ejercicios de la primera jornada de la rutina del usuario. Permite volver a Hoy y no registra ni persiste actividad. El componente de descanso RF-11 es independiente: ofrece una cuenta regresiva inicial de 90 segundos, círculo de tiempo restante y controles para sumar/restar 30 segundos o saltar; no se conecta todavía al flujo de una sesión. La duración inicial es 90 segundos y comienza automáticamente.
 
 ## Supabase y variables de entorno
 
