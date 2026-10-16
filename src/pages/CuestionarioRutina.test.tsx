@@ -2,9 +2,13 @@ import { cleanup, fireEvent, render, waitFor } from '@testing-library/react';
 import { IonApp } from '@ionic/react';
 import { MemoryRouter, Route } from 'react-router-dom';
 import { Preferences } from '@capacitor/preferences';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import CuestionarioRutina from './CuestionarioRutina';
 import { rutinaLocal } from '../repositories/local';
+
+vi.mock('../context/SesionContext', () => ({
+  useSesion: () => ({ sesion: { user: { id: 'usuario-prueba' } } }),
+}));
 
 function renderizar() {
   return render(
@@ -61,7 +65,7 @@ describe('CuestionarioRutina', () => {
 
     expect(await findByText('rutina asignada')).toBeInTheDocument();
     await waitFor(async () => {
-      const rutina = await rutinaLocal.obtener();
+      const rutina = await rutinaLocal.obtener('usuario-prueba');
       expect(rutina?.cuestionario).toEqual({ experiencia: 'menos-6-meses', diasPorSemana: 3, equipo: ['maquinas'] });
       expect(rutina?.dias).toHaveLength(3);
     });

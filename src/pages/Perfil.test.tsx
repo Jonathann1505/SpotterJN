@@ -2,10 +2,14 @@ import { act, cleanup, fireEvent, render, waitFor } from '@testing-library/react
 import { IonApp } from '@ionic/react';
 import { MemoryRouter, Route } from 'react-router-dom';
 import { Preferences } from '@capacitor/preferences';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ProveedorPerfil } from '../context/PerfilContext';
 import { perfilLocal } from '../repositories/local';
 import Perfil from './Perfil';
+
+vi.mock('../context/SesionContext', () => ({
+  useSesion: () => ({ sesion: { user: { id: 'usuario-prueba' } } }),
+}));
 
 function escribirNombre(contenedor: HTMLElement, valor: string): void {
   const campo = contenedor.querySelector('ion-input') as Element;
@@ -36,7 +40,7 @@ describe('Perfil', () => {
     fireEvent.click(container.querySelector('ion-button.sj-boton') as Element);
 
     expect(await findByRole('alert')).toHaveTextContent(/nombre es obligatorio/i);
-    expect(await perfilLocal.obtener()).toBeNull();
+    expect(await perfilLocal.obtener('usuario-prueba')).toBeNull();
   });
 
   it('no guarda un nombre de más de 40 caracteres', async () => {
@@ -46,7 +50,7 @@ describe('Perfil', () => {
     fireEvent.click(container.querySelector('ion-button.sj-boton') as Element);
 
     expect(await findByRole('alert')).toBeInTheDocument();
-    expect(await perfilLocal.obtener()).toBeNull();
+    expect(await perfilLocal.obtener('usuario-prueba')).toBeNull();
   });
 
   it('guarda nombre y meta', async () => {
@@ -57,7 +61,11 @@ describe('Perfil', () => {
     fireEvent.click(container.querySelector('ion-button.sj-boton') as Element);
 
     expect(await findByRole('status')).toHaveTextContent('Perfil actualizado.');
-    expect(await perfilLocal.obtener()).toEqual({ nombre: 'Nayeli', meta: 'tonificar', unidadPeso: 'kg' });
+    expect(await perfilLocal.obtener('usuario-prueba')).toEqual({
+      nombre: 'Nayeli',
+      meta: 'tonificar',
+      unidadPeso: 'kg',
+    });
   });
 
   it('cambia la unidad de peso de inmediato', async () => {
@@ -68,7 +76,7 @@ describe('Perfil', () => {
     });
 
     await waitFor(async () => {
-      expect((await perfilLocal.obtener())?.unidadPeso).toBe('lb');
+      expect((await perfilLocal.obtener('usuario-prueba'))?.unidadPeso).toBe('lb');
     });
   });
 });

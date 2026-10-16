@@ -2,9 +2,13 @@ import { cleanup, fireEvent, render, waitFor } from '@testing-library/react';
 import { IonApp } from '@ionic/react';
 import { MemoryRouter, Route } from 'react-router-dom';
 import { Preferences } from '@capacitor/preferences';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import CuestionarioSalud from './CuestionarioSalud';
 import { saludLocal } from '../repositories/local';
+
+vi.mock('../context/SesionContext', () => ({
+  useSesion: () => ({ sesion: { user: { id: 'usuario-prueba' } } }),
+}));
 
 function renderizar() {
   return render(
@@ -64,7 +68,7 @@ describe('CuestionarioSalud', () => {
 
     expect(await findByText('siguiente pantalla')).toBeInTheDocument();
     await waitFor(async () => {
-      expect((await saludLocal.obtener())?.condiciones).toEqual(['problema-cardiaco']);
+      expect((await saludLocal.obtener('usuario-prueba'))?.condiciones).toEqual(['problema-cardiaco']);
     });
   });
 });

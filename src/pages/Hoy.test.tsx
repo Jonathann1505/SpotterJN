@@ -10,6 +10,10 @@ import Hoy from './Hoy';
 
 vi.mock('../services/auth', () => ({ cerrarSesion: vi.fn() }));
 
+vi.mock('../context/SesionContext', () => ({
+  useSesion: () => ({ sesion: { user: { id: 'usuario-prueba' } } }),
+}));
+
 function renderizar() {
   return render(
     <IonApp>
@@ -43,14 +47,14 @@ describe('Hoy', () => {
   });
 
   it('envía al cuestionario de rutina si no hay rutina asignada', async () => {
-    await saludLocal.guardar(salud);
+    await saludLocal.guardar('usuario-prueba', salud);
     const { findByText } = renderizar();
     expect(await findByText('cuestionario de rutina')).toBeInTheDocument();
   });
 
   it('muestra la próxima sesión con ejercicios, series y pesos', async () => {
-    await saludLocal.guardar(salud);
-    await rutinaLocal.guardar(rutina);
+    await saludLocal.guardar('usuario-prueba', salud);
+    await rutinaLocal.guardar('usuario-prueba', rutina);
     const { findByRole, getAllByText, getByText } = renderizar();
 
     expect(await findByRole('heading', { name: rutina.dias[0].nombre })).toBeInTheDocument();
@@ -59,9 +63,9 @@ describe('Hoy', () => {
   });
 
   it('muestra los pesos en libras si el perfil usa lb', async () => {
-    await saludLocal.guardar(salud);
-    await rutinaLocal.guardar(rutina);
-    await perfilLocal.guardar({ nombre: 'Nayeli', meta: 'fuerza', unidadPeso: 'lb' });
+    await saludLocal.guardar('usuario-prueba', salud);
+    await rutinaLocal.guardar('usuario-prueba', rutina);
+    await perfilLocal.guardar('usuario-prueba', { nombre: 'Nayeli', meta: 'fuerza', unidadPeso: 'lb' });
     const { findAllByText } = renderizar();
 
     expect((await findAllByText('lb', { exact: false, selector: 'small' })).length).toBeGreaterThan(0);

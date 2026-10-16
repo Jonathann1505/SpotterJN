@@ -2,11 +2,15 @@ import { cleanup, fireEvent, render } from '@testing-library/react';
 import { IonApp } from '@ionic/react';
 import { MemoryRouter, Route } from 'react-router-dom';
 import { Preferences } from '@capacitor/preferences';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ProveedorPerfil } from '../context/PerfilContext';
 import { perfilLocal, rutinaLocal } from '../repositories/local';
 import { asignarRutina } from '../utils/rutina';
 import RutinaAsignada from './RutinaAsignada';
+
+vi.mock('../context/SesionContext', () => ({
+  useSesion: () => ({ sesion: { user: { id: 'usuario-prueba' } } }),
+}));
 
 function renderizar() {
   return render(
@@ -35,7 +39,10 @@ describe('RutinaAsignada', () => {
   });
 
   it('muestra un acordeón por día con sus ejercicios', async () => {
-    await rutinaLocal.guardar(asignarRutina({ experiencia: 'ninguna', diasPorSemana: 3, equipo: ['maquinas'] }));
+    await rutinaLocal.guardar(
+      'usuario-prueba',
+      asignarRutina({ experiencia: 'ninguna', diasPorSemana: 3, equipo: ['maquinas'] }),
+    );
     const { findByRole, getAllByRole, getAllByText, getByText } = renderizar();
 
     expect(await findByRole('heading', { name: '3 días por semana' })).toBeInTheDocument();
@@ -45,7 +52,10 @@ describe('RutinaAsignada', () => {
   });
 
   it('abre y cierra un día al tocarlo', async () => {
-    await rutinaLocal.guardar(asignarRutina({ experiencia: 'ninguna', diasPorSemana: 3, equipo: ['maquinas'] }));
+    await rutinaLocal.guardar(
+      'usuario-prueba',
+      asignarRutina({ experiencia: 'ninguna', diasPorSemana: 3, equipo: ['maquinas'] }),
+    );
     const { findAllByRole } = renderizar();
 
     const dias = await findAllByRole('button', { name: /Día \d/ });
@@ -56,8 +66,11 @@ describe('RutinaAsignada', () => {
   });
 
   it('muestra los pesos en la unidad del perfil', async () => {
-    await perfilLocal.guardar({ nombre: 'Nayeli', meta: 'fuerza', unidadPeso: 'lb' });
-    await rutinaLocal.guardar(asignarRutina({ experiencia: 'ninguna', diasPorSemana: 2, equipo: ['maquinas'] }));
+    await perfilLocal.guardar('usuario-prueba', { nombre: 'Nayeli', meta: 'fuerza', unidadPeso: 'lb' });
+    await rutinaLocal.guardar(
+      'usuario-prueba',
+      asignarRutina({ experiencia: 'ninguna', diasPorSemana: 2, equipo: ['maquinas'] }),
+    );
     const { findAllByText } = renderizar();
 
     expect((await findAllByText(/\d lb/)).length).toBeGreaterThan(0);
