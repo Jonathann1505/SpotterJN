@@ -1,4 +1,4 @@
-import { cleanup, render } from '@testing-library/react';
+import { cleanup, fireEvent, render } from '@testing-library/react';
 import { IonApp } from '@ionic/react';
 import { MemoryRouter, Route } from 'react-router-dom';
 import { Preferences } from '@capacitor/preferences';
@@ -36,11 +36,23 @@ describe('RutinaAsignada', () => {
 
   it('muestra un acordeón por día con sus ejercicios', async () => {
     await rutinaLocal.guardar(asignarRutina({ experiencia: 'ninguna', diasPorSemana: 3, equipo: ['maquinas'] }));
-    const { container, findByRole, getAllByText } = renderizar();
+    const { findByRole, getAllByRole, getAllByText, getByText } = renderizar();
 
-    expect(await findByRole('heading', { name: 'Tu rutina' })).toBeInTheDocument();
-    expect(container.querySelectorAll('ion-accordion')).toHaveLength(3);
+    expect(await findByRole('heading', { name: '3 días por semana' })).toBeInTheDocument();
+    expect(getAllByRole('button', { name: /Día \d/ })).toHaveLength(3);
+    expect(getByText(/Entrenas cuerpo completo/)).toBeInTheDocument();
     expect(getAllByText(/3x12/).length).toBeGreaterThan(0);
+  });
+
+  it('abre y cierra un día al tocarlo', async () => {
+    await rutinaLocal.guardar(asignarRutina({ experiencia: 'ninguna', diasPorSemana: 3, equipo: ['maquinas'] }));
+    const { findAllByRole } = renderizar();
+
+    const dias = await findAllByRole('button', { name: /Día \d/ });
+    expect(dias[0]).toHaveAttribute('aria-expanded', 'true');
+    fireEvent.click(dias[1]);
+    expect(dias[0]).toHaveAttribute('aria-expanded', 'false');
+    expect(dias[1]).toHaveAttribute('aria-expanded', 'true');
   });
 
   it('muestra los pesos en la unidad del perfil', async () => {

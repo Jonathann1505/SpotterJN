@@ -333,3 +333,8 @@
   border-left: 0;
   border-top: var(--sj-linea);
 }
+
+.sj-bloque {
+  display: block;
+  font-size: 0.875rem;
+}

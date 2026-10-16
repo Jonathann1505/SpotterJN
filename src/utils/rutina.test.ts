@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { EJERCICIOS } from '../data/ejercicios';
 import type { CuestionarioRutina } from '../types/perfil';
-import { asignarRutina } from './rutina';
+import { asignarRutina, describirRutina, tipoDeSesion } from './rutina';
 
 const base: CuestionarioRutina = { experiencia: 'ninguna', diasPorSemana: 3, equipo: ['maquinas', 'mancuernas'] };
 
@@ -44,5 +44,21 @@ describe('asignarRutina', () => {
     const rutina = asignarRutina({ ...base, diasPorSemana: 9 }, new Date('2026-10-09T10:00:00.000Z'));
     expect(rutina.dias).toHaveLength(6);
     expect(rutina.asignadaEn).toBe('2026-10-09T10:00:00.000Z');
+  });
+});
+
+describe('describirRutina', () => {
+  it('describe una rutina de un solo tipo de sesión', () => {
+    const rutina = asignarRutina({ ...base, diasPorSemana: 3 });
+    expect(describirRutina(rutina)).toBe('Entrenas cuerpo completo en cada sesión.');
+  });
+
+  it('enumera los tipos de sesión cuando alternan', () => {
+    const rutina = asignarRutina({ ...base, diasPorSemana: 4 });
+    expect(describirRutina(rutina)).toBe('Alternamos sesiones de tren superior y tren inferior.');
+  });
+
+  it('quita el prefijo del día al nombrar el tipo', () => {
+    expect(tipoDeSesion('Día 2 – Tren inferior')).toBe('Tren inferior');
   });
 });

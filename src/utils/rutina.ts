@@ -80,3 +80,16 @@ export function asignarRutina(cuestionario: CuestionarioRutina, ahora: Date = ne
 
   return { cuestionario, dias: diasRutina, asignadaEn: ahora.toISOString() };
 }
+
+/** Nombre del tipo de sesión sin el prefijo "Día N – ". */
+export function tipoDeSesion(nombreDia: string): string {
+  return nombreDia.replace(/^Día \d+\s*[–-]\s*/u, '');
+}
+
+export function describirRutina(rutina: RutinaAsignada): string {
+  const tipos = [...new Set(rutina.dias.map((dia) => tipoDeSesion(dia.nombre).toLowerCase()))];
+  const lista =
+    tipos.length === 1 ? tipos[0] : `${tipos.slice(0, -1).join(', ')} y ${tipos[tipos.length - 1]}`;
+
+  return tipos.length === 1 ? `Entrenas ${lista} en cada sesión.` : `Alternamos sesiones de ${lista}.`;
+}
