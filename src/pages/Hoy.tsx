@@ -1,22 +1,12 @@
 import { useEffect, useState } from 'react';
-import {
-  IonAlert,
-  IonButton,
-  IonContent,
-  IonHeader,
-  IonPage,
-  IonSpinner,
-  IonTitle,
-  IonToolbar,
-  useIonToast,
-} from '@ionic/react';
+import { IonAlert, IonSpinner, useIonToast } from '@ionic/react';
 import { Redirect, useHistory } from 'react-router-dom';
+import { BotonSJ, PantallaSJ } from '../components/PantallaSJ';
 import { usePerfil } from '../context/PerfilContext';
 import { rutinaLocal, saludLocal } from '../repositories/local';
 import { cerrarSesion } from '../services/auth';
 import type { RespuestasSalud, RutinaAsignada } from '../types/perfil';
 import { pesoEnUnidad } from '../utils/unidades';
-import './Hoy.css';
 
 interface DatosHoy {
   salud: RespuestasSalud | null;
@@ -61,11 +51,9 @@ function Hoy() {
 
   if (datos === null) {
     return (
-      <IonPage>
-        <IonContent className="ion-padding ion-text-center">
-          <IonSpinner aria-label="Cargando tu sesión" />
-        </IonContent>
-      </IonPage>
+      <PantallaSJ titulo="Hoy">
+        <IonSpinner aria-label="Cargando tu sesión" />
+      </PantallaSJ>
     );
   }
 
@@ -81,60 +69,52 @@ function Hoy() {
   const sesion = datos.rutina.dias[0];
 
   return (
-    <IonPage>
-      <IonHeader>
-        <IonToolbar>
-          <IonTitle>Hoy</IonTitle>
-        </IonToolbar>
-      </IonHeader>
-      <IonContent className="ion-padding">
-        <section className="hoy-sesion" aria-labelledby="hoy-sesion-nombre">
-          <p className="hoy-etiqueta">Próxima sesión</p>
-          <h1 id="hoy-sesion-nombre">{sesion.nombre}</h1>
-          <ul className="hoy-ejercicios">
-            {sesion.ejercicios.map((ejercicio) => (
-              <li key={ejercicio.id}>
-                <div>
-                  <strong>{ejercicio.nombre}</strong>
-                  <span>{ejercicio.series}x{ejercicio.repeticiones}</span>
-                </div>
-                {ejercicio.pesoInicialKg > 0 ? (
-                  <p className="hoy-peso">
-                    {pesoEnUnidad(ejercicio.pesoInicialKg, perfil.unidadPeso).toLocaleString('es')}
-                    <small> {perfil.unidadPeso}</small>
-                  </p>
-                ) : (
-                  <p className="hoy-peso hoy-peso-corporal">Peso corporal</p>
-                )}
-              </li>
-            ))}
-          </ul>
-        </section>
-        <IonButton expand="block" onClick={() => history.push('/sesion')}>
-          Empezar entrenamiento
-        </IonButton>
-        <IonButton expand="block" fill="outline" routerLink="/perfil">
-          Perfil
-        </IonButton>
-        <IonButton expand="block" fill="clear" onClick={() => setAlertaAbierta(true)}>
-          Cerrar sesión
-        </IonButton>
-        <IonAlert
-          isOpen={alertaAbierta}
-          header="Cerrar sesión"
-          message="¿Quieres cerrar tu sesión?"
-          buttons={[
-            { text: 'Cancelar', role: 'cancel', handler: () => setAlertaAbierta(false) },
-            {
-              text: 'Cerrar sesión',
-              role: 'confirm',
-              handler: () => void confirmarCierreSesion(),
-            },
-          ]}
-          onDidDismiss={() => setAlertaAbierta(false)}
-        />
-      </IonContent>
-    </IonPage>
+    <PantallaSJ
+      mostrarLogo
+      etiqueta="Próxima sesión"
+      titulo={sesion.nombre}
+      reglaBajoTitulo
+      pie={
+        <>
+          <BotonSJ onClick={() => history.push('/sesion')}>Empezar entrenamiento</BotonSJ>
+          <BotonSJ variante="secundario" onClick={() => history.push('/perfil')}>Perfil</BotonSJ>
+          <BotonSJ variante="texto" onClick={() => setAlertaAbierta(true)}>Cerrar sesión</BotonSJ>
+        </>
+      }
+    >
+      <ul className="sj-lista sj-lista-hoy">
+        {sesion.ejercicios.map((ejercicio) => (
+          <li key={ejercicio.id}>
+            <span>
+              <strong>{ejercicio.nombre}</strong>
+              <small className="sj-suave sj-bloque">{ejercicio.series}x{ejercicio.repeticiones}</small>
+            </span>
+            {ejercicio.pesoInicialKg > 0 ? (
+              <p className="sj-peso">
+                {pesoEnUnidad(ejercicio.pesoInicialKg, perfil.unidadPeso).toLocaleString('es')}
+                <small> {perfil.unidadPeso}</small>
+              </p>
+            ) : (
+              <p className="sj-peso sj-peso-corporal">Peso corporal</p>
+            )}
+          </li>
+        ))}
+      </ul>
+      <IonAlert
+        isOpen={alertaAbierta}
+        header="Cerrar sesión"
+        message="¿Quieres cerrar tu sesión?"
+        buttons={[
+          { text: 'Cancelar', role: 'cancel', handler: () => setAlertaAbierta(false) },
+          {
+            text: 'Cerrar sesión',
+            role: 'confirm',
+            handler: () => void confirmarCierreSesion(),
+          },
+        ]}
+        onDidDismiss={() => setAlertaAbierta(false)}
+      />
+    </PantallaSJ>
   );
 }
 

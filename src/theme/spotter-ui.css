@@ -338,3 +338,31 @@
   display: block;
   font-size: 0.875rem;
 }
+
+.sj-lista-hoy li {
+  padding: 1rem 0;
+}
+
+.sj-lista-hoy li strong {
+  font-size: 1.0625rem;
+}
+
+.sj-peso {
+  margin: 0;
+  font-size: 2.25rem;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.sj-peso small {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--sj-muted);
+}
+
+.sj-peso-corporal {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--sj-muted);
+}
