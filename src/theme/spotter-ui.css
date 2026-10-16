@@ -371,3 +371,17 @@
   font-weight: 700;
   color: var(--sj-muted);
 }
+
+/* Animación del ejercicio */
+.sj-animacion {
+  margin: 0 -1.25rem;
+  border-block: var(--sj-linea);
+  background: #aec7dd;
+}
+
+.sj-animacion-marco {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border: 0;
+}
