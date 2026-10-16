@@ -98,6 +98,76 @@
   font-weight: 600;
 }
 
+.sj-descanso {
+  display: grid;
+  justify-items: center;
+  gap: 1.25rem;
+  padding: 1.5rem 0;
+}
+
+.sj-descanso-circulo {
+  position: relative;
+  width: min(15rem, 70vw);
+  aspect-ratio: 1;
+}
+
+.sj-descanso-circulo svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.sj-descanso-trazo,
+.sj-descanso-progreso {
+  fill: none;
+  stroke-width: 6;
+}
+
+.sj-descanso-trazo {
+  stroke: #d2d2d2;
+}
+
+.sj-descanso-progreso {
+  stroke: var(--sj-blue);
+  stroke-linecap: square;
+  transition: stroke-dashoffset 0.25s linear;
+}
+
+.sj-descanso-tiempo {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--sj-ink);
+  font-size: clamp(2.5rem, 12vw, 3.5rem);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.sj-descanso-controles {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.sj-descanso-controles button {
+  min-height: 3rem;
+  padding: 0.5rem 0.85rem;
+  border: 2px solid var(--sj-ink);
+  background: transparent;
+  color: var(--sj-ink);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.sj-descanso-controles button:focus-visible {
+  outline: 3px solid var(--sj-blue);
+  outline-offset: 2px;
+}
+
 /* Botones */
 .sj ion-button.sj-boton {
   --background: var(--sj-blue);
