@@ -403,7 +403,7 @@
 .sj-burbuja {
   margin: 0;
   padding: 0.75rem 1rem;
-  background: #e4e4e0;
+  background: var(--sj-campo);
   font-size: 0.9375rem;
   line-height: 1.4;
 }
@@ -415,7 +415,7 @@
 .sj-separador {
   margin: 0 0 0.25rem;
   border: 0;
-  border-top: 1px solid #b9b9b9;
+  border-top: 1px solid rgb(26 26 26 / 28%);
 }
 
 .sj-ubicacion {
