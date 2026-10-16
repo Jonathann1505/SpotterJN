@@ -6,10 +6,6 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import CuestionarioRutina from './CuestionarioRutina';
 import { rutinaLocal } from '../repositories/local';
 
-function marcar(elemento: Element, checked: boolean): void {
-  fireEvent(elemento, new CustomEvent('ionChange', { bubbles: true, detail: { checked } }));
-}
-
 function renderizar() {
   return render(
     <IonApp>
@@ -31,12 +27,12 @@ describe('CuestionarioRutina', () => {
 
   it('habilita "Ver mi rutina" solo con experiencia y equipo respondidos', () => {
     const { container, getByRole } = renderizar();
-    const boton = container.querySelector('ion-button.auth-submit');
+    const boton = container.querySelector('ion-button.sj-boton');
 
     expect(boton).toHaveAttribute('disabled');
     fireEvent.click(getByRole('radio', { name: 'Ninguna' }));
     expect(boton).toHaveAttribute('disabled');
-    marcar(container.querySelectorAll('ion-checkbox')[0], true);
+    fireEvent.click(getByRole('checkbox', { name: 'Mancuernas' }));
     expect(boton).toHaveAttribute('disabled', 'false');
   });
 
@@ -60,8 +56,8 @@ describe('CuestionarioRutina', () => {
     const { container, getByRole, findByText } = renderizar();
 
     fireEvent.click(getByRole('radio', { name: 'Menos de 6 meses' }));
-    marcar(container.querySelectorAll('ion-checkbox')[2], true);
-    fireEvent.click(container.querySelector('ion-button.auth-submit') as Element);
+    fireEvent.click(getByRole('checkbox', { name: 'Máquinas guiadas' }));
+    fireEvent.click(container.querySelector('ion-button.sj-boton') as Element);
 
     expect(await findByText('rutina asignada')).toBeInTheDocument();
     await waitFor(async () => {

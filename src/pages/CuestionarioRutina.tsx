@@ -1,12 +1,9 @@
 import { useState } from 'react';
-import { IonButton, IonCheckbox, IonChip, IonContent, IonItem, IonLabel, IonPage } from '@ionic/react';
 import { useHistory } from 'react-router-dom';
+import { BotonSJ, PantallaSJ } from '../components/PantallaSJ';
 import { rutinaLocal } from '../repositories/local';
 import { DIAS_MAXIMOS, DIAS_MINIMOS, asignarRutina } from '../utils/rutina';
 import { EQUIPOS, EXPERIENCIAS, type EquipoGimnasio, type Experiencia } from '../types/perfil';
-import './AuthPages.css';
-import './Rutina.css';
-import './Salud.css';
 
 const ETIQUETAS_EXPERIENCIA: Record<Experiencia, string> = {
   ninguna: 'Ninguna',
@@ -31,10 +28,8 @@ function CuestionarioRutina() {
   const history = useHistory();
   const completo = experiencia !== null && equipo.length > 0;
 
-  const alternarEquipo = (item: EquipoGimnasio, marcado: boolean): void => {
-    setEquipo((actual) =>
-      marcado ? (actual.includes(item) ? actual : [...actual, item]) : actual.filter((e) => e !== item),
-    );
+  const alternarEquipo = (item: EquipoGimnasio): void => {
+    setEquipo((actual) => (actual.includes(item) ? actual.filter((e) => e !== item) : [...actual, item]));
   };
 
   const verRutina = async (): Promise<void> => {
@@ -54,74 +49,74 @@ function CuestionarioRutina() {
   };
 
   return (
-    <IonPage>
-      <IonContent className="auth-page">
-        <main className="auth-page-content">
-          <section className="auth-page-card" aria-labelledby="rutina-title">
-            <h1 id="rutina-title">Tu rutina inicial</h1>
-            <p>Responde tres preguntas para asignarte una rutina.</p>
+    <PantallaSJ
+      etiqueta="Tu rutina inicial"
+      titulo="Cuéntanos de ti"
+      reglaBajoTitulo
+      pie={
+        <BotonSJ deshabilitado={!completo || guardando} onClick={() => void verRutina()}>
+          Ver mi rutina
+        </BotonSJ>
+      }
+    >
+      <h2 className="sj-subtitulo" id="pregunta-experiencia">Experiencia previa</h2>
+      <div className="sj-segmentos sj-segmentos-columna" role="radiogroup" aria-labelledby="pregunta-experiencia">
+        {EXPERIENCIAS.map((opcion) => (
+          <button
+            key={opcion}
+            type="button"
+            role="radio"
+            aria-checked={experiencia === opcion}
+            className="sj-segmento"
+            onClick={() => setExperiencia(opcion)}
+          >
+            {ETIQUETAS_EXPERIENCIA[opcion]}
+          </button>
+        ))}
+      </div>
 
-            <h2 className="rutina-pregunta" id="pregunta-experiencia">Experiencia previa</h2>
-            <div className="rutina-chips" role="radiogroup" aria-labelledby="pregunta-experiencia">
-              {EXPERIENCIAS.map((opcion) => (
-                <IonChip
-                  key={opcion}
-                  role="radio"
-                  aria-checked={experiencia === opcion}
-                  className={experiencia === opcion ? 'rutina-chip rutina-chip-activo' : 'rutina-chip'}
-                  onClick={() => setExperiencia(opcion)}
-                >
-                  {ETIQUETAS_EXPERIENCIA[opcion]}
-                </IonChip>
-              ))}
-            </div>
+      <h2 className="sj-subtitulo" id="pregunta-dias">Días disponibles por semana</h2>
+      <div className="sj-contador" role="group" aria-labelledby="pregunta-dias">
+        <button
+          type="button"
+          aria-label="Menos días"
+          disabled={dias <= DIAS_MINIMOS}
+          onClick={() => setDias((actual) => Math.max(DIAS_MINIMOS, actual - 1))}
+        >
+          −
+        </button>
+        <output aria-live="polite">{dias}</output>
+        <button
+          type="button"
+          aria-label="Más días"
+          disabled={dias >= DIAS_MAXIMOS}
+          onClick={() => setDias((actual) => Math.min(DIAS_MAXIMOS, actual + 1))}
+        >
+          +
+        </button>
+      </div>
 
-            <h2 className="rutina-pregunta" id="pregunta-dias">Días disponibles por semana</h2>
-            <div className="rutina-stepper" role="group" aria-labelledby="pregunta-dias">
-              <IonButton
-                fill="outline"
-                aria-label="Menos días"
-                disabled={dias <= DIAS_MINIMOS}
-                onClick={() => setDias((actual) => Math.max(DIAS_MINIMOS, actual - 1))}
-              >
-                −
-              </IonButton>
-              <output className="rutina-stepper-valor" aria-live="polite">{dias}</output>
-              <IonButton
-                fill="outline"
-                aria-label="Más días"
-                disabled={dias >= DIAS_MAXIMOS}
-                onClick={() => setDias((actual) => Math.min(DIAS_MAXIMOS, actual + 1))}
-              >
-                +
-              </IonButton>
-            </div>
-
-            <h2 className="rutina-pregunta">Equipo disponible</h2>
-            {EQUIPOS.map((item) => (
-              <IonItem key={item} className="auth-check-row salud-check" lines="none">
-                <IonCheckbox
-                  checked={equipo.includes(item)}
-                  onIonChange={(evento) => alternarEquipo(item, evento.detail.checked === true)}
-                  aria-label={ETIQUETAS_EQUIPO[item]}
-                />
-                <IonLabel>{ETIQUETAS_EQUIPO[item]}</IonLabel>
-              </IonItem>
-            ))}
-
-            {error ? <p className="auth-inline-error" role="alert">{error}</p> : null}
-            <IonButton
-              className="auth-submit"
-              expand="block"
-              disabled={!completo || guardando}
-              onClick={() => void verRutina()}
+      <h2 className="sj-subtitulo" id="pregunta-equipo">Equipo disponible</h2>
+      <div role="group" aria-labelledby="pregunta-equipo">
+        {EQUIPOS.map((item) => {
+          const marcado = equipo.includes(item);
+          return (
+            <button
+              key={item}
+              type="button"
+              role="checkbox"
+              aria-checked={marcado}
+              className="sj-opcion"
+              onClick={() => alternarEquipo(item)}
             >
-              Ver mi rutina
-            </IonButton>
-          </section>
-        </main>
-      </IonContent>
-    </IonPage>
+              <span className="sj-opcion-marca" aria-hidden="true">{marcado ? '✓' : ''}</span>
+              {ETIQUETAS_EQUIPO[item]}
+            </button>
+          );
+        })}
+      </div>
+      {error ? <p className="sj-error" role="alert">{error}</p> : null}
+    </PantallaSJ>
   );
 }
 

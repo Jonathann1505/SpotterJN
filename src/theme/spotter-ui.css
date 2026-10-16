@@ -319,3 +319,17 @@
 .sj-cierre {
   border-top: var(--sj-linea);
 }
+
+.sj-segmentos-columna {
+  flex-direction: column;
+}
+
+.sj-segmentos-columna .sj-segmento {
+  text-align: left;
+  padding-inline: 1rem;
+}
+
+.sj-segmentos-columna .sj-segmento + .sj-segmento {
+  border-left: 0;
+  border-top: var(--sj-linea);
+}
