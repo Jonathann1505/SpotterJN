@@ -29,12 +29,14 @@ SpotterJN/
 │   ├── main.tsx
 │   ├── components/
 │   │   ├── PantallaSJ.tsx       # estructura y botón del estilo de perfil y progreso
-│   │   └── AnimacionEjercicio.tsx # animación del ejercicio en iframe aislado
+│   │   ├── AnimacionEjercicio.tsx # animación del ejercicio en iframe aislado
+│   │   └── AyudaTermino.tsx      # ícono de ayuda con la definición de un término
 │   ├── context/
 │   │   ├── PerfilContext.tsx     # perfil y unidad de peso (kg/lb)
 │   │   └── SesionContext.tsx
 │   ├── data/
 │   │   ├── ejercicios.ts         # catálogo de ejercicios de las rutinas
+│   │   ├── glosario.ts           # términos básicos y sus definiciones
 │   │   └── guias.ts              # guía de cada ejercicio (ajuste, movimiento, ubicación)
 │   ├── pages/
 │   │   ├── AuthPages.css
@@ -43,6 +45,7 @@ SpotterJN/
 │   │   ├── CuestionarioRutina.tsx
 │   │   ├── CuestionarioSalud.tsx
 │   │   ├── FichaEjercicio.tsx
+│   │   ├── Glosario.tsx
 │   │   ├── Hoy.tsx
 │   │   ├── Hoy.css
 │   │   ├── Login.tsx
@@ -128,6 +131,10 @@ Cada ejercicio tiene una ficha en `/ejercicio/:id` con su animación, cómo ajus
 - Las animaciones son archivos HTML autocontenidos en `public/ejercicios/` (hoy solo `press-banca.html`), que se muestran en un `iframe` con `sandbox="allow-scripts"`. Se pausan al tocarlas y no se inician si el sistema pide menos movimiento.
 - El contenido de cada guía está en `src/data/guias.ts`. Los ejercicios sin guía usan un texto provisional y no muestran animación.
 - «Listo, empezar series» navega a `/sesion`, que aún no existe (M3), y el botón de cambiar ejercicio (RF-14) no está implementado.
+
+## Glosario (M5, RF-22)
+
+`/glosario` lista los términos básicos (serie, repetición, fallo, RIR y peso de trabajo) con una definición en lenguaje sencillo; se abre desde el botón «Glosario» del perfil. El componente `AyudaTermino` muestra un ícono de ayuda junto a un término y, al tocarlo, un cuadro con su definición (se cierra con «Entendido», con Escape o tocando el fondo). Hoy se usa en la rutina asignada para «series» y «repeticiones»; para añadir un término nuevo basta con agregarlo a `src/data/glosario.ts` y usar `<AyudaTermino termino="id">` donde aparezca.
 
 ## Supabase y variables de entorno
 
