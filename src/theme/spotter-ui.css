@@ -499,3 +499,28 @@
   font-size: 1.5rem;
   font-weight: 800;
 }
+
+.sj-glosario {
+  margin: 0;
+}
+
+.sj-glosario-item {
+  padding: 1rem 0;
+  border-top: 1px solid rgb(26 26 26 / 28%);
+}
+
+.sj-glosario-item:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.sj-glosario-item dt {
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
+.sj-glosario-item dd {
+  margin: 0.35rem 0 0;
+  font-size: 1rem;
+  line-height: 1.5;
+}

@@ -63,6 +63,7 @@ function Perfil() {
       pie={
         <>
           <BotonSJ onClick={() => void guardar()}>Guardar cambios</BotonSJ>
+          <BotonSJ variante="secundario" onClick={() => history.push('/glosario')}>Glosario</BotonSJ>
           <BotonSJ variante="texto" onClick={() => history.goBack()}>Volver</BotonSJ>
         </>
       }

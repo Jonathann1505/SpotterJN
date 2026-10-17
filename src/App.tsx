@@ -15,6 +15,7 @@ import Consentimientos from './pages/Consentimientos';
 import CuestionarioRutina from './pages/CuestionarioRutina';
 import CuestionarioSalud from './pages/CuestionarioSalud';
 import FichaEjercicio from './pages/FichaEjercicio';
+import Glosario from './pages/Glosario';
 import Hoy from './pages/Hoy';
 import Login from './pages/Login';
 import Perfil from './pages/Perfil';
@@ -98,6 +99,9 @@ function RutasAplicacion() {
         </Route>
         <Route exact path="/ejercicio/:id">
           {sesion ? <FichaEjercicio /> : <Redirect to="/login" />}
+        </Route>
+        <Route exact path="/glosario">
+          {sesion ? <Glosario /> : <Redirect to="/login" />}
         </Route>
         <Route exact path="/perfil">
           {sesion ? <Perfil /> : <Redirect to="/login" />}
