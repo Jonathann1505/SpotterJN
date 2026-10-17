@@ -62,4 +62,13 @@ describe('RutinaAsignada', () => {
 
     expect((await findAllByText(/\d lb/)).length).toBeGreaterThan(0);
   });
+
+  it('explica series y repeticiones con la ayuda del glosario', async () => {
+    await rutinaLocal.guardar(asignarRutina({ experiencia: 'ninguna', diasPorSemana: 3, equipo: ['maquinas'] }));
+    const { findByRole, getByRole } = renderizar();
+
+    fireEvent.click(await findByRole('button', { name: '¿Qué es serie?' }));
+
+    expect(getByRole('dialog')).toHaveTextContent(/grupo de repeticiones/i);
+  });
 });
