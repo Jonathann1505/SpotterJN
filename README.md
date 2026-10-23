@@ -30,6 +30,7 @@ SpotterJN/
 │   ├── main.tsx
 │   ├── components/
 │   │   ├── CerrarSesion.tsx
+│   │   ├── PantallaSJ.tsx       # marco de pantalla, botones y acceso compartidos
 │   │   └── TemporizadorDescanso.tsx
 │   ├── context/
 │   │   ├── PerfilContext.tsx     # perfil y unidad de peso (kg/lb)
@@ -37,21 +38,19 @@ SpotterJN/
 │   ├── data/
 │   │   └── ejercicios.ts         # catálogo de ejercicios de las rutinas
 │   ├── pages/
-│   │   ├── AuthPages.css
 │   │   ├── AvisoMedico.tsx
 │   │   ├── Consentimientos.tsx
 │   │   ├── CuestionarioRutina.tsx
 │   │   ├── CuestionarioSalud.tsx
 │   │   ├── Hoy.tsx
-│   │   ├── Hoy.css
 │   │   ├── Login.tsx
-│   │   ├── Login.css
 │   │   ├── Perfil.tsx
 │   │   ├── Registro.tsx
-│   │   ├── Rutina.css
 │   │   ├── RutinaAsignada.tsx
 │   │   ├── SesionEntrenamiento.tsx
 │   │   └── Salud.css
+│   ├── assets/
+│   │   └── logo-spotterjn.webp
 │   ├── repositories/
 │   │   ├── repositorios.ts       # interfaces de perfil, salud y rutina
 │   │   ├── local.ts              # implementación local (Capacitor Preferences)
@@ -68,6 +67,7 @@ SpotterJN/
 │   │   └── validaciones.ts
 │   ├── vite-env.d.ts
 │   ├── theme/
+│   │   ├── spotter-ui.css
 │   │   └── variables.css
 │   ├── test/
 │   │   └── setup.ts
@@ -85,6 +85,26 @@ SpotterJN/
 ├── tsconfig.json
 └── vite.config.ts
 ```
+
+## Sistema visual
+
+La aplicación usa un tema claro fijo inspirado en la pantalla de acceso compartida. Los tokens visuales se centralizan en `src/theme/spotter-ui.css`; `src/theme/variables.css` asigna esos tokens a las variables de Ionic y ambos estilos globales se cargan desde `src/main.tsx`.
+
+Tokens principales:
+
+| Token | Valor | Uso |
+| --- | --- | --- |
+| `--sj-color-fondo` | `#e0eaf6` | Fondo azul claro |
+| `--sj-color-campo` | `#e7e6e2` | Fondo gris cálido de campos |
+| `--sj-color-tinta` | `#1a1a1a` | Texto, bordes y selección activa |
+| `--sj-color-primario` | `#0066cc` | Acentos, foco y progreso |
+| `--sj-borde` / `--sj-radio` | `2px solid` / `0` | Bordes marcados y esquinas rectas |
+| `--sj-espacio-*` | escala rem existente | Separaciones |
+| `--sj-fuente-*` | escala rem existente | Tipografía Archivo y tamaños |
+
+Para nuevas pantallas autenticadas o de entrenamiento, usa `PantallaSJ` y `BotonSJ` desde `src/components/PantallaSJ.tsx`. `PantallaSJ` ofrece el encabezado y el marco con áreas seguras; `BotonSJ` expone las variantes `principal`, `secundario` y `texto`. Para acceso, `MarcoAccesoSJ`, `LogoSJ` y `PestanasAccesoSJ` comparten el diseño del logo y las pestañas. Estas navegan por las rutas existentes y mantienen el paso obligatorio de Consentimientos antes del registro.
+
+Los campos Ionic usan la clase `sj-campo` y una etiqueta visible; las casillas de acceso reciben el estilo compartido por `.sj-acceso`. `sj-tarjeta` sirve para superficies con borde, y los estados usan `sj-cargando`, `sj-error` y `sj-ok`. Las alertas, cargas, toast y modales de Ionic reciben colores, tipografía y bordes del tema global. No dupliques valores de color, radios, espacios o tamaños en hojas de estilo de páginas; usa los tokens o las clases compartidas. Las pantallas respetan las áreas seguras con `env(safe-area-inset-*)`.
 
 ## Requisitos
 

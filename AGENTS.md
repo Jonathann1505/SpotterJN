@@ -105,3 +105,14 @@
 - Pendiente: persistir sesiones y series (resto de M3/RF-10), conectar el temporizador con el entrenamiento y cualquier recuperación de contraseña (RF-03).
 - La duración predeterminada del temporizador es 90 segundos y comienza automáticamente.
 - Verificación final: 91 pruebas en 19 archivos aprobadas; `npm run build` aprobado con la advertencia de Vite por el bundle principal superior a 500 kB minificados.
+
+### 2026-10-22 — Sistema visual claro y acceso armonizado
+
+- Confirmada y conservada la rama activa `feature/rediseño-visual`; no se cambió de rama.
+- Aprobado el tema claro fijo, usando los colores existentes y el fondo/campo muestreados de la referencia compartida.
+- Centralizados colores, bordes, radios, espacios y tamaños tipográficos en `src/theme/spotter-ui.css`; `src/theme/variables.css` los asigna a Ionic.
+- Reutilizado `src/assets/logo-spotterjn.webp` mediante `LogoSJ`; Login, Consentimientos y Registro comparten el marco y la navegación por pestañas. El registro conserva el paso obligatorio de consentimientos y las rutas existentes.
+- Login, Registro, Consentimientos, pantallas `PantallaSJ`, alertas, cargas y estados de error usan el tema común. Eliminadas las hojas `Login.css` y `AuthPages.css`, que ya no se usan.
+- No se cambiaron servicios, repositorios, datos ni la lógica de autenticación y formularios. README actualizado con el sistema visual.
+- Verificación: `npm test` aprobó 93 pruebas en 19 archivos y `npm run build` finalizó correctamente. Vite mantiene la advertencia del bundle principal superior a 500 kB minificados.
+- Revisadas en navegador a 390 × 844 px las vistas Login, Consentimientos y Registro, incluido el paso entre pestañas; falta el recorrido visual de las pantallas protegidas y la revisión en emulador Android.
