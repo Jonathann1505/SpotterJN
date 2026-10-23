@@ -16,7 +16,7 @@ describe('Consentimientos', () => {
       </IonApp>,
     );
     const [mayorEdad, terminos] = container.querySelectorAll('ion-checkbox');
-    const continuar = container.querySelector('ion-button.auth-submit');
+    const continuar = container.querySelector('ion-button.sj-acceso-submit');
 
     expect(continuar).toHaveAttribute('disabled');
     fireEvent(
