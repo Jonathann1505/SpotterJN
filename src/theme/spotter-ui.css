@@ -524,3 +524,21 @@
   font-size: 1rem;
   line-height: 1.5;
 }
+
+/* Selector de hora */
+.sj-hora {
+  width: 100%;
+  min-height: 3.5rem;
+  padding: 0 1rem;
+  border: var(--sj-linea);
+  border-radius: 0;
+  background: var(--sj-campo);
+  color: var(--sj-ink);
+  font: inherit;
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+.sj-hora:disabled {
+  opacity: 0.6;
+}

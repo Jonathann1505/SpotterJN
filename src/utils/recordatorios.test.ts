@@ -1,6 +1,6 @@
 import { Weekday } from '@capacitor/local-notifications';
 import { describe, expect, it } from 'vitest';
-import { diasDeEntrenamiento, esHoraValida, separarHora } from './recordatorios';
+import { describirDias, diasDeEntrenamiento, esHoraValida, separarHora } from './recordatorios';
 
 describe('hora del recordatorio', () => {
   it.each(['00:00', '06:30', '18:00', '23:59'])('acepta %s', (hora) => {
@@ -35,5 +35,17 @@ describe('diasDeEntrenamiento', () => {
   it('limita la cantidad al rango de 2 a 6', () => {
     expect(diasDeEntrenamiento(9)).toHaveLength(6);
     expect(diasDeEntrenamiento(0)).toHaveLength(2);
+  });
+});
+
+describe('describirDias', () => {
+  it('escribe los días en español con "y" antes del último', () => {
+    expect(describirDias(diasDeEntrenamiento(3))).toBe('lunes, miércoles y viernes');
+    expect(describirDias(diasDeEntrenamiento(2))).toBe('lunes y jueves');
+  });
+
+  it('maneja uno o ningún día', () => {
+    expect(describirDias([Weekday.Sunday])).toBe('domingo');
+    expect(describirDias([])).toBe('');
   });
 });

@@ -33,3 +33,19 @@ export function diasDeEntrenamiento(diasPorSemana: number): readonly Weekday[] {
   const dias = Math.min(Math.max(Math.round(diasPorSemana), 2), 6);
   return DIAS_POR_CANTIDAD[dias];
 }
+
+const NOMBRES_DIAS: Readonly<Record<Weekday, string>> = {
+  [Weekday.Sunday]: 'domingo',
+  [Weekday.Monday]: 'lunes',
+  [Weekday.Tuesday]: 'martes',
+  [Weekday.Wednesday]: 'miércoles',
+  [Weekday.Thursday]: 'jueves',
+  [Weekday.Friday]: 'viernes',
+  [Weekday.Saturday]: 'sábado',
+};
+
+/** Texto como "lunes, miércoles y viernes" para los días de entrenamiento. */
+export function describirDias(dias: readonly Weekday[]): string {
+  const nombres = dias.map((dia) => NOMBRES_DIAS[dia]);
+  return nombres.length <= 1 ? nombres.join('') : `${nombres.slice(0, -1).join(', ')} y ${nombres[nombres.length - 1]}`;
+}

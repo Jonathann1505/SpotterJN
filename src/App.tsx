@@ -10,6 +10,7 @@ import {
 import { IonReactRouter } from '@ionic/react-router';
 import type { PropsWithChildren } from 'react';
 import { Redirect, Route } from 'react-router-dom';
+import Ajustes from './pages/Ajustes';
 import AvisoMedico from './pages/AvisoMedico';
 import Consentimientos from './pages/Consentimientos';
 import CuestionarioRutina from './pages/CuestionarioRutina';
@@ -102,6 +103,9 @@ function RutasAplicacion() {
         </Route>
         <Route exact path="/glosario">
           {sesion ? <Glosario /> : <Redirect to="/login" />}
+        </Route>
+        <Route exact path="/ajustes">
+          {sesion ? <Ajustes /> : <Redirect to="/login" />}
         </Route>
         <Route exact path="/perfil">
           {sesion ? <Perfil /> : <Redirect to="/login" />}
