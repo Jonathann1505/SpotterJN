@@ -9,6 +9,7 @@
     "preview": "vite preview --host 0.0.0.0",
     "test": "vitest run",
     "test:watch": "vitest",
+    "animacion:crear": "node ./scripts/animacion.mjs",
     "android:sync": "npm run build && cap sync android",
     "android:open": "node ./scripts/android.mjs open",
     "android:run": "node ./scripts/android.mjs run",
