@@ -65,12 +65,13 @@ describe('FichaEjercicio', () => {
     expect(await findByText('pantalla hoy')).toBeInTheDocument();
   });
 
-  it('usa una guía provisional si el ejercicio no tiene animación', async () => {
+  it('muestra la guía y un aviso si el ejercicio todavía no tiene animación', async () => {
     const { findByRole, queryByTitle, getByText } = renderizar('/ejercicio/remo-maquina');
 
     expect(await findByRole('heading', { name: 'Remo en máquina' })).toBeInTheDocument();
     expect(queryByTitle(/Animación del ejercicio/)).not.toBeInTheDocument();
-    expect(getByText(/estará disponible pronto/)).toBeInTheDocument();
+    expect(getByText('Animación próximamente')).toBeInTheDocument();
+    expect(getByText(/Ajusta el asiento para que las asas/)).toBeInTheDocument();
   });
 
   it('redirige a Hoy si el ejercicio no existe', async () => {

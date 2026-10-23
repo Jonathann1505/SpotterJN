@@ -90,7 +90,11 @@ function FichaEjercicio() {
         <BotonSJ onClick={() => void continuar()}>{yaVista ? 'Entendido' : 'Listo, empezar series'}</BotonSJ>
       }
     >
-      {guia.animacion ? <AnimacionEjercicio archivo={guia.animacion} titulo={ejercicio.nombre} /> : null}
+      {guia.animacion ? (
+        <AnimacionEjercicio archivo={guia.animacion} titulo={ejercicio.nombre} />
+      ) : (
+        <div className="sj-sin-animacion">Animación próximamente</div>
+      )}
 
       <h2 className="sj-subtitulo sj-subtitulo-ficha">1. Cómo ajustar la máquina</h2>
       <p className="sj-texto">{guia.ajusteMaquina}</p>

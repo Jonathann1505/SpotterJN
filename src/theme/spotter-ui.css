@@ -542,3 +542,15 @@
 .sj-hora:disabled {
   opacity: 0.6;
 }
+
+.sj-sin-animacion {
+  display: grid;
+  place-items: center;
+  margin: 0 -1.25rem;
+  min-height: 9rem;
+  border-block: var(--sj-linea);
+  background: var(--sj-campo);
+  color: var(--sj-muted);
+  font-size: 1rem;
+  font-weight: 700;
+}
