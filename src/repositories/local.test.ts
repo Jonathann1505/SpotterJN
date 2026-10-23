@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { Preferences } from '@capacitor/preferences';
-import { fichasVistasLocal, perfilLocal, rutinaLocal, saludLocal } from './local';
+import { fichasVistasLocal, perfilLocal, recordatoriosLocal, rutinaLocal, saludLocal } from './local';
 import type { PerfilUsuario, RespuestasSalud, RutinaAsignada } from '../types/perfil';
 
 beforeEach(async () => {
@@ -57,5 +57,19 @@ describe('repositorios locales', () => {
   it('ignora una lista de fichas vistas corrupta', async () => {
     await Preferences.set({ key: 'spotter.fichasVistas', value: JSON.stringify([1, 2]) });
     expect(await fichasVistasLocal.obtener()).toEqual([]);
+  });
+
+  it('devuelve recordatorios desactivados a las 18:00 si no hay ajustes guardados', async () => {
+    expect(await recordatoriosLocal.obtener()).toEqual({ activo: false, hora: '18:00' });
+  });
+
+  it('guarda y recupera los ajustes de recordatorios', async () => {
+    await recordatoriosLocal.guardar({ activo: true, hora: '07:15' });
+    expect(await recordatoriosLocal.obtener()).toEqual({ activo: true, hora: '07:15' });
+  });
+
+  it('ignora ajustes de recordatorios con una hora inválida', async () => {
+    await Preferences.set({ key: 'spotter.recordatorios', value: JSON.stringify({ activo: true, hora: '99:99' }) });
+    expect(await recordatoriosLocal.obtener()).toEqual({ activo: false, hora: '18:00' });
   });
 });

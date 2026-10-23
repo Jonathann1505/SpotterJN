@@ -7,10 +7,13 @@ import {
   type RespuestasSalud,
   type RutinaAsignada,
 } from '../types/perfil';
+import type { AjustesRecordatorios } from '../types/recordatorios';
+import { HORA_PREDETERMINADA, esHoraValida } from '../utils/recordatorios';
 import { guardarJson, leerJson } from './almacenLocal';
 import type {
   FichasVistasRepositorio,
   PerfilRepositorio,
+  RecordatoriosRepositorio,
   RutinaRepositorio,
   SaludRepositorio,
 } from './repositorios';
@@ -20,6 +23,7 @@ const CLAVE_PERFIL = 'spotter.perfil';
 const CLAVE_SALUD = 'spotter.salud';
 const CLAVE_RUTINA = 'spotter.rutina';
 const CLAVE_FICHAS_VISTAS = 'spotter.fichasVistas';
+const CLAVE_RECORDATORIOS = 'spotter.recordatorios';
 
 function esObjeto(valor: unknown): valor is Record<string, unknown> {
   return typeof valor === 'object' && valor !== null && !Array.isArray(valor);
@@ -87,4 +91,15 @@ export const fichasVistasLocal: FichasVistasRepositorio = {
       await guardarJson(CLAVE_FICHAS_VISTAS, [...vistas, idEjercicio]);
     }
   },
+};
+
+const AJUSTES_RECORDATORIOS_INICIALES: AjustesRecordatorios = { activo: false, hora: HORA_PREDETERMINADA };
+
+function esAjustesRecordatorios(valor: unknown): valor is AjustesRecordatorios {
+  return esObjeto(valor) && typeof valor.activo === 'boolean' && typeof valor.hora === 'string' && esHoraValida(valor.hora);
+}
+
+export const recordatoriosLocal: RecordatoriosRepositorio = {
+  obtener: async () => (await leerJson(CLAVE_RECORDATORIOS, esAjustesRecordatorios)) ?? AJUSTES_RECORDATORIOS_INICIALES,
+  guardar: (ajustes) => guardarJson(CLAVE_RECORDATORIOS, ajustes),
 };

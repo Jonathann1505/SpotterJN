@@ -1,4 +1,5 @@
 import type { PerfilUsuario, RespuestasSalud, RutinaAsignada } from '../types/perfil';
+import type { AjustesRecordatorios } from '../types/recordatorios';
 
 export interface PerfilRepositorio {
   obtener(): Promise<PerfilUsuario | null>;
@@ -18,4 +19,9 @@ export interface RutinaRepositorio {
 export interface FichasVistasRepositorio {
   obtener(): Promise<string[]>;
   marcarVista(idEjercicio: string): Promise<void>;
+}
+
+export interface RecordatoriosRepositorio {
+  obtener(): Promise<AjustesRecordatorios>;
+  guardar(ajustes: AjustesRecordatorios): Promise<void>;
 }
