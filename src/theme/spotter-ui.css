@@ -17,7 +17,7 @@
   --sj-color-separador: var(--sj-color-paso-150);
   --sj-color-deshabilitado: #b8b8b8;
   --sj-color-texto-deshabilitado: #4d4d4d;
-  --sj-color-deshabilitado-suave: #7a7a7a;
+  --sj-color-deshabilitado-suave: var(--sj-color-suave);
   --sj-color-fondo-deshabilitado: var(--sj-color-paso-100);
   --sj-color-primario-hover: #0059b8;
   --sj-color-primario-activo: #004f9f;

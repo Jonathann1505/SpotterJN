@@ -1,4 +1,4 @@
-import { useEffect, useId, useState } from 'react';
+import { useEffect, useId, useState, type KeyboardEvent } from 'react';
 import type { UnidadPeso } from '../types/perfil';
 import {
   decrementarValor,
@@ -77,6 +77,21 @@ function ContadorNumerico({
     }
   };
 
+  const manejarTeclado = (evento: KeyboardEvent<HTMLInputElement>): void => {
+    if (evento.key !== 'ArrowUp' && evento.key !== 'ArrowDown') {
+      return;
+    }
+
+    evento.preventDefault();
+    const valorActual = borradorDentroDeRango ? numeroBorrador : limitarValor(valor, minimo, maximo);
+    const nuevoValor =
+      evento.key === 'ArrowUp'
+        ? incrementarValor(valorActual, pasoActivo, minimo, maximo)
+        : decrementarValor(valorActual, pasoActivo, minimo, maximo);
+    setBorrador(formatearValor(nuevoValor));
+    onChange(nuevoValor);
+  };
+
   return (
     <section className="sj-contador-numerico">
       <label className="sj-contador-etiqueta" htmlFor={idCampo}>{etiqueta}</label>
@@ -95,7 +110,7 @@ function ContadorNumerico({
             id={idCampo}
             className="sj-contador-valor"
             type="number"
-            inputMode="decimal"
+            inputMode={unidad || pasoActivo % 1 !== 0 ? 'decimal' : 'numeric'}
             min={minimo}
             max={maximo}
             step={pasoActivo}
@@ -104,6 +119,7 @@ function ContadorNumerico({
             aria-invalid={!borradorDentroDeRango}
             onChange={(evento) => cambiarBorrador(evento.currentTarget.value)}
             onBlur={corregirBorrador}
+            onKeyDown={manejarTeclado}
           />
           {unidad ? <span className="sj-contador-unidad">{unidad}</span> : null}
         </div>
