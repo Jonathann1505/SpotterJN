@@ -2,9 +2,13 @@ import { cleanup, fireEvent, render, waitFor } from '@testing-library/react';
 import { IonApp } from '@ionic/react';
 import { MemoryRouter, Route } from 'react-router-dom';
 import { Preferences } from '@capacitor/preferences';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import CuestionarioRutina from './CuestionarioRutina';
-import { rutinaLocal } from '../repositories/local';
+import { recordatoriosLocal, rutinaLocal } from '../repositories/local';
+
+const sincronizarRecordatorios = vi.hoisted(() => vi.fn());
+
+vi.mock('../services/recordatorios', () => ({ sincronizarRecordatorios }));
 
 function renderizar() {
   return render(
@@ -23,7 +27,10 @@ describe('CuestionarioRutina', () => {
   beforeEach(async () => {
     await Preferences.clear();
   });
-  afterEach(cleanup);
+  afterEach(() => {
+    cleanup();
+    vi.clearAllMocks();
+  });
 
   it('habilita "Ver mi rutina" solo con experiencia y equipo respondidos', () => {
     const { container, getByRole } = renderizar();
@@ -65,5 +72,21 @@ describe('CuestionarioRutina', () => {
       expect(rutina?.cuestionario).toEqual({ experiencia: 'menos-6-meses', diasPorSemana: 3, equipo: ['maquinas'] });
       expect(rutina?.dias).toHaveLength(3);
     });
+  });
+
+  it('reprograma los recordatorios activos con los días de la nueva rutina', async () => {
+    sincronizarRecordatorios.mockResolvedValue(undefined);
+    await recordatoriosLocal.guardar({ activo: true, hora: '07:00' });
+    const { container, getByRole, findByText } = renderizar();
+
+    fireEvent.click(getByRole('radio', { name: 'Ninguna' }));
+    fireEvent.click(getByRole('checkbox', { name: 'Mancuernas' }));
+    fireEvent.click(container.querySelector('ion-button.sj-boton') as Element);
+
+    expect(await findByText('rutina asignada')).toBeInTheDocument();
+    await waitFor(() => expect(sincronizarRecordatorios).toHaveBeenCalledTimes(1));
+    const [ajustes, rutina] = sincronizarRecordatorios.mock.calls[0];
+    expect(ajustes).toEqual({ activo: true, hora: '07:00' });
+    expect(rutina.cuestionario.diasPorSemana).toBe(3);
   });
 });

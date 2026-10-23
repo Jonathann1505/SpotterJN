@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { BotonSJ, PantallaSJ } from '../components/PantallaSJ';
-import { rutinaLocal } from '../repositories/local';
+import { recordatoriosLocal, rutinaLocal } from '../repositories/local';
+import { sincronizarRecordatorios } from '../services/recordatorios';
 import { DIAS_MAXIMOS, DIAS_MINIMOS, asignarRutina } from '../utils/rutina';
 import { EQUIPOS, EXPERIENCIAS, type EquipoGimnasio, type Experiencia } from '../types/perfil';
 
@@ -40,7 +41,13 @@ function CuestionarioRutina() {
     setGuardando(true);
     setError(null);
     try {
-      await rutinaLocal.guardar(asignarRutina({ experiencia, diasPorSemana: dias, equipo }));
+      const rutina = asignarRutina({ experiencia, diasPorSemana: dias, equipo });
+      await rutinaLocal.guardar(rutina);
+      // Si ya había recordatorios activos, se ajustan a los días de la nueva rutina.
+      void recordatoriosLocal
+        .obtener()
+        .then((ajustes) => sincronizarRecordatorios(ajustes, rutina))
+        .catch(() => undefined);
       history.replace('/rutina');
     } catch {
       setError('No se pudo guardar tu rutina. Inténtalo de nuevo.');
