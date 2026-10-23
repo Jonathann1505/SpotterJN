@@ -57,7 +57,9 @@ function SesionEntrenamiento() {
   if (cargando) {
     return (
       <PantallaSJ etiqueta="Sesión de entrenamiento" titulo="Preparando tu sesión">
-        <IonSpinner aria-label="Cargando tu rutina" />
+        <div className="sj-cargando">
+          <IonSpinner aria-label="Cargando tu rutina" />
+        </div>
       </PantallaSJ>
     );
   }

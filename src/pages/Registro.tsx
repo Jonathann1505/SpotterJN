@@ -1,18 +1,15 @@
 import { useState, type FormEvent } from 'react';
 import {
   IonButton,
-  IonContent,
   IonIcon,
   IonInput,
-  IonItem,
-  IonPage,
 } from '@ionic/react';
 import { eye, eyeOff } from 'ionicons/icons';
-import { Link, Redirect, useHistory, useLocation } from 'react-router-dom';
+import { Redirect, useHistory, useLocation } from 'react-router-dom';
+import { MarcoAccesoSJ } from '../components/PantallaSJ';
 import { registrar } from '../services/auth';
 import type { ConsentimientosAceptados } from '../types/consentimientos';
 import { esContrasenaValida, esCorreoValido } from '../utils/validaciones';
-import './AuthPages.css';
 
 interface EstadoNavegacionRegistro {
   consentimientos: ConsentimientosAceptados;
@@ -96,82 +93,79 @@ function Registro() {
   };
 
   return (
-    <IonPage>
-      <IonContent className="auth-page">
-        <main className="auth-page-content">
-          <section className="auth-page-card" aria-labelledby="registro-title">
-            <h1 id="registro-title">Crear cuenta</h1>
-            <p>Registra tus datos para comenzar a entrenar.</p>
-            <form onSubmit={(evento) => void enviarFormulario(evento)} noValidate>
-              <IonItem>
-                <IonInput
-                  label="Correo electrónico"
-                  labelPlacement="stacked"
-                  type="email"
-                  autocomplete="email"
-                  inputmode="email"
-                  required
-                  value={correo}
-                  onIonInput={(evento) => setCorreo(evento.detail.value ?? '')}
-                  onIonBlur={() => setCorreoTocado(true)}
-                  aria-invalid={correoTocado && !correoValido}
-                  aria-describedby={correoTocado && !correoValido ? 'registro-correo-error' : undefined}
-                />
-              </IonItem>
-              {correoTocado && !correoValido && (
-                <p id="registro-correo-error" className="auth-inline-error" role="alert">
-                  Ingresa un correo electrónico válido.
-                </p>
-              )}
-              <div className="auth-password-control">
-                <IonItem>
-                  <IonInput
-                    label="Contraseña"
-                    labelPlacement="stacked"
-                    type={mostrarContrasena ? 'text' : 'password'}
-                    autocomplete="new-password"
-                    required
-                    value={contrasena}
-                    onIonInput={(evento) => setContrasena(evento.detail.value ?? '')}
-                    onIonBlur={() => setContrasenaTocada(true)}
-                    aria-invalid={contrasenaTocada && !contrasenaValida}
-                    aria-describedby={
-                      contrasenaTocada && !contrasenaValida ? 'registro-contrasena-error' : undefined
-                    }
-                  />
-                </IonItem>
-                <IonButton
-                  fill="clear"
-                  type="button"
-                  aria-label={mostrarContrasena ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-                  onClick={() => setMostrarContrasena((visible) => !visible)}
-                >
-                  <IonIcon icon={mostrarContrasena ? eyeOff : eye} />
-                </IonButton>
-              </div>
-              {contrasenaTocada && !contrasenaValida && (
-                <p id="registro-contrasena-error" className="auth-inline-error" role="alert">
-                  Usa al menos 8 caracteres, una letra y un número.
-                </p>
-              )}
-              {error && <p className="auth-inline-error" role="alert">{error}</p>}
-              {mensaje && <p className="auth-inline-message" role="status">{mensaje}</p>}
-              <IonButton
-                className="auth-submit"
-                expand="block"
-                type="submit"
-                disabled={!formularioValido || cargando}
-              >
-                {cargando ? 'Creando cuenta...' : 'Crear cuenta'}
-              </IonButton>
-            </form>
-            <p>
-              ¿Ya tienes cuenta? <Link to="/login">Inicia sesión</Link>
-            </p>
-          </section>
-        </main>
-      </IonContent>
-    </IonPage>
+    <MarcoAccesoSJ activa="registro">
+      <header className="sj-cabecera">
+        <h1 id="registro-title">Crear cuenta</h1>
+        <p>Registra tus datos para comenzar a entrenar.</p>
+      </header>
+      <form
+        aria-labelledby="registro-title"
+        onSubmit={(evento) => void enviarFormulario(evento)}
+        noValidate
+      >
+        <IonInput
+          className="sj-campo"
+          label="Correo electrónico"
+          labelPlacement="stacked"
+          fill="outline"
+          type="email"
+          autocomplete="email"
+          inputmode="email"
+          required
+          value={correo}
+          onIonInput={(evento) => setCorreo(evento.detail.value ?? '')}
+          onIonBlur={() => setCorreoTocado(true)}
+          aria-invalid={correoTocado && !correoValido}
+          aria-describedby={correoTocado && !correoValido ? 'registro-correo-error' : undefined}
+        />
+        {correoTocado && !correoValido && (
+          <p id="registro-correo-error" className="sj-error" role="alert">
+            Ingresa un correo electrónico válido.
+          </p>
+        )}
+        <div className="sj-acceso-password">
+          <IonInput
+            className="sj-campo"
+            label="Contraseña"
+            labelPlacement="stacked"
+            fill="outline"
+            type={mostrarContrasena ? 'text' : 'password'}
+            autocomplete="new-password"
+            required
+            value={contrasena}
+            onIonInput={(evento) => setContrasena(evento.detail.value ?? '')}
+            onIonBlur={() => setContrasenaTocada(true)}
+            aria-invalid={contrasenaTocada && !contrasenaValida}
+            aria-describedby={
+              contrasenaTocada && !contrasenaValida ? 'registro-contrasena-error' : undefined
+            }
+          />
+          <IonButton
+            fill="clear"
+            type="button"
+            aria-label={mostrarContrasena ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+            onClick={() => setMostrarContrasena((visible) => !visible)}
+          >
+            <IonIcon icon={mostrarContrasena ? eyeOff : eye} />
+          </IonButton>
+        </div>
+        {contrasenaTocada && !contrasenaValida && (
+          <p id="registro-contrasena-error" className="sj-error" role="alert">
+            Usa al menos 8 caracteres, una letra y un número.
+          </p>
+        )}
+        {error && <p className="sj-error" role="alert">{error}</p>}
+        {mensaje && <p className="sj-ok" role="status">{mensaje}</p>}
+        <IonButton
+          className="sj-acceso-submit"
+          expand="block"
+          type="submit"
+          disabled={!formularioValido || cargando}
+        >
+          {cargando ? 'Creando cuenta...' : 'Crear cuenta'}
+        </IonButton>
+      </form>
+    </MarcoAccesoSJ>
   );
 }
 

@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import '../theme/spotter-ui.css';
 
 const DURACION_INICIAL = 90;
 const RADIO_CIRCULO = 54;
@@ -52,7 +51,7 @@ function TemporizadorDescanso() {
   const tiempoFormateado = formatearTiempo(tiempoRestante);
 
   return (
-    <section className="sj-descanso" role="group" aria-label="Temporizador de descanso">
+    <section className="sj sj-descanso" role="group" aria-label="Temporizador de descanso">
       <div
         className="sj-descanso-circulo"
         role="timer"
