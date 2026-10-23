@@ -30,6 +30,7 @@ SpotterJN/
 │   ├── main.tsx
 │   ├── components/
 │   │   ├── CerrarSesion.tsx
+│   │   ├── ContadorNumerico.tsx  # stepper controlado de peso y repeticiones (RF-10)
 │   │   ├── PantallaSJ.tsx       # marco de pantalla, botones y acceso compartidos
 │   │   └── TemporizadorDescanso.tsx
 │   ├── context/
@@ -62,6 +63,7 @@ SpotterJN/
 │   │   ├── consentimientos.ts
 │   │   └── perfil.ts
 │   ├── utils/
+│   │   ├── contadorNumerico.ts   # límites, pasos e incrementos numéricos (RF-10)
 │   │   ├── rutina.ts             # asignación de la rutina inicial
 │   │   ├── unidades.ts           # conversión kg/lb
 │   │   └── validaciones.ts
@@ -146,6 +148,31 @@ Limitaciones actuales:
 ## Sesión de entrenamiento (M3)
 
 La ruta protegida `/sesion`, accesible desde «Empezar entrenamiento» en Hoy, carga y muestra los ejercicios de la primera jornada de la rutina del usuario. Permite volver a Hoy y no registra ni persiste actividad. El componente de descanso RF-11 es independiente: ofrece una cuenta regresiva inicial de 90 segundos, círculo de tiempo restante y controles para sumar/restar 30 segundos o saltar; no se conecta todavía al flujo de una sesión. La duración inicial es 90 segundos y comienza automáticamente.
+
+### Contador numérico (RF-10)
+
+`ContadorNumerico` (`src/components/ContadorNumerico.tsx`) es un control reutilizable y controlado; recibe la etiqueta, el valor, `onChange` y límites/paso opcionales. Para repeticiones, configura `minimo={0}`, `maximo={50}` y `paso={1}`. Para peso, pasa `unidad="kg"` o `unidad="lb"`: el componente aplica automáticamente incrementos de 0,5 kg o 1 lb y no impone un máximo arbitrario. Ejemplo:
+
+```tsx
+<ContadorNumerico
+  etiqueta="Repeticiones logradas"
+  valor={repeticiones}
+  onChange={setRepeticiones}
+  minimo={0}
+  maximo={50}
+  paso={1}
+/>
+
+<ContadorNumerico
+  etiqueta="Peso"
+  valor={pesoEnUnidad(ejercicio.pesoInicialKg, perfil.unidadPeso)}
+  onChange={setPeso}
+  minimo={0}
+  unidad={perfil.unidadPeso}
+/>
+```
+
+Los valores editados temporalmente vacíos o fuera de rango se corrigen al salir del campo; los valores válidos se notifican mediante `onChange`. Las flechas arriba/abajo ajustan el valor por teclado; la etiqueta está asociada a la entrada y los botones tienen nombres accesibles. Los estilos usan los tokens del tema, con contraste medido de 4,74:1 incluso en los botones deshabilitados. Las operaciones numéricas y el paso por unidad están en `src/utils/contadorNumerico.ts`. El contador se prueba de forma aislada y todavía no está integrado en `/sesion`; no guarda series ni modifica el peso recomendado del catálogo.
 
 ## Supabase y variables de entorno
 
