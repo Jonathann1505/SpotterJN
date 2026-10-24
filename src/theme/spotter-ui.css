@@ -53,13 +53,13 @@
 }
 
 .sj {
-  --sj-bg: var(--sj-color-fondo);
-  --sj-campo: var(--sj-color-campo);
-  --sj-ink: var(--sj-color-tinta);
-  --sj-muted: var(--sj-color-suave);
-  --sj-blue: var(--sj-color-primario);
-  --sj-blue-ink: var(--sj-color-primario-oscuro);
-  --sj-linea: var(--sj-borde);
+  --sj-bg: #dfeaf6;
+  --sj-campo: #e9e7e3;
+  --sj-ink: #1a1a1a;
+  --sj-muted: #5c5c5c;
+  --sj-blue: #0066cc;
+  --sj-blue-ink: #0a4fa3;
+  --sj-linea: 2px solid var(--sj-ink);
 
   --background: var(--sj-bg);
   --color: var(--sj-ink);
@@ -467,10 +467,10 @@ ion-content {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--sj-espacio-4);
-  padding: var(--sj-espacio-3) 0;
-  border-top: 1px solid var(--sj-color-separador);
-  font-size: var(--sj-fuente-base);
+  gap: 1rem;
+  padding: 0.85rem 0;
+  border-top: 1px solid rgb(26 26 26 / 28%);
+  font-size: 1rem;
 }
 
 .sj-lista li strong {
