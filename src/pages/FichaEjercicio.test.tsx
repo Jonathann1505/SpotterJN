@@ -42,12 +42,13 @@ describe('FichaEjercicio', () => {
     expect(container.querySelector('ion-button.sj-boton')).toHaveTextContent('Listo, empezar series');
   });
 
-  it('marca la ficha como vista al continuar', async () => {
-    const { container, findByRole } = renderizar('/ejercicio/press-banca');
+  it('marca la ficha como vista al continuar y vuelve a Hoy', async () => {
+    const { container, findByRole, findByText } = renderizar('/ejercicio/press-banca');
     await findByRole('heading', { name: 'Press de banca' });
 
     fireEvent.click(container.querySelector('ion-button.sj-boton') as Element);
 
+    expect(await findByText('pantalla hoy')).toBeInTheDocument();
     await waitFor(async () => {
       expect(await fichasVistasLocal.obtener()).toEqual(['press-banca']);
     });

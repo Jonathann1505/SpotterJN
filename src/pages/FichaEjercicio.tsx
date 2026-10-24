@@ -10,7 +10,8 @@ import { fichasVistasLocal, rutinaLocal } from '../repositories/local';
 import type { EjercicioRutina } from '../types/perfil';
 import logo from '../assets/logo-spotterjn.webp';
 
-const RUTA_SESION = '/sesion';
+// La pantalla de sesión (M3) todavía no existe en esta rama; ir a '/sesion' deja la app en blanco.
+const RUTA_DESPUES_DE_LA_FICHA = '/hoy';
 
 function FichaEjercicio() {
   const { id } = useParams<{ id: string }>();
@@ -68,7 +69,7 @@ function FichaEjercicio() {
 
     try {
       await fichasVistasLocal.marcarVista(id);
-      history.push(RUTA_SESION);
+      history.replace(RUTA_DESPUES_DE_LA_FICHA);
     } catch {
       setError('No se pudo guardar que viste la ficha. Inténtalo de nuevo.');
     }

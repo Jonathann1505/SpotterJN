@@ -123,7 +123,7 @@ Limitaciones actuales:
 
 - Los datos de M2 se guardan en el dispositivo con Capacitor Preferences, detrás de las interfaces de `src/repositories/repositorios.ts`. No están cifrados ni se sincronizan con Supabase; RNF-11 (cifrado en reposo y separación en backend) queda pendiente.
 - Los pesos que muestra `Hoy` son los iniciales del catálogo (`src/data/ejercicios.ts`), no cálculos de progresión: dependen de M3 y M4. Hasta que exista el historial de sesiones, la "próxima sesión" es siempre el primer día de la rutina.
-- El botón «Empezar entrenamiento» navega a `/sesion`, que aún no existe (M3).
+- El botón «Empezar entrenamiento» muestra un aviso («La sesión de entrenamiento estará disponible pronto») porque la pantalla de sesión (M3) aún no existe en esta rama; ir a una ruta inexistente deja la app en blanco, así que no debe navegarse a `/sesion` hasta que M3 la registre.
 - El cuestionario de rutina se asigna con plantillas fijas según días y equipo, sin IA.
 
 ## Ficha de ejercicio (M5, RF-21)
@@ -132,7 +132,7 @@ Cada ejercicio tiene una ficha en `/ejercicio/:id` con su animación, cómo ajus
 
 - Las animaciones son archivos HTML autocontenidos en `public/ejercicios/` (hoy solo `press-banca.html`; el comando `npm run animacion:crear` genera las demás a partir de 3 imágenes, ver `docs/animaciones-ejercicios.md`), que se muestran en un `iframe` con `sandbox="allow-scripts"`. Se pausan al tocarlas y no se inician si el sistema pide menos movimiento.
 - El contenido de cada guía está en `src/data/guias.ts`; los 16 ejercicios del catálogo tienen su texto, pero solo el press de banca tiene animación. Los demás muestran «Animación próximamente». Un ejercicio que no esté en `guias.ts` usa un texto provisional.
-- «Listo, empezar series» navega a `/sesion`, que aún no existe (M3), y el botón de cambiar ejercicio (RF-14) no está implementado.
+- «Listo, empezar series» guarda la ficha como vista y vuelve a `Hoy`, porque la pantalla de sesión (M3) aún no existe en esta rama; cuando exista, ese botón debe llevar a ella. El botón de cambiar ejercicio (RF-14) no está implementado.
 
 ## Glosario (M5, RF-22)
 
