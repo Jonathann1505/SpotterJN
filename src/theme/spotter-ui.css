@@ -1,8 +1,8 @@
 /* Estilo de las pantallas de perfil, rutina y progreso. Se aplica solo dentro de .sj
    para no alterar el Login ni el resto de la app. */
 .sj {
-  --sj-bg: #f2f2f2;
-  --sj-campo: #e9e9e9;
+  --sj-bg: #dfeaf6;
+  --sj-campo: #e9e7e3;
   --sj-ink: #1a1a1a;
   --sj-muted: #5c5c5c;
   --sj-blue: #0066cc;
@@ -379,7 +379,7 @@
   justify-content: space-between;
   gap: 1rem;
   padding: 0.85rem 0;
-  border-top: 1px solid #b9b9b9;
+  border-top: 1px solid rgb(26 26 26 / 28%);
   font-size: 1rem;
 }
 
