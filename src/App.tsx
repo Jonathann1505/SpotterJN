@@ -10,10 +10,17 @@ import {
 import { IonReactRouter } from '@ionic/react-router';
 import type { PropsWithChildren } from 'react';
 import { Redirect, Route } from 'react-router-dom';
+import AvisoMedico from './pages/AvisoMedico';
 import Consentimientos from './pages/Consentimientos';
+import CuestionarioRutina from './pages/CuestionarioRutina';
+import CuestionarioSalud from './pages/CuestionarioSalud';
 import Hoy from './pages/Hoy';
 import Login from './pages/Login';
+import Perfil from './pages/Perfil';
 import Registro from './pages/Registro';
+import RutinaAsignada from './pages/RutinaAsignada';
+import SesionEntrenamiento from './pages/SesionEntrenamiento';
+import { ProveedorPerfil } from './context/PerfilContext';
 import { ProveedorSesion, useSesion } from './context/SesionContext';
 
 function RutaInvitado({ children }: PropsWithChildren) {
@@ -77,6 +84,24 @@ function RutasAplicacion() {
         <Route exact path="/hoy">
           {sesion ? <Hoy /> : <Redirect to="/login" />}
         </Route>
+        <Route exact path="/aviso-medico">
+          {sesion ? <AvisoMedico /> : <Redirect to="/login" />}
+        </Route>
+        <Route exact path="/salud">
+          {sesion ? <CuestionarioSalud /> : <Redirect to="/login" />}
+        </Route>
+        <Route exact path="/cuestionario-rutina">
+          {sesion ? <CuestionarioRutina /> : <Redirect to="/login" />}
+        </Route>
+        <Route exact path="/rutina">
+          {sesion ? <RutinaAsignada /> : <Redirect to="/login" />}
+        </Route>
+        <Route exact path="/perfil">
+          {sesion ? <Perfil /> : <Redirect to="/login" />}
+        </Route>
+        <Route exact path="/sesion">
+          {sesion ? <SesionEntrenamiento /> : <Redirect to="/login" />}
+        </Route>
         <Route exact path="/terminos">
           <IonPage>
             <IonContent className="ion-padding"><h1>Términos</h1></IonContent>
@@ -99,7 +124,9 @@ function App() {
   return (
     <IonApp className="ion-palette-dark">
       <ProveedorSesion>
-        <RutasAplicacion />
+        <ProveedorPerfil>
+          <RutasAplicacion />
+        </ProveedorPerfil>
       </ProveedorSesion>
     </IonApp>
   );

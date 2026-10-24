@@ -86,3 +86,22 @@
 - Eliminados los estilos que quedaron sin uso para el arte decorativo.
 - Añadidas aserciones para verificar que los textos y elementos retirados no reaparezcan.
 - Verificación: `npm test` y `npm run build` completados.
+
+### 2026-10-15 — Cierre de sesión RF-01 y separación local por usuario
+
+- Confirmada la rama de trabajo `feature/cerrar-sesion`, basada en el mismo commit que `feature/perfil-rutina`; el flujo M2 y el servicio de autenticación están presentes.
+- El servicio cierra sesión con alcance local (`signOut({ scope: 'local' })`); las sesiones de otros dispositivos no se invalidan.
+- Añadido el componente reutilizable de cierre en Hoy y Perfil: modal Cancelar/Cerrar sesión, estado de carga, bloqueo de doble confirmación, error localizado y reemplazo de la ruta por `/login` al completar.
+- Las interfaces y repositorios de perfil, salud y rutina reciben el ID del usuario y guardan en claves locales separadas. No se borran al cerrar sesión.
+- Los registros anteriores sin ID no se migran ni se eliminan; la versión actual no los lee. No atribuirlos automáticamente a un usuario.
+- La separación por usuario en Preferences no cifra los datos ni sustituye el almacenamiento backend/RLS, pendiente junto con la sincronización a Supabase.
+- Validación final: suite completa de Vitest aprobada (83 pruebas en 17 archivos) y `npm run build` aprobado. Vite mantiene la advertencia existente por el bundle principal superior a 500 kB minificados.
+
+### 2026-10-16 — Esqueleto de sesión y temporizador de descanso (M3/RF-11)
+
+- Creada la rama `feature/sesion-entrenamiento` desde `feature/cerrar-sesion`, que conserva los cambios de acceso y M2. Los cambios locales de Gradle continúan en el stash previo; no reaplicarlos automáticamente.
+- Añadida la ruta protegida `/sesion`: muestra los ejercicios de la primera jornada de la rutina del usuario, sugiere volver a Hoy y no registra ni persiste entrenamiento (M3 sigue incompleto).
+- Añadido el componente independiente de descanso RF-11: inicia en 90 segundos, presenta el progreso circular mm:ss y permite sumar/restar 30 segundos y saltar. No se integra con `/sesion`.
+- Pendiente: persistir sesiones y series (resto de M3/RF-10), conectar el temporizador con el entrenamiento y cualquier recuperación de contraseña (RF-03).
+- La duración predeterminada del temporizador es 90 segundos y comienza automáticamente.
+- Verificación final: 91 pruebas en 19 archivos aprobadas; `npm run build` aprobado con la advertencia de Vite por el bundle principal superior a 500 kB minificados.

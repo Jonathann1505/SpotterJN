@@ -4,7 +4,7 @@ SpotterJN es un proyecto académico de Computación Móvil para apoyar a persona
 
 ## Estado actual
 
-La aplicación está construida con **Ionic React, React, TypeScript, Vite y Capacitor**. El flujo de **Supabase Auth** incluye registro, inicio de sesión, persistencia y cierre de sesión. Las funciones de entrenamiento siguen siendo objetivos académicos y no están implementadas.
+La aplicación está construida con **Ionic React, React, TypeScript, Vite y Capacitor**. El flujo de **Supabase Auth** incluye registro, inicio de sesión, persistencia y cierre de sesión. Hay una pantalla básica para consultar la primera jornada y un temporizador de descanso reutilizable; el registro de entrenamiento todavía no está implementado.
 
 ## Tecnologías y alcance
 
@@ -14,8 +14,10 @@ La aplicación está construida con **Ionic React, React, TypeScript, Vite y Cap
 | Desarrollo y compilación web | Configurados: `npm run dev`, `npm run build` y `npm run preview` |
 | Aplicación Android | Capacitor Android configurado; requiere Android Studio, SDK y emulador instalados para ejecutarse |
 | Pruebas automatizadas | Configuradas con Vitest y Testing Library |
-| Autenticación | Supabase Auth: registro, inicio, sesión persistente y cierre |
-| Datos de perfil, tablas propias, RLS e IA | No implementados |
+| Autenticación | Supabase Auth: registro, inicio, sesión persistente y cierre local en este dispositivo |
+| Perfil, salud y rutina (M2) | En desarrollo: almacenamiento local por usuario con Capacitor Preferences detrás de interfaces de repositorio, sin cifrado; la migración a Supabase queda pendiente |
+| Sesión y descanso (M3/RF-11) | `/sesion` muestra la primera jornada sin registrarla; temporizador de descanso independiente con cuenta regresiva y controles |
+| Tablas propias en Supabase, RLS e IA | No implementados |
 
 Los módulos de cuenta, perfil y rutina, registro de sesiones, progresión, explicaciones con IA, modo sin conexión y guía de máquinas son parte de la visión del proyecto y deberán implementarse por separado.
 
@@ -26,21 +28,43 @@ SpotterJN/
 ├── src/
 │   ├── App.tsx
 │   ├── main.tsx
+│   ├── components/
+│   │   ├── CerrarSesion.tsx
+│   │   └── TemporizadorDescanso.tsx
 │   ├── context/
+│   │   ├── PerfilContext.tsx     # perfil y unidad de peso (kg/lb)
 │   │   └── SesionContext.tsx
+│   ├── data/
+│   │   └── ejercicios.ts         # catálogo de ejercicios de las rutinas
 │   ├── pages/
 │   │   ├── AuthPages.css
+│   │   ├── AvisoMedico.tsx
 │   │   ├── Consentimientos.tsx
+│   │   ├── CuestionarioRutina.tsx
+│   │   ├── CuestionarioSalud.tsx
 │   │   ├── Hoy.tsx
+│   │   ├── Hoy.css
 │   │   ├── Login.tsx
 │   │   ├── Login.css
-│   │   └── Registro.tsx
+│   │   ├── Perfil.tsx
+│   │   ├── Registro.tsx
+│   │   ├── Rutina.css
+│   │   ├── RutinaAsignada.tsx
+│   │   ├── SesionEntrenamiento.tsx
+│   │   └── Salud.css
+│   ├── repositories/
+│   │   ├── repositorios.ts       # interfaces de perfil, salud y rutina
+│   │   ├── local.ts              # implementación local (Capacitor Preferences)
+│   │   └── almacenLocal.ts
 │   ├── services/
 │   │   ├── auth.ts
 │   │   └── supabase.ts
 │   ├── types/
-│   │   └── consentimientos.ts
+│   │   ├── consentimientos.ts
+│   │   └── perfil.ts
 │   ├── utils/
+│   │   ├── rutina.ts             # asignación de la rutina inicial
+│   │   ├── unidades.ts           # conversión kg/lb
 │   │   └── validaciones.ts
 │   ├── vite-env.d.ts
 │   ├── theme/
@@ -48,6 +72,7 @@ SpotterJN/
 │   ├── test/
 │   │   └── setup.ts
 │   ├── App.test.tsx
+│   ├── components/*.test.tsx
 │   └── pages/*.test.tsx
 ├── AGENTS.md
 ├── android/                      # Proyecto nativo Capacitor
@@ -86,6 +111,22 @@ npm run preview
 
 La compilación estática se genera en `dist/`.
 
+## Perfil y rutina (M2)
+
+El flujo de primera vez, tras iniciar sesión, es: `Hoy` redirige a `/aviso-medico` si no hay respuestas de salud (RF-05), después a `/cuestionario-rutina` si no hay rutina (RF-06), que asigna una rutina predefinida y la muestra en `/rutina`. `/perfil` permite editar nombre (1 a 40 caracteres), meta principal y unidad de peso kg/lb (RF-07); la unidad se aplica de inmediato en `Hoy` y en la rutina. `Hoy` muestra la próxima sesión con sus ejercicios, series y repeticiones (RF-08).
+
+Limitaciones actuales:
+
+- Los datos de M2 se guardan en el dispositivo con Capacitor Preferences, detrás de las interfaces de `src/repositories/repositorios.ts` y bajo claves asociadas al ID del usuario autenticado. No están cifrados ni se sincronizan con Supabase; RNF-11 (cifrado en reposo y separación en backend) queda pendiente.
+- Los datos guardados por versiones anteriores en claves locales sin usuario no se migran automáticamente ni se borran: la app actual no los muestra. Tras actualizar, cada usuario deberá volver a completar el flujo M2 para generar sus datos asociados a su cuenta.
+- Los pesos que muestra `Hoy` son los iniciales del catálogo (`src/data/ejercicios.ts`), no cálculos de progresión: dependen de M3 y M4. Hasta que exista el historial de sesiones, la "próxima sesión" es siempre el primer día de la rutina.
+- `/sesion` muestra los ejercicios de la primera jornada y permite volver a Hoy. Es un esqueleto visual: todavía no registra series, pesos ni historial (M3).
+- El cuestionario de rutina se asigna con plantillas fijas según días y equipo, sin IA.
+
+## Sesión de entrenamiento (M3)
+
+La ruta protegida `/sesion`, accesible desde «Empezar entrenamiento» en Hoy, carga y muestra los ejercicios de la primera jornada de la rutina del usuario. Permite volver a Hoy y no registra ni persiste actividad. El componente de descanso RF-11 es independiente: ofrece una cuenta regresiva inicial de 90 segundos, círculo de tiempo restante y controles para sumar/restar 30 segundos o saltar; no se conecta todavía al flujo de una sesión. La duración inicial es 90 segundos y comienza automáticamente.
+
 ## Supabase y variables de entorno
 
 1. Crea un proyecto en [Supabase](https://supabase.com/dashboard) y copia su URL y clave **anon/publicable** desde la configuración API del proyecto.
@@ -104,6 +145,12 @@ El cliente Supabase se centraliza en `src/services/supabase.ts` y falla explíci
 Si Auth devuelve un error, la interfaz muestra un mensaje localizado y, para códigos desconocidos, el código técnico sin el texto crudo del proveedor. Si indica que no pudo conectar, comprueba localmente la URL del proyecto en `.env`, la conexión a internet y que el proyecto Supabase esté disponible. Un HTTP 404 suele indicar que la URL no corresponde a la **Project URL** actual o que el proyecto ya no está activo. Compara localmente `VITE_SUPABASE_URL` con **Project Settings > API > Project URL**; usa la URL base `https://<project-ref>.supabase.co`, sin añadir `/auth/v1` ni `/rest/v1`. No compartas `.env`, claves ni capturas que las muestren.
 
 Las rutas de acceso y registro usan `/login`, `/consentimientos` y `/registro`; la ruta protegida `/hoy` requiere una sesión. Consentimientos y registro transmiten la autorización opcional de datos de salud y la fecha ISO de aceptación en los metadatos del usuario de Supabase Auth.
+
+### Cierre de sesión (RF-01)
+
+El componente reutilizable **Cerrar sesión** está disponible en Hoy y Perfil. Al tocarlo, presenta un modal con **Cancelar** y **Cerrar sesión**. Cancelar no realiza ninguna operación; confirmar muestra el estado de carga, evita confirmaciones duplicadas y llama al servicio de Auth con alcance local. Si falla, informa el error en español y conserva la pantalla; si tiene éxito, reemplaza la ruta por `/login`. Las rutas protegidas siguen requiriendo una sesión.
+
+El cierre local no invalida las sesiones de otros dispositivos. Los datos de perfil, salud y rutina no se eliminan al salir: permanecen asociados al ID de su usuario para que otra cuenta en el mismo dispositivo no los reciba.
 
 La sesión persiste mediante los tokens que administra Supabase en el almacenamiento de la aplicación. **No se afirma que cumpla la persistencia de 30 días indicada por RF-01**: la duración efectiva depende de la configuración y renovación de sesiones de Supabase y queda pendiente verificarla en el proyecto.
 

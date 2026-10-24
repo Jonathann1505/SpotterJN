@@ -1,9 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { iniciarSesion, registrar } from './auth';
+import { cerrarSesion, iniciarSesion, registrar } from './auth';
 
 const authMock = vi.hoisted(() => ({
   signUp: vi.fn(),
   signInWithPassword: vi.fn(),
+  signOut: vi.fn(),
 }));
 
 vi.mock('./supabase', () => ({
@@ -42,6 +43,13 @@ describe('servicio de autenticación', () => {
         },
       },
     });
+  });
+
+  it('cierra solo la sesión de este dispositivo', async () => {
+    authMock.signOut.mockResolvedValue({ error: null });
+
+    await expect(cerrarSesion()).resolves.toEqual({ ok: true });
+    expect(authMock.signOut).toHaveBeenCalledWith({ scope: 'local' });
   });
 
   it('traduce errores de Supabase sin exponer su mensaje original', async () => {

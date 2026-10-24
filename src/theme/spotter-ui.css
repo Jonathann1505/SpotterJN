@@ -1,0 +1,443 @@
+/* Estilo de las pantallas de perfil, rutina y progreso. Se aplica solo dentro de .sj
+   para no alterar el Login ni el resto de la app. */
+.sj {
+  --sj-bg: #f2f2f2;
+  --sj-campo: #e9e9e9;
+  --sj-ink: #1a1a1a;
+  --sj-muted: #5c5c5c;
+  --sj-blue: #0066cc;
+  --sj-blue-ink: #0a4fa3;
+  --sj-linea: 2px solid var(--sj-ink);
+
+  --background: var(--sj-bg);
+  --color: var(--sj-ink);
+  --ion-text-color: var(--sj-ink);
+  --ion-color-primary: var(--sj-blue);
+  --ion-color-primary-contrast: #ffffff;
+  --ion-font-family: 'Archivo', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  font-family: var(--ion-font-family);
+  color: var(--sj-ink);
+}
+
+.sj-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  max-width: 34rem;
+  margin: 0 auto;
+  padding: max(1.25rem, env(safe-area-inset-top)) 1.25rem max(1.25rem, env(safe-area-inset-bottom));
+}
+
+.sj-main {
+  flex: 1 1 auto;
+}
+
+.sj-pie {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding-top: 1.5rem;
+}
+
+.sj-logo {
+  display: block;
+  width: 4rem;
+  height: auto;
+  margin-bottom: 1rem;
+}
+
+.sj-eyebrow {
+  margin: 0;
+  color: var(--sj-blue-ink);
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sj-titulo {
+  margin: 0.25rem 0 1rem;
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.sj-titulo-regla {
+  padding-bottom: 1rem;
+  border-bottom: var(--sj-linea);
+}
+
+.sj-texto {
+  margin: 0 0 1rem;
+  font-size: 1rem;
+  line-height: 1.55;
+}
+
+.sj-suave {
+  color: var(--sj-muted);
+}
+
+.sj-subtitulo {
+  margin: 1.5rem 0 0.5rem;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.sj-error {
+  margin: 0.75rem 0 0;
+  color: #b00020;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.sj-ok {
+  margin: 0.75rem 0 0;
+  color: #0a6b2d;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.sj-descanso {
+  display: grid;
+  justify-items: center;
+  gap: 1.25rem;
+  padding: 1.5rem 0;
+}
+
+.sj-descanso-circulo {
+  position: relative;
+  width: min(15rem, 70vw);
+  aspect-ratio: 1;
+}
+
+.sj-descanso-circulo svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.sj-descanso-trazo,
+.sj-descanso-progreso {
+  fill: none;
+  stroke-width: 6;
+}
+
+.sj-descanso-trazo {
+  stroke: #d2d2d2;
+}
+
+.sj-descanso-progreso {
+  stroke: var(--sj-blue);
+  stroke-linecap: square;
+  transition: stroke-dashoffset 0.25s linear;
+}
+
+.sj-descanso-tiempo {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--sj-ink);
+  font-size: clamp(2.5rem, 12vw, 3.5rem);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.sj-descanso-controles {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.sj-descanso-controles button {
+  min-height: 3rem;
+  padding: 0.5rem 0.85rem;
+  border: 2px solid var(--sj-ink);
+  background: transparent;
+  color: var(--sj-ink);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.sj-descanso-controles button:focus-visible {
+  outline: 3px solid var(--sj-blue);
+  outline-offset: 2px;
+}
+
+/* Botones */
+.sj ion-button.sj-boton {
+  --background: var(--sj-blue);
+  --background-activated: #004f9f;
+  --background-hover: #0059b8;
+  --color: #ffffff;
+  --border-radius: 0;
+  --box-shadow: none;
+  --padding-start: 1.25rem;
+  --padding-end: 1.25rem;
+  min-height: 3.5rem;
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.sj ion-button.sj-boton::part(native) {
+  justify-content: space-between;
+}
+
+.sj ion-button.sj-boton-secundario {
+  --background: transparent;
+  --background-hover: rgb(0 0 0 / 6%);
+  --background-activated: rgb(0 0 0 / 10%);
+  --color: var(--sj-ink);
+  --border-color: var(--sj-ink);
+  --border-style: solid;
+  --border-width: 2px;
+}
+
+.sj ion-button.sj-boton-texto {
+  --background: transparent;
+  --background-hover: rgb(0 0 0 / 6%);
+  --color: var(--sj-ink);
+  min-height: 3rem;
+}
+
+.sj ion-button.sj-boton.button-disabled {
+  opacity: 1;
+  --background: #b8b8b8;
+  --color: #4d4d4d;
+}
+
+/* Opciones de selección (casillas) */
+.sj-opcion {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  width: 100%;
+  min-height: 3.5rem;
+  margin: 0 0 0.5rem;
+  padding: 0.5rem 1rem;
+  border: var(--sj-linea);
+  background: var(--sj-campo);
+  color: var(--sj-ink);
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sj-opcion[aria-checked='true'] {
+  background: var(--sj-ink);
+  color: #ffffff;
+}
+
+.sj-opcion-marca {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 2px solid currentcolor;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+/* Selector segmentado (como las pestañas de acceso) */
+.sj-segmentos {
+  display: flex;
+  border: var(--sj-linea);
+}
+
+.sj-segmento {
+  flex: 1 1 0;
+  min-height: 3.25rem;
+  padding: 0.5rem 0.75rem;
+  border: 0;
+  background: #ffffff;
+  color: var(--sj-ink);
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.sj-segmento + .sj-segmento {
+  border-left: var(--sj-linea);
+}
+
+.sj-segmento[aria-checked='true'] {
+  background: var(--sj-ink);
+  color: #ffffff;
+}
+
+/* Contador */
+.sj-contador {
+  display: flex;
+  align-items: stretch;
+  border: var(--sj-linea);
+}
+
+.sj-contador button {
+  width: 3.5rem;
+  min-height: 3.5rem;
+  border: 0;
+  background: #ffffff;
+  color: var(--sj-ink);
+  font: inherit;
+  font-size: 1.5rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.sj-contador button:disabled {
+  background: #d9d9d9;
+  color: #7a7a7a;
+  cursor: default;
+}
+
+.sj-contador output {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: center;
+  border-inline: var(--sj-linea);
+  background: var(--sj-campo);
+  font-size: 1.75rem;
+  font-weight: 800;
+}
+
+/* Campo de texto */
+.sj-campo-etiqueta {
+  display: block;
+  margin: 1rem 0 0.5rem;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.sj ion-input.sj-input {
+  --background: var(--sj-campo);
+  --color: var(--sj-ink);
+  --placeholder-color: var(--sj-muted);
+  --padding-start: 1rem;
+  --padding-end: 1rem;
+  min-height: 3.5rem;
+  border: var(--sj-linea);
+  font-size: 1rem;
+}
+
+/* Listas con separadores (rutina, Hoy) */
+.sj-fila-titulo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+  padding: 1rem 0;
+  border: 0;
+  border-top: var(--sj-linea);
+  background: transparent;
+  color: var(--sj-ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sj-fila-titulo strong {
+  display: block;
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
+.sj-fila-titulo small {
+  display: block;
+  color: var(--sj-muted);
+  font-size: 0.875rem;
+}
+
+.sj-fila-signo {
+  flex: 0 0 auto;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.sj-lista {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sj-lista li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 0;
+  border-top: 1px solid #b9b9b9;
+  font-size: 1rem;
+}
+
+.sj-lista li strong {
+  font-weight: 800;
+}
+
+.sj-cierre {
+  border-top: var(--sj-linea);
+}
+
+.sj-segmentos-columna {
+  flex-direction: column;
+}
+
+.sj-segmentos-columna .sj-segmento {
+  text-align: left;
+  padding-inline: 1rem;
+}
+
+.sj-segmentos-columna .sj-segmento + .sj-segmento {
+  border-left: 0;
+  border-top: var(--sj-linea);
+}
+
+.sj-bloque {
+  display: block;
+  font-size: 0.875rem;
+}
+
+.sj-lista-hoy li {
+  padding: 1rem 0;
+}
+
+.sj-lista-hoy li:first-child {
+  border-top: 0;
+}
+
+.sj-lista-hoy li strong {
+  font-size: 1.0625rem;
+}
+
+.sj-peso {
+  margin: 0;
+  font-size: 2.25rem;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.sj-peso small {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--sj-muted);
+}
+
+.sj-peso-corporal {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--sj-muted);
+}
