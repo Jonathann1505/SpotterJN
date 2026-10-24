@@ -40,6 +40,14 @@ function Hoy() {
     };
   }, []);
 
+  // La pantalla de sesión (M3) todavía no existe en esta rama; ir a '/sesion' deja la app en blanco.
+  const avisarSesionPendiente = async (): Promise<void> => {
+    await mostrarToast({
+      message: 'La sesión de entrenamiento estará disponible pronto.',
+      duration: 3000,
+    });
+  };
+
   const confirmarCierreSesion = async (): Promise<void> => {
     const resultado = await cerrarSesion();
     if (!resultado.ok) {
@@ -77,7 +85,7 @@ function Hoy() {
       reglaBajoTitulo
       pie={
         <>
-          <BotonSJ onClick={() => history.push('/sesion')}>Empezar entrenamiento</BotonSJ>
+          <BotonSJ onClick={() => void avisarSesionPendiente()}>Empezar entrenamiento</BotonSJ>
           <BotonSJ variante="secundario" onClick={() => history.push('/perfil')}>Perfil</BotonSJ>
           <BotonSJ variante="texto" onClick={() => setAlertaAbierta(true)}>Cerrar sesión</BotonSJ>
         </>

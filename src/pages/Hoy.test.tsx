@@ -22,6 +22,9 @@ function renderizar() {
           <Route path="/cuestionario-rutina">
             <p>cuestionario de rutina</p>
           </Route>
+          <Route path="/sesion">
+            <p>pantalla de sesión</p>
+          </Route>
           <Route path="/ejercicio/:id">
             <p>ficha de ejercicio</p>
           </Route>
@@ -79,5 +82,16 @@ describe('Hoy', () => {
     fireEvent.click(await findByRole('button', { name: `Ver la ficha de ${primero.nombre}` }));
 
     expect(await findByText('ficha de ejercicio')).toBeInTheDocument();
+  });
+
+  it('no lleva a una pantalla inexistente al pulsar «Empezar entrenamiento»', async () => {
+    await saludLocal.guardar(salud);
+    await rutinaLocal.guardar(rutina);
+    const { findByText, queryByText, findByRole } = renderizar();
+
+    fireEvent.click(await findByText('Empezar entrenamiento'));
+
+    expect(queryByText('pantalla de sesión')).not.toBeInTheDocument();
+    expect(await findByRole('heading', { name: rutina.dias[0].nombre })).toBeInTheDocument();
   });
 });
