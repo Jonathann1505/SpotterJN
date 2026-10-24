@@ -69,10 +69,11 @@ function Perfil() {
         </>
       }
     >
-      <span className="sj-campo-etiqueta" id="etiqueta-nombre">Nombre</span>
       <IonInput
-        className="sj-input"
-        aria-label="Nombre"
+        className="sj-campo"
+        label="Nombre"
+        labelPlacement="stacked"
+        fill="outline"
         maxlength={LONGITUD_MAXIMA_NOMBRE + 10}
         value={nombre}
         onIonInput={(evento) => setNombre(String(evento.detail.value ?? ''))}

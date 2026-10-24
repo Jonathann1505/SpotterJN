@@ -52,7 +52,9 @@ function Hoy() {
   if (datos === null || !sesion || datos.usuarioId !== sesion.user.id) {
     return (
       <PantallaSJ titulo="Hoy">
-        <IonSpinner aria-label="Cargando tu sesión" />
+        <div className="sj-cargando">
+          <IonSpinner aria-label="Cargando tu sesión" />
+        </div>
       </PantallaSJ>
     );
   }

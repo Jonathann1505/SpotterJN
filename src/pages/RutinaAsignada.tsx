@@ -52,7 +52,9 @@ function RutinaAsignada() {
   if (cargando) {
     return (
       <PantallaSJ titulo="Tu rutina">
-        <IonSpinner aria-label="Cargando rutina" />
+        <div className="sj-cargando">
+          <IonSpinner aria-label="Cargando rutina" />
+        </div>
       </PantallaSJ>
     );
   }
