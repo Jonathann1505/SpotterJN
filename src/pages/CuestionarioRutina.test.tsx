@@ -10,6 +10,10 @@ const sincronizarRecordatorios = vi.hoisted(() => vi.fn());
 
 vi.mock('../services/recordatorios', () => ({ sincronizarRecordatorios }));
 
+vi.mock('../context/SesionContext', () => ({
+  useSesion: () => ({ sesion: { user: { id: 'usuario-prueba' } } }),
+}));
+
 function renderizar() {
   return render(
     <IonApp>
@@ -68,7 +72,7 @@ describe('CuestionarioRutina', () => {
 
     expect(await findByText('rutina asignada')).toBeInTheDocument();
     await waitFor(async () => {
-      const rutina = await rutinaLocal.obtener();
+      const rutina = await rutinaLocal.obtener('usuario-prueba');
       expect(rutina?.cuestionario).toEqual({ experiencia: 'menos-6-meses', diasPorSemana: 3, equipo: ['maquinas'] });
       expect(rutina?.dias).toHaveLength(3);
     });
@@ -76,7 +80,7 @@ describe('CuestionarioRutina', () => {
 
   it('reprograma los recordatorios activos con los días de la nueva rutina', async () => {
     sincronizarRecordatorios.mockResolvedValue(undefined);
-    await recordatoriosLocal.guardar({ activo: true, hora: '07:00' });
+    await recordatoriosLocal.guardar('usuario-prueba', { activo: true, hora: '07:00' });
     const { container, getByRole, findByText } = renderizar();
 
     fireEvent.click(getByRole('radio', { name: 'Ninguna' }));

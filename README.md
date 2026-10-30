@@ -4,7 +4,7 @@ SpotterJN es un proyecto académico de Computación Móvil para apoyar a persona
 
 ## Estado actual
 
-La aplicación está construida con **Ionic React, React, TypeScript, Vite y Capacitor**. El flujo de **Supabase Auth** incluye registro, inicio de sesión, persistencia y cierre de sesión. Las funciones de entrenamiento siguen siendo objetivos académicos y no están implementadas.
+La aplicación está construida con **Ionic React, React, TypeScript, Vite y Capacitor**. El flujo de **Supabase Auth** incluye registro, inicio de sesión, persistencia y cierre de sesión. Hay una pantalla básica para consultar la primera jornada y un temporizador de descanso reutilizable; el registro de entrenamiento todavía no está implementado.
 
 ## Tecnologías y alcance
 
@@ -14,8 +14,9 @@ La aplicación está construida con **Ionic React, React, TypeScript, Vite y Cap
 | Desarrollo y compilación web | Configurados: `npm run dev`, `npm run build` y `npm run preview` |
 | Aplicación Android | Capacitor Android configurado; requiere Android Studio, SDK y emulador instalados para ejecutarse |
 | Pruebas automatizadas | Configuradas con Vitest y Testing Library |
-| Autenticación | Supabase Auth: registro, inicio, sesión persistente y cierre |
-| Perfil, salud y rutina (M2) | En desarrollo: almacenamiento local con Capacitor Preferences detrás de interfaces de repositorio, sin cifrado; la migración a Supabase queda pendiente |
+| Autenticación | Supabase Auth: registro, inicio, sesión persistente y cierre local en este dispositivo |
+| Perfil, salud y rutina (M2) | En desarrollo: almacenamiento local por usuario con Capacitor Preferences detrás de interfaces de repositorio, sin cifrado; la migración a Supabase queda pendiente |
+| Sesión y descanso (M3/RF-11) | `/sesion` muestra la primera jornada sin registrarla; temporizador de descanso independiente con cuenta regresiva y controles |
 | Tablas propias en Supabase, RLS e IA | No implementados |
 
 Los módulos de cuenta, perfil y rutina, registro de sesiones, progresión, explicaciones con IA, modo sin conexión y guía de máquinas son parte de la visión del proyecto y deberán implementarse por separado.
@@ -28,9 +29,11 @@ SpotterJN/
 │   ├── App.tsx
 │   ├── main.tsx
 │   ├── components/
-│   │   ├── PantallaSJ.tsx       # estructura y botón del estilo de perfil y progreso
 │   │   ├── AnimacionEjercicio.tsx # animación del ejercicio en iframe aislado
-│   │   └── AyudaTermino.tsx      # ícono de ayuda con la definición de un término
+│   │   ├── AyudaTermino.tsx      # ícono de ayuda con la definición de un término
+│   │   ├── CerrarSesion.tsx
+│   │   ├── PantallaSJ.tsx       # marco de pantalla, botones y acceso compartidos
+│   │   └── TemporizadorDescanso.tsx
 │   ├── context/
 │   │   ├── PerfilContext.tsx     # perfil y unidad de peso (kg/lb)
 │   │   └── SesionContext.tsx
@@ -39,7 +42,6 @@ SpotterJN/
 │   │   ├── glosario.ts           # términos básicos y sus definiciones
 │   │   └── guias.ts              # guía de cada ejercicio (ajuste, movimiento, ubicación)
 │   ├── pages/
-│   │   ├── AuthPages.css
 │   │   ├── Ajustes.tsx
 │   │   ├── AvisoMedico.tsx
 │   │   ├── Consentimientos.tsx
@@ -48,14 +50,14 @@ SpotterJN/
 │   │   ├── FichaEjercicio.tsx
 │   │   ├── Glosario.tsx
 │   │   ├── Hoy.tsx
-│   │   ├── Hoy.css
 │   │   ├── Login.tsx
-│   │   ├── Login.css
 │   │   ├── Perfil.tsx
 │   │   ├── Registro.tsx
-│   │   ├── Rutina.css
 │   │   ├── RutinaAsignada.tsx
+│   │   ├── SesionEntrenamiento.tsx
 │   │   └── Salud.css
+│   ├── assets/
+│   │   └── logo-spotterjn.webp
 │   ├── repositories/
 │   │   ├── repositorios.ts       # interfaces de perfil, salud y rutina
 │   │   ├── local.ts              # implementación local (Capacitor Preferences)
@@ -73,10 +75,12 @@ SpotterJN/
 │   │   └── validaciones.ts
 │   ├── vite-env.d.ts
 │   ├── theme/
+│   │   ├── spotter-ui.css
 │   │   └── variables.css
 │   ├── test/
 │   │   └── setup.ts
 │   ├── App.test.tsx
+│   ├── components/*.test.tsx
 │   └── pages/*.test.tsx
 ├── AGENTS.md
 ├── android/                      # Proyecto nativo Capacitor
@@ -89,6 +93,26 @@ SpotterJN/
 ├── tsconfig.json
 └── vite.config.ts
 ```
+
+## Sistema visual
+
+La aplicación usa un tema claro fijo inspirado en la pantalla de acceso compartida. Los tokens visuales se centralizan en `src/theme/spotter-ui.css`; `src/theme/variables.css` asigna esos tokens a las variables de Ionic y ambos estilos globales se cargan desde `src/main.tsx`.
+
+Tokens principales:
+
+| Token | Valor | Uso |
+| --- | --- | --- |
+| `--sj-color-fondo` | `#e0eaf6` | Fondo azul claro |
+| `--sj-color-campo` | `#e7e6e2` | Fondo gris cálido de campos |
+| `--sj-color-tinta` | `#1a1a1a` | Texto, bordes y selección activa |
+| `--sj-color-primario` | `#0066cc` | Acentos, foco y progreso |
+| `--sj-borde` / `--sj-radio` | `2px solid` / `0` | Bordes marcados y esquinas rectas |
+| `--sj-espacio-*` | escala rem existente | Separaciones |
+| `--sj-fuente-*` | escala rem existente | Tipografía Archivo y tamaños |
+
+Para nuevas pantallas autenticadas o de entrenamiento, usa `PantallaSJ` y `BotonSJ` desde `src/components/PantallaSJ.tsx`. `PantallaSJ` ofrece el encabezado y el marco con áreas seguras; `BotonSJ` expone las variantes `principal`, `secundario` y `texto`. Para acceso, `MarcoAccesoSJ`, `LogoSJ` y `PestanasAccesoSJ` comparten el diseño del logo y las pestañas. Estas navegan por las rutas existentes y mantienen el paso obligatorio de Consentimientos antes del registro.
+
+Los campos Ionic usan la clase `sj-campo` y una etiqueta visible; las casillas de acceso reciben el estilo compartido por `.sj-acceso`. `sj-tarjeta` sirve para superficies con borde, y los estados usan `sj-cargando`, `sj-error` y `sj-ok`. Las alertas, cargas, toast y modales de Ionic reciben colores, tipografía y bordes del tema global. No dupliques valores de color, radios, espacios o tamaños en hojas de estilo de páginas; usa los tokens o las clases compartidas. Las pantallas respetan las áreas seguras con `env(safe-area-inset-*)`.
 
 ## Requisitos
 
@@ -121,10 +145,15 @@ El flujo de primera vez, tras iniciar sesión, es: `Hoy` redirige a `/aviso-medi
 
 Limitaciones actuales:
 
-- Los datos de M2 se guardan en el dispositivo con Capacitor Preferences, detrás de las interfaces de `src/repositories/repositorios.ts`. No están cifrados ni se sincronizan con Supabase; RNF-11 (cifrado en reposo y separación en backend) queda pendiente.
+- Los datos de M2 se guardan en el dispositivo con Capacitor Preferences, detrás de las interfaces de `src/repositories/repositorios.ts` y bajo claves asociadas al ID del usuario autenticado. No están cifrados ni se sincronizan con Supabase; RNF-11 (cifrado en reposo y separación en backend) queda pendiente.
+- Los datos guardados por versiones anteriores en claves locales sin usuario no se migran automáticamente ni se borran: la app actual no los muestra. Tras actualizar, cada usuario deberá volver a completar el flujo M2 para generar sus datos asociados a su cuenta.
 - Los pesos que muestra `Hoy` son los iniciales del catálogo (`src/data/ejercicios.ts`), no cálculos de progresión: dependen de M3 y M4. Hasta que exista el historial de sesiones, la "próxima sesión" es siempre el primer día de la rutina.
-- El botón «Empezar entrenamiento» muestra un aviso («La sesión de entrenamiento estará disponible pronto») porque la pantalla de sesión (M3) aún no existe en esta rama; ir a una ruta inexistente deja la app en blanco, así que no debe navegarse a `/sesion` hasta que M3 la registre.
+- `/sesion` muestra los ejercicios de la primera jornada y permite volver a Hoy. Es un esqueleto visual: todavía no registra series, pesos ni historial (M3).
 - El cuestionario de rutina se asigna con plantillas fijas según días y equipo, sin IA.
+
+## Sesión de entrenamiento (M3)
+
+La ruta protegida `/sesion`, accesible desde «Empezar entrenamiento» en Hoy, carga y muestra los ejercicios de la primera jornada de la rutina del usuario. Permite volver a Hoy y no registra ni persiste actividad. El componente de descanso RF-11 es independiente: ofrece una cuenta regresiva inicial de 90 segundos, círculo de tiempo restante y controles para sumar/restar 30 segundos o saltar; no se conecta todavía al flujo de una sesión. La duración inicial es 90 segundos y comienza automáticamente.
 
 ## Ficha de ejercicio (M5, RF-21)
 
@@ -132,7 +161,7 @@ Cada ejercicio tiene una ficha en `/ejercicio/:id` con su animación, cómo ajus
 
 - Las animaciones son archivos HTML autocontenidos en `public/ejercicios/` (hoy solo `press-banca.html`; el comando `npm run animacion:crear` genera las demás a partir de 3 imágenes, ver `docs/animaciones-ejercicios.md`), que se muestran en un `iframe` con `sandbox="allow-scripts"`. Se pausan al tocarlas y no se inician si el sistema pide menos movimiento.
 - El contenido de cada guía está en `src/data/guias.ts`; los 16 ejercicios del catálogo tienen su texto, pero solo el press de banca tiene animación. Los demás muestran «Animación próximamente». Un ejercicio que no esté en `guias.ts` usa un texto provisional.
-- «Listo, empezar series» guarda la ficha como vista y vuelve a `Hoy`, porque la pantalla de sesión (M3) aún no existe en esta rama; cuando exista, ese botón debe llevar a ella. El botón de cambiar ejercicio (RF-14) no está implementado.
+- «Listo, empezar series» guarda la ficha como vista y lleva a la sesión de entrenamiento (`/sesion`). El botón de cambiar ejercicio (RF-14) no está implementado.
 
 ## Glosario (M5, RF-22)
 
@@ -143,7 +172,7 @@ Cada ejercicio tiene una ficha en `/ejercicio/:id` con su animación, cómo ajus
 En `/ajustes` (botón «Recordatorios» del perfil) el usuario activa o desactiva los recordatorios y elige la hora con un selector de reloj. Se programa una notificación local semanal, «Hoy toca entrenar», en cada día de entrenamiento de la rutina, con `@capacitor/local-notifications`. Si el sistema no concede el permiso de notificaciones, se explica cómo activarlo en los ajustes del teléfono y los recordatorios no se activan. Al cambiar la rutina, o al abrir los ajustes, los recordatorios activos se reprograman.
 
 - La rutina define cuántos días se entrena, no cuáles; los días se reparten con descanso entre sesiones (por ejemplo, 3 días son lunes, miércoles y viernes, 2 son lunes y jueves). Está en `src/utils/recordatorios.ts`.
-- Los ajustes se guardan en el dispositivo con Capacitor Preferences, igual que el resto de datos de M2 y M5.
+- Los ajustes se guardan en el dispositivo con Capacitor Preferences, separados por usuario como el resto de datos de M2 y M5.
 - En Android 13 o superior el sistema pide el permiso `POST_NOTIFICATIONS`, que declara el propio plugin. Las alarmas no son exactas, así que el sistema puede retrasar unos minutos la notificación para ahorrar batería.
 - No se ha probado en un emulador ni en un dispositivo: las pruebas automáticas simulan el plugin. En el navegador las notificaciones programadas no se disparan con la app cerrada.
 - Tras añadir o cambiar plugins de Capacitor hay que ejecutar `npm run android:sync` y confirmar los archivos `android/capacitor.settings.gradle` y `android/app/capacitor.build.gradle`; sin ese paso el plugin no existe en la app nativa.
@@ -166,6 +195,12 @@ El cliente Supabase se centraliza en `src/services/supabase.ts` y falla explíci
 Si Auth devuelve un error, la interfaz muestra un mensaje localizado y, para códigos desconocidos, el código técnico sin el texto crudo del proveedor. Si indica que no pudo conectar, comprueba localmente la URL del proyecto en `.env`, la conexión a internet y que el proyecto Supabase esté disponible. Un HTTP 404 suele indicar que la URL no corresponde a la **Project URL** actual o que el proyecto ya no está activo. Compara localmente `VITE_SUPABASE_URL` con **Project Settings > API > Project URL**; usa la URL base `https://<project-ref>.supabase.co`, sin añadir `/auth/v1` ni `/rest/v1`. No compartas `.env`, claves ni capturas que las muestren.
 
 Las rutas de acceso y registro usan `/login`, `/consentimientos` y `/registro`; la ruta protegida `/hoy` requiere una sesión. Consentimientos y registro transmiten la autorización opcional de datos de salud y la fecha ISO de aceptación en los metadatos del usuario de Supabase Auth.
+
+### Cierre de sesión (RF-01)
+
+El componente reutilizable **Cerrar sesión** está disponible en Hoy y Perfil. Al tocarlo, presenta un modal con **Cancelar** y **Cerrar sesión**. Cancelar no realiza ninguna operación; confirmar muestra el estado de carga, evita confirmaciones duplicadas y llama al servicio de Auth con alcance local. Si falla, informa el error en español y conserva la pantalla; si tiene éxito, reemplaza la ruta por `/login`. Las rutas protegidas siguen requiriendo una sesión.
+
+El cierre local no invalida las sesiones de otros dispositivos. Los datos de perfil, salud y rutina no se eliminan al salir: permanecen asociados al ID de su usuario para que otra cuenta en el mismo dispositivo no los reciba.
 
 La sesión persiste mediante los tokens que administra Supabase en el almacenamiento de la aplicación. **No se afirma que cumpla la persistencia de 30 días indicada por RF-01**: la duración efectiva depende de la configuración y renovación de sesiones de Supabase y queda pendiente verificarla en el proyecto.
 

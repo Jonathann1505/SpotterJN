@@ -7,9 +7,9 @@ import {
   type RespuestasSalud,
   type RutinaAsignada,
 } from '../types/perfil';
+import { guardarJson, leerJson } from './almacenLocal';
 import type { AjustesRecordatorios } from '../types/recordatorios';
 import { HORA_PREDETERMINADA, esHoraValida } from '../utils/recordatorios';
-import { guardarJson, leerJson } from './almacenLocal';
 import type {
   FichasVistasRepositorio,
   PerfilRepositorio,
@@ -18,12 +18,15 @@ import type {
   SaludRepositorio,
 } from './repositorios';
 
-const CLAVE_PERFIL = 'spotter.perfil';
-// La salud va en una clave aparte del perfil identificable (RNF-11, separación de datos).
-const CLAVE_SALUD = 'spotter.salud';
-const CLAVE_RUTINA = 'spotter.rutina';
-const CLAVE_FICHAS_VISTAS = 'spotter.fichasVistas';
-const CLAVE_RECORDATORIOS = 'spotter.recordatorios';
+type TipoDato = 'perfil' | 'salud' | 'rutina' | 'fichasVistas' | 'recordatorios';
+
+function crearClave(usuarioId: string, tipo: TipoDato): string {
+  if (!usuarioId) {
+    throw new Error('Se requiere una sesión para acceder a los datos locales.');
+  }
+
+  return `spotter.usuario.${encodeURIComponent(usuarioId)}.${tipo}`;
+}
 
 function esObjeto(valor: unknown): valor is Record<string, unknown> {
   return typeof valor === 'object' && valor !== null && !Array.isArray(valor);
@@ -65,18 +68,18 @@ function esRutina(valor: unknown): valor is RutinaAsignada {
 }
 
 export const perfilLocal: PerfilRepositorio = {
-  obtener: () => leerJson(CLAVE_PERFIL, esPerfil),
-  guardar: (perfil) => guardarJson(CLAVE_PERFIL, perfil),
+  obtener: (usuarioId) => leerJson(crearClave(usuarioId, 'perfil'), esPerfil),
+  guardar: (usuarioId, perfil) => guardarJson(crearClave(usuarioId, 'perfil'), perfil),
 };
 
 export const saludLocal: SaludRepositorio = {
-  obtener: () => leerJson(CLAVE_SALUD, esSalud),
-  guardar: (respuestas) => guardarJson(CLAVE_SALUD, respuestas),
+  obtener: (usuarioId) => leerJson(crearClave(usuarioId, 'salud'), esSalud),
+  guardar: (usuarioId, respuestas) => guardarJson(crearClave(usuarioId, 'salud'), respuestas),
 };
 
 export const rutinaLocal: RutinaRepositorio = {
-  obtener: () => leerJson(CLAVE_RUTINA, esRutina),
-  guardar: (rutina) => guardarJson(CLAVE_RUTINA, rutina),
+  obtener: (usuarioId) => leerJson(crearClave(usuarioId, 'rutina'), esRutina),
+  guardar: (usuarioId, rutina) => guardarJson(crearClave(usuarioId, 'rutina'), rutina),
 };
 
 function esListaDeTextos(valor: unknown): valor is string[] {
@@ -84,11 +87,12 @@ function esListaDeTextos(valor: unknown): valor is string[] {
 }
 
 export const fichasVistasLocal: FichasVistasRepositorio = {
-  obtener: async () => (await leerJson(CLAVE_FICHAS_VISTAS, esListaDeTextos)) ?? [],
-  marcarVista: async (idEjercicio) => {
-    const vistas = (await leerJson(CLAVE_FICHAS_VISTAS, esListaDeTextos)) ?? [];
+  obtener: async (usuarioId) => (await leerJson(crearClave(usuarioId, 'fichasVistas'), esListaDeTextos)) ?? [],
+  marcarVista: async (usuarioId, idEjercicio) => {
+    const clave = crearClave(usuarioId, 'fichasVistas');
+    const vistas = (await leerJson(clave, esListaDeTextos)) ?? [];
     if (!vistas.includes(idEjercicio)) {
-      await guardarJson(CLAVE_FICHAS_VISTAS, [...vistas, idEjercicio]);
+      await guardarJson(clave, [...vistas, idEjercicio]);
     }
   },
 };
@@ -100,6 +104,7 @@ function esAjustesRecordatorios(valor: unknown): valor is AjustesRecordatorios {
 }
 
 export const recordatoriosLocal: RecordatoriosRepositorio = {
-  obtener: async () => (await leerJson(CLAVE_RECORDATORIOS, esAjustesRecordatorios)) ?? AJUSTES_RECORDATORIOS_INICIALES,
-  guardar: (ajustes) => guardarJson(CLAVE_RECORDATORIOS, ajustes),
+  obtener: async (usuarioId) =>
+    (await leerJson(crearClave(usuarioId, 'recordatorios'), esAjustesRecordatorios)) ?? AJUSTES_RECORDATORIOS_INICIALES,
+  guardar: async (usuarioId, ajustes) => guardarJson(crearClave(usuarioId, 'recordatorios'), ajustes),
 };

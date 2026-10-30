@@ -10,6 +10,10 @@ import Hoy from './Hoy';
 
 vi.mock('../services/auth', () => ({ cerrarSesion: vi.fn() }));
 
+vi.mock('../context/SesionContext', () => ({
+  useSesion: () => ({ sesion: { user: { id: 'usuario-prueba' } } }),
+}));
+
 function renderizar() {
   return render(
     <IonApp>
@@ -49,14 +53,14 @@ describe('Hoy', () => {
   });
 
   it('envía al cuestionario de rutina si no hay rutina asignada', async () => {
-    await saludLocal.guardar(salud);
+    await saludLocal.guardar('usuario-prueba', salud);
     const { findByText } = renderizar();
     expect(await findByText('cuestionario de rutina')).toBeInTheDocument();
   });
 
   it('muestra la próxima sesión con ejercicios, series y pesos', async () => {
-    await saludLocal.guardar(salud);
-    await rutinaLocal.guardar(rutina);
+    await saludLocal.guardar('usuario-prueba', salud);
+    await rutinaLocal.guardar('usuario-prueba', rutina);
     const { findByRole, getAllByText, getByText } = renderizar();
 
     expect(await findByRole('heading', { name: rutina.dias[0].nombre })).toBeInTheDocument();
@@ -65,17 +69,17 @@ describe('Hoy', () => {
   });
 
   it('muestra los pesos en libras si el perfil usa lb', async () => {
-    await saludLocal.guardar(salud);
-    await rutinaLocal.guardar(rutina);
-    await perfilLocal.guardar({ nombre: 'Nayeli', meta: 'fuerza', unidadPeso: 'lb' });
+    await saludLocal.guardar('usuario-prueba', salud);
+    await rutinaLocal.guardar('usuario-prueba', rutina);
+    await perfilLocal.guardar('usuario-prueba', { nombre: 'Nayeli', meta: 'fuerza', unidadPeso: 'lb' });
     const { findAllByText } = renderizar();
 
     expect((await findAllByText('lb', { exact: false, selector: 'small' })).length).toBeGreaterThan(0);
   });
 
   it('abre la ficha del ejercicio desde el botón de ayuda', async () => {
-    await saludLocal.guardar(salud);
-    await rutinaLocal.guardar(rutina);
+    await saludLocal.guardar('usuario-prueba', salud);
+    await rutinaLocal.guardar('usuario-prueba', rutina);
     const { findByRole, findByText } = renderizar();
 
     const primero = rutina.dias[0].ejercicios[0];
@@ -84,14 +88,13 @@ describe('Hoy', () => {
     expect(await findByText('ficha de ejercicio')).toBeInTheDocument();
   });
 
-  it('no lleva a una pantalla inexistente al pulsar «Empezar entrenamiento»', async () => {
-    await saludLocal.guardar(salud);
-    await rutinaLocal.guardar(rutina);
-    const { findByText, queryByText, findByRole } = renderizar();
+  it('lleva a la sesión de entrenamiento al pulsar «Empezar entrenamiento»', async () => {
+    await saludLocal.guardar('usuario-prueba', salud);
+    await rutinaLocal.guardar('usuario-prueba', rutina);
+    const { findByText } = renderizar();
 
     fireEvent.click(await findByText('Empezar entrenamiento'));
 
-    expect(queryByText('pantalla de sesión')).not.toBeInTheDocument();
-    expect(await findByRole('heading', { name: rutina.dias[0].nombre })).toBeInTheDocument();
+    expect(await findByText('pantalla de sesión')).toBeInTheDocument();
   });
 });

@@ -4,6 +4,7 @@ import { useHistory } from 'react-router-dom';
 import { BotonSJ, PantallaSJ } from '../components/PantallaSJ';
 import { saludLocal } from '../repositories/local';
 import { CONDICIONES_SALUD, type CondicionSalud } from '../types/perfil';
+import { useSesion } from '../context/SesionContext';
 
 const ETIQUETAS: Record<CondicionSalud, string> = {
   'dolor-articular': 'Dolor articular',
@@ -19,6 +20,7 @@ function CuestionarioSalud() {
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const history = useHistory();
+  const { sesion } = useSesion();
   const hayCondicion = condiciones.length > 0;
   const respondido = ninguna || hayCondicion;
 
@@ -41,11 +43,15 @@ function CuestionarioSalud() {
     if (!respondido || guardando) {
       return;
     }
+    if (!sesion) {
+      setError('No hay una sesión activa. Inicia sesión e inténtalo de nuevo.');
+      return;
+    }
 
     setGuardando(true);
     setError(null);
     try {
-      await saludLocal.guardar({ condiciones, respondidoEn: new Date().toISOString() });
+      await saludLocal.guardar(sesion.user.id, { condiciones, respondidoEn: new Date().toISOString() });
       history.replace(RUTA_SIGUIENTE);
     } catch {
       setError('No se pudieron guardar tus respuestas. Inténtalo de nuevo.');

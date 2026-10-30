@@ -15,6 +15,10 @@ const servicio = vi.hoisted(() => ({
   sincronizarRecordatorios: vi.fn(),
 }));
 
+vi.mock('../context/SesionContext', () => ({
+  useSesion: () => ({ sesion: { user: { id: 'usuario-prueba' } } }),
+}));
+
 vi.mock('../services/recordatorios', async (importarOriginal) => ({
   ...(await importarOriginal<typeof import('../services/recordatorios')>()),
   ...servicio,
@@ -50,7 +54,7 @@ describe('Ajustes de recordatorios', () => {
   });
 
   async function conRutina() {
-    await rutinaLocal.guardar(asignarRutina({ experiencia: 'ninguna', diasPorSemana: 3, equipo: ['maquinas'] }));
+    await rutinaLocal.guardar('usuario-prueba', asignarRutina({ experiencia: 'ninguna', diasPorSemana: 3, equipo: ['maquinas'] }));
   }
 
   it('pide crear una rutina si todavía no hay una', async () => {
@@ -79,7 +83,7 @@ describe('Ajustes de recordatorios', () => {
     fireEvent.click(await findByRole('switch', { name: /recordarme entrenar/i }));
 
     await waitFor(() => expect(servicio.activarRecordatorios).toHaveBeenCalledWith(3, '18:00'));
-    await waitFor(async () => expect(await recordatoriosLocal.obtener()).toEqual({ activo: true, hora: '18:00' }));
+    await waitFor(async () => expect(await recordatoriosLocal.obtener('usuario-prueba')).toEqual({ activo: true, hora: '18:00' }));
     expect(await findByRole('switch', { name: /recordarme entrenar/i })).toHaveAttribute('aria-checked', 'true');
   });
 
@@ -92,7 +96,7 @@ describe('Ajustes de recordatorios', () => {
 
     expect(await findByRole('alert')).toHaveTextContent(/activa las notificaciones/i);
     expect(await findByRole('switch', { name: /recordarme entrenar/i })).toHaveAttribute('aria-checked', 'false');
-    expect(await recordatoriosLocal.obtener()).toEqual({ activo: false, hora: '18:00' });
+    expect(await recordatoriosLocal.obtener('usuario-prueba')).toEqual({ activo: false, hora: '18:00' });
   });
 
   it('muestra el aviso desde el inicio si las notificaciones están bloqueadas en el sistema', async () => {
@@ -109,29 +113,29 @@ describe('Ajustes de recordatorios', () => {
 
     fireEvent.change(await findByLabelText('Hora del recordatorio'), { target: { value: '06:45' } });
 
-    await waitFor(async () => expect(await recordatoriosLocal.obtener()).toEqual({ activo: false, hora: '06:45' }));
+    await waitFor(async () => expect(await recordatoriosLocal.obtener('usuario-prueba')).toEqual({ activo: false, hora: '06:45' }));
     expect(servicio.activarRecordatorios).not.toHaveBeenCalled();
   });
 
   it('reprograma con la nueva hora cuando los recordatorios están activos', async () => {
     await conRutina();
-    await recordatoriosLocal.guardar({ activo: true, hora: '18:00' });
+    await recordatoriosLocal.guardar('usuario-prueba', { activo: true, hora: '18:00' });
     const { findByLabelText } = renderizar();
 
     fireEvent.change(await findByLabelText('Hora del recordatorio'), { target: { value: '07:10' } });
 
     await waitFor(() => expect(servicio.activarRecordatorios).toHaveBeenCalledWith(3, '07:10'));
-    await waitFor(async () => expect(await recordatoriosLocal.obtener()).toEqual({ activo: true, hora: '07:10' }));
+    await waitFor(async () => expect(await recordatoriosLocal.obtener('usuario-prueba')).toEqual({ activo: true, hora: '07:10' }));
   });
 
   it('desactiva y cancela las notificaciones', async () => {
     await conRutina();
-    await recordatoriosLocal.guardar({ activo: true, hora: '18:00' });
+    await recordatoriosLocal.guardar('usuario-prueba', { activo: true, hora: '18:00' });
     const { findByRole } = renderizar();
 
     fireEvent.click(await findByRole('switch', { name: /recordarme entrenar/i }));
 
     await waitFor(() => expect(servicio.desactivarRecordatorios).toHaveBeenCalledTimes(1));
-    await waitFor(async () => expect(await recordatoriosLocal.obtener()).toEqual({ activo: false, hora: '18:00' }));
+    await waitFor(async () => expect(await recordatoriosLocal.obtener('usuario-prueba')).toEqual({ activo: false, hora: '18:00' }));
   });
 });

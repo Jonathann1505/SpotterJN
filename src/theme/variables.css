@@ -1,16 +1,14 @@
 :root {
-  --ion-font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --ion-color-primary: #4c6fff;
-  --ion-color-primary-rgb: 76, 111, 255;
-  --ion-color-primary-contrast: #ffffff;
-  --ion-color-primary-contrast-rgb: 255, 255, 255;
-  --ion-color-primary-shade: #4362e0;
-  --ion-color-primary-tint: #5e7dff;
-  --ion-background-color: #0f1115;
-  --ion-text-color: #f5f5f7;
-  --spotter-page-background: #0f1115;
-  --spotter-surface: #1b1e24;
-  --spotter-text: #f5f5f7;
-  --spotter-muted: #a3adbd;
-  --spotter-accent: #38bdf8;
+  --ion-font-family: var(--sj-fuente-familia);
+  --ion-background-color: var(--sj-color-fondo);
+  --ion-text-color: var(--sj-color-tinta);
+  --ion-color-primary: var(--sj-color-primario);
+  --ion-color-primary-rgb: var(--sj-color-primario-rgb);
+  --ion-color-primary-contrast: var(--sj-color-blanco);
+  --ion-color-primary-contrast-rgb: var(--sj-color-blanco-rgb);
+  --ion-color-primary-shade: var(--sj-color-primario-sombra);
+  --ion-color-primary-tint: var(--sj-color-primario-tinte);
+  --ion-color-step-50: var(--sj-color-campo);
+  --ion-color-step-100: var(--sj-color-paso-100);
+  --ion-color-step-150: var(--sj-color-paso-150);
 }

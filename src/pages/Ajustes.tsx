@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { IonSpinner } from '@ionic/react';
 import { useHistory } from 'react-router-dom';
 import { BotonSJ, PantallaSJ } from '../components/PantallaSJ';
+import { useSesion } from '../context/SesionContext';
 import { recordatoriosLocal, rutinaLocal } from '../repositories/local';
 import {
   MENSAJE_PERMISO,
@@ -16,6 +17,8 @@ import { describirDias, diasDeEntrenamiento } from '../utils/recordatorios';
 
 function Ajustes() {
   const history = useHistory();
+  const { sesion } = useSesion();
+  const usuarioId = sesion?.user.id ?? null;
   const [cargando, setCargando] = useState(true);
   const [ajustes, setAjustes] = useState<AjustesRecordatorios | null>(null);
   const [rutina, setRutina] = useState<RutinaAsignada | null>(null);
@@ -25,7 +28,13 @@ function Ajustes() {
 
   useEffect(() => {
     let activo = true;
-    void Promise.all([recordatoriosLocal.obtener(), rutinaLocal.obtener(), permisoDeNotificaciones()])
+    if (usuarioId === null) {
+      return () => {
+        activo = false;
+      };
+    }
+
+    void Promise.all([recordatoriosLocal.obtener(usuarioId), rutinaLocal.obtener(usuarioId), permisoDeNotificaciones()])
       .then(async ([guardados, rutinaGuardada, permiso]) => {
         await sincronizarRecordatorios(guardados, rutinaGuardada);
         if (activo) {
@@ -48,7 +57,7 @@ function Ajustes() {
     return () => {
       activo = false;
     };
-  }, []);
+  }, [usuarioId]);
 
   if (cargando) {
     return (
@@ -78,6 +87,10 @@ function Ajustes() {
   const dias = diasDeEntrenamiento(rutina.cuestionario.diasPorSemana);
 
   const guardarYAplicar = async (siguiente: AjustesRecordatorios): Promise<void> => {
+    if (usuarioId === null) {
+      return;
+    }
+
     setOcupado(true);
     setMensaje(null);
     try {
@@ -92,7 +105,7 @@ function Ajustes() {
       }
 
       setPermisoBloqueado(false);
-      await recordatoriosLocal.guardar(siguiente);
+      await recordatoriosLocal.guardar(usuarioId, siguiente);
       setAjustes(siguiente);
     } catch {
       setMensaje('No se pudieron guardar tus ajustes. Inténtalo de nuevo.');
@@ -102,7 +115,7 @@ function Ajustes() {
   };
 
   const cambiarHora = (hora: string): void => {
-    if (hora === '') {
+    if (hora === '' || usuarioId === null) {
       return;
     }
 
@@ -112,7 +125,7 @@ function Ajustes() {
     }
 
     setAjustes({ ...ajustes, hora });
-    void recordatoriosLocal.guardar({ ...ajustes, hora }).catch(() => undefined);
+    void recordatoriosLocal.guardar(usuarioId, { ...ajustes, hora }).catch(() => undefined);
   };
 
   return (

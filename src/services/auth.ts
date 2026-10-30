@@ -105,7 +105,7 @@ export async function iniciarSesion(
 }
 
 export async function cerrarSesion(): Promise<ResultadoAuth> {
-  const { error } = await supabase.auth.signOut();
+  const { error } = await supabase.auth.signOut({ scope: 'local' });
 
   return error
     ? { ok: false, mensaje: traducirError(error) }

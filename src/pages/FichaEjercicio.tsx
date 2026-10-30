@@ -3,18 +3,19 @@ import { IonIcon, IonSpinner } from '@ionic/react';
 import { locationOutline } from 'ionicons/icons';
 import { Redirect, useHistory, useParams } from 'react-router-dom';
 import { AnimacionEjercicio } from '../components/AnimacionEjercicio';
-import { BotonSJ, PantallaSJ } from '../components/PantallaSJ';
+import { BotonSJ, LogoSJ, PantallaSJ } from '../components/PantallaSJ';
+import { useSesion } from '../context/SesionContext';
 import { buscarEjercicio } from '../data/ejercicios';
 import { obtenerGuia } from '../data/guias';
 import { fichasVistasLocal, rutinaLocal } from '../repositories/local';
 import type { EjercicioRutina } from '../types/perfil';
-import logo from '../assets/logo-spotterjn.webp';
 
-// La pantalla de sesión (M3) todavía no existe en esta rama; ir a '/sesion' deja la app en blanco.
-const RUTA_DESPUES_DE_LA_FICHA = '/hoy';
+const RUTA_SESION = '/sesion';
 
 function FichaEjercicio() {
   const { id } = useParams<{ id: string }>();
+  const { sesion } = useSesion();
+  const usuarioId = sesion?.user.id ?? null;
   const history = useHistory();
   const [cargando, setCargando] = useState(true);
   const [yaVista, setYaVista] = useState(false);
@@ -24,7 +25,13 @@ function FichaEjercicio() {
 
   useEffect(() => {
     let activo = true;
-    void Promise.all([fichasVistasLocal.obtener(), rutinaLocal.obtener()])
+    if (usuarioId === null) {
+      return () => {
+        activo = false;
+      };
+    }
+
+    void Promise.all([fichasVistasLocal.obtener(usuarioId), rutinaLocal.obtener(usuarioId)])
       .then(([vistas, rutina]) => {
         if (!activo) {
           return;
@@ -42,7 +49,7 @@ function FichaEjercicio() {
     return () => {
       activo = false;
     };
-  }, [id]);
+  }, [id, usuarioId]);
 
   if (!ejercicio) {
     return <Redirect to="/hoy" />;
@@ -67,9 +74,13 @@ function FichaEjercicio() {
       return;
     }
 
+    if (usuarioId === null) {
+      return;
+    }
+
     try {
-      await fichasVistasLocal.marcarVista(id);
-      history.replace(RUTA_DESPUES_DE_LA_FICHA);
+      await fichasVistasLocal.marcarVista(usuarioId, id);
+      history.push(RUTA_SESION);
     } catch {
       setError('No se pudo guardar que viste la ficha. Inténtalo de nuevo.');
     }
@@ -82,7 +93,7 @@ function FichaEjercicio() {
       cabecera={
         yaVista ? null : (
           <div className="sj-mascota">
-            <img className="sj-logo" src={logo} alt="SpotterJN" />
+            <LogoSJ />
             <p className="sj-burbuja">Primera vez con esta máquina. Tranquilo, te explico todo antes de empezar.</p>
           </div>
         )
