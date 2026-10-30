@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { EJERCICIOS } from './ejercicios';
-import { GUIAS, GUIA_PENDIENTE, obtenerGuia } from './guias';
+import { GUIAS, GUIA_PENDIENTE, obtenerGuia, textosFicha } from './guias';
 
 describe('obtenerGuia', () => {
   it('devuelve la guía del press de banca con su animación', () => {
@@ -36,6 +36,27 @@ describe('obtenerGuia', () => {
       if (guia.animacion) {
         expect(archivos, `falta la animación de ${id}`).toContain(`../../public/${guia.animacion}`);
       }
+    }
+  });
+});
+
+describe('textosFicha', () => {
+  it('habla de máquina solo para máquinas y poleas', () => {
+    expect(textosFicha('maquinas').tituloAjuste).toBe('1. Cómo ajustar la máquina');
+    expect(textosFicha('poleas').avisoPrimeraVez).toMatch(/esta máquina/);
+  });
+
+  it('usa «equipo» o «prepararte» y «este ejercicio» en el resto', () => {
+    expect(textosFicha('barra').tituloAjuste).toBe('1. Cómo preparar el equipo');
+    expect(textosFicha('mancuernas').avisoPrimeraVez).toMatch(/este ejercicio/);
+    expect(textosFicha('peso-corporal').tituloAjuste).toBe('1. Cómo prepararte');
+  });
+
+  it('define textos para todos los equipos del catálogo', () => {
+    for (const ejercicio of EJERCICIOS) {
+      const textos = textosFicha(ejercicio.equipo);
+      expect(textos.tituloAjuste).not.toBe('');
+      expect(textos.avisoPrimeraVez).not.toBe('');
     }
   });
 });

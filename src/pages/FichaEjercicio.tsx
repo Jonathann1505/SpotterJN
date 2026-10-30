@@ -6,7 +6,7 @@ import { AnimacionEjercicio } from '../components/AnimacionEjercicio';
 import { BotonSJ, LogoSJ, PantallaSJ } from '../components/PantallaSJ';
 import { useSesion } from '../context/SesionContext';
 import { buscarEjercicio } from '../data/ejercicios';
-import { obtenerGuia } from '../data/guias';
+import { obtenerGuia, textosFicha } from '../data/guias';
 import { fichasVistasLocal, rutinaLocal } from '../repositories/local';
 import type { EjercicioRutina } from '../types/perfil';
 
@@ -64,6 +64,7 @@ function FichaEjercicio() {
   }
 
   const guia = obtenerGuia(id);
+  const textos = textosFicha(ejercicio.equipo);
   const etiqueta = enRutina
     ? `${guia.grupoMuscular} · ${enRutina.series}x${enRutina.repeticiones}`
     : guia.grupoMuscular;
@@ -94,7 +95,7 @@ function FichaEjercicio() {
         yaVista ? null : (
           <div className="sj-mascota">
             <LogoSJ />
-            <p className="sj-burbuja">Primera vez con esta máquina. Tranquilo, te explico todo antes de empezar.</p>
+            <p className="sj-burbuja">{textos.avisoPrimeraVez}</p>
           </div>
         )
       }
@@ -108,7 +109,7 @@ function FichaEjercicio() {
         <div className="sj-sin-animacion">Animación próximamente</div>
       )}
 
-      <h2 className="sj-subtitulo sj-subtitulo-ficha">1. Cómo ajustar la máquina</h2>
+      <h2 className="sj-subtitulo sj-subtitulo-ficha">{textos.tituloAjuste}</h2>
       <p className="sj-texto">{guia.ajusteMaquina}</p>
       <hr className="sj-separador" />
       <h2 className="sj-subtitulo sj-subtitulo-ficha">2. Cómo hacer el movimiento</h2>

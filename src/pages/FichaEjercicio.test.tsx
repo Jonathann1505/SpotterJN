@@ -41,8 +41,8 @@ describe('FichaEjercicio', () => {
     const { findByRole, getByText, getByTitle, container } = renderizar('/ejercicio/press-banca');
 
     expect(await findByRole('heading', { name: 'Press de banca' })).toBeInTheDocument();
-    expect(getByText(/Primera vez con esta máquina/)).toBeInTheDocument();
-    expect(getByText('1. Cómo ajustar la máquina')).toBeInTheDocument();
+    expect(getByText(/Primera vez con este ejercicio/)).toBeInTheDocument();
+    expect(getByText('1. Cómo preparar el equipo')).toBeInTheDocument();
     expect(getByText('2. Cómo hacer el movimiento')).toBeInTheDocument();
     expect(getByText(/Zona de peso libre/)).toBeInTheDocument();
     expect(getByTitle(/Animación del ejercicio/)).toBeInTheDocument();
@@ -67,7 +67,7 @@ describe('FichaEjercicio', () => {
     const { container, findByRole, queryByText, findByText } = renderizar('/ejercicio/press-banca');
 
     await findByRole('heading', { name: 'Press de banca' });
-    expect(queryByText(/Primera vez con esta máquina/)).not.toBeInTheDocument();
+    expect(queryByText(/Primera vez con/)).not.toBeInTheDocument();
     expect(container.querySelector('ion-button.sj-boton')).toHaveTextContent('Entendido');
 
     fireEvent.click(container.querySelector('ion-button.sj-boton') as Element);
@@ -89,6 +89,23 @@ describe('FichaEjercicio', () => {
     expect(await findByRole('heading', { name: 'Flexiones' })).toBeInTheDocument();
     expect(container.querySelector('video')?.getAttribute('src')).toBe('/ejercicios/flexiones.mp4');
     expect(queryByText('Animación próximamente')).not.toBeInTheDocument();
+  });
+
+  it('habla de «máquina» solo en ejercicios de máquina o polea', async () => {
+    const { findByRole, getByText } = renderizar('/ejercicio/remo-maquina');
+
+    await findByRole('heading', { name: 'Remo en máquina' });
+    expect(getByText(/Primera vez con esta máquina/)).toBeInTheDocument();
+    expect(getByText('1. Cómo ajustar la máquina')).toBeInTheDocument();
+  });
+
+  it('usa «prepararte» y «este ejercicio» en los ejercicios de peso corporal', async () => {
+    const { findByRole, getByText, queryByText } = renderizar('/ejercicio/zancadas');
+
+    await findByRole('heading', { name: 'Zancadas' });
+    expect(getByText(/Primera vez con este ejercicio/)).toBeInTheDocument();
+    expect(getByText('1. Cómo prepararte')).toBeInTheDocument();
+    expect(queryByText(/máquina/i, { selector: 'h2' })).not.toBeInTheDocument();
   });
 
   it('redirige a Hoy si el ejercicio no existe', async () => {

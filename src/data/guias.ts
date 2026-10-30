@@ -1,3 +1,5 @@
+import type { EquipoGimnasio } from '../types/perfil';
+
 export interface GuiaEjercicio {
   grupoMuscular: string;
   /** Animación dentro de public/, si el ejercicio ya cuenta con una. */
@@ -150,4 +152,32 @@ export const GUIA_PENDIENTE: GuiaEjercicio = {
 
 export function obtenerGuia(idEjercicio: string): GuiaEjercicio {
   return GUIAS[idEjercicio] ?? GUIA_PENDIENTE;
+}
+
+export interface TextosFicha {
+  tituloAjuste: string;
+  avisoPrimeraVez: string;
+}
+
+/** Los textos de la ficha dependen del equipo: «máquina» solo tiene sentido en máquinas y poleas. */
+export function textosFicha(equipo: EquipoGimnasio): TextosFicha {
+  switch (equipo) {
+    case 'maquinas':
+    case 'poleas':
+      return {
+        tituloAjuste: '1. Cómo ajustar la máquina',
+        avisoPrimeraVez: 'Primera vez con esta máquina. Tranquilo, te explico todo antes de empezar.',
+      };
+    case 'barra':
+    case 'mancuernas':
+      return {
+        tituloAjuste: '1. Cómo preparar el equipo',
+        avisoPrimeraVez: 'Primera vez con este ejercicio. Tranquilo, te explico todo antes de empezar.',
+      };
+    case 'peso-corporal':
+      return {
+        tituloAjuste: '1. Cómo prepararte',
+        avisoPrimeraVez: 'Primera vez con este ejercicio. Tranquilo, te explico todo antes de empezar.',
+      };
+  }
 }
