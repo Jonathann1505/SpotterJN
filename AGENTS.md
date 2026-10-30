@@ -59,7 +59,7 @@
 
 - En Hoy, el cierre de sesión se confirma con un diálogo Cancelar/Cerrar sesión; se informa el error de cierre sin filtrar mensajes del proveedor.
 - Actualizado README con configuración de Supabase, ejecución web y Android, pruebas, estructura de carpetas y estado de persistencia.
-- Pendiente fuera de alcance: RF-03 recuperación de contraseña, RF-04 eliminación de cuenta, `profiles` y políticas RLS, confirmación de correo y deep links Android.
+- Implementado RF-03 en la parte visual y de solicitud del servicio; fuera de alcance permanecen RF-04 eliminación de cuenta, nueva contraseña, enlaces de regreso y deep links Android.
 - La persistencia de sesión opera con los tokens administrados por Supabase; el requisito de 30 días de RF-01 queda pendiente de verificar en la configuración del proyecto Supabase.
 - Cómo probar: ejecutar `npm test`, `npm run build`, configurar `.env` localmente usando `.env.example`, correr `npm run dev`; para Android ejecutar `npx cap sync android` y `npm run android:run`. Crear una cuenta, cerrar sesión, iniciar sesión, reabrir la app y confirmar el usuario en Supabase Authentication > Users.
 
@@ -86,3 +86,10 @@
 - Eliminados los estilos que quedaron sin uso para el arte decorativo.
 - Añadidas aserciones para verificar que los textos y elementos retirados no reaparezcan.
 - Verificación: `npm test` y `npm run build` completados.
+
+### 2026-10-29 — RF-03 visual y solicitud de recuperación
+
+- Añadido `solicitarRecuperacion(email)` con `resetPasswordForEmail` y traducción de errores mediante el flujo existente.
+- Añadida la ruta pública `/recuperar-contrasena`, reutilizando estilos de autenticación, validación de correo, carga y confirmación genérica.
+- Añadido desde Login el enlace «¿Olvidaste tu contraseña?» y pruebas unitarias con el servicio autenticado simulado.
+- Fuera de alcance: seguimiento del enlace recibido, regreso a la app, nueva contraseña y deep links Android.
