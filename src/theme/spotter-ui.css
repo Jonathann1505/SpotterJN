@@ -997,3 +997,29 @@ ion-modal {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Animación en video */
+.sj-animacion-video {
+  position: relative;
+  cursor: pointer;
+}
+
+.sj-animacion-video video {
+  object-fit: cover;
+}
+
+.sj-animacion-reproducir {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  place-items: center;
+  width: 4.5rem;
+  height: 4.5rem;
+  border-radius: 50%;
+  background: rgb(26 26 26 / 70%);
+  color: #ffffff;
+  font-size: 1.75rem;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
