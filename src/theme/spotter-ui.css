@@ -1005,7 +1005,11 @@ ion-modal {
 }
 
 .sj-animacion-video video {
-  object-fit: cover;
+  /* El video ya viene recortado sobre el personaje: se respeta su proporción propia. */
+  aspect-ratio: auto;
+  height: auto;
+  max-height: 60vh;
+  object-fit: contain;
 }
 
 .sj-animacion-reproducir {

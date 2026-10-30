@@ -9,14 +9,16 @@ Hay dos formas de dar animación a un ejercicio:
 
 Requisitos del video:
 
-- **Cuadrado**, sin audio, con cámara fija y el mismo fondo azul de las demás animaciones.
+- Sin audio, con cámara fija y el mismo fondo azul de las demás animaciones.
 - Que el último cuadro sea casi igual al primero, para que el bucle no dé un salto.
 - Sin texto ni etiquetas sobre el video: las indicaciones ya están en la guía escrita.
+
+El video se **recorta alrededor del personaje** para que se vea grande (la ficha respeta la proporción del video, con un alto máximo del 60 % de la pantalla). Se busca el recuadro que contiene el cuerpo en todos los cuadros, con un pequeño margen.
 
 Antes de añadirlo, se comprime (de 1 MB o más pasa a menos de 150 KB sin pérdida visible). Con `ffmpeg` instalado:
 
 ```bash
-ffmpeg -i original.mp4 -vf "scale=480:480:flags=lanczos" -r 30 -an -c:v libx264 -profile:v main -level 3.1 -crf 27 -preset slow -pix_fmt yuv420p -movflags +faststart public/ejercicios/<id>.mp4
+ffmpeg -i original.mp4 -vf "crop=<ancho>:<alto>:<x>:<y>" -r 30 -an -c:v libx264 -profile:v main -level 3.1 -crf 27 -preset slow -pix_fmt yuv420p -movflags +faststart public/ejercicios/<id>.mp4
 ```
 
 Después se añade `animacion: 'ejercicios/<id>.mp4'` a la guía del ejercicio en `src/data/guias.ts`; una prueba comprueba que el archivo exista. En la ficha el video se reproduce en bucle y silenciado, se pausa o reanuda al tocarlo y no arranca solo si el sistema pide menos movimiento.
