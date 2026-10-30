@@ -31,7 +31,7 @@ describe('obtenerGuia', () => {
   });
 
   it('las animaciones indicadas existen en la carpeta public', () => {
-    const archivos = Object.keys(import.meta.glob('../../public/ejercicios/*.html'));
+    const archivos = Object.keys(import.meta.glob('../../public/ejercicios/*.{html,mp4}'));
     for (const [id, guia] of Object.entries(GUIAS)) {
       if (guia.animacion) {
         expect(archivos, `falta la animación de ${id}`).toContain(`../../public/${guia.animacion}`);

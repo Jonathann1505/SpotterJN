@@ -83,6 +83,14 @@ describe('FichaEjercicio', () => {
     expect(getByText(/Ajusta el asiento para que las asas/)).toBeInTheDocument();
   });
 
+  it('muestra el video de un ejercicio con animación en MP4', async () => {
+    const { findByRole, container, queryByText } = renderizar('/ejercicio/flexiones');
+
+    expect(await findByRole('heading', { name: 'Flexiones' })).toBeInTheDocument();
+    expect(container.querySelector('video')?.getAttribute('src')).toBe('/ejercicios/flexiones.mp4');
+    expect(queryByText('Animación próximamente')).not.toBeInTheDocument();
+  });
+
   it('redirige a Hoy si el ejercicio no existe', async () => {
     const { findByText } = renderizar('/ejercicio/no-existe');
     expect(await findByText('pantalla hoy')).toBeInTheDocument();

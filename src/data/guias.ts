@@ -43,6 +43,7 @@ export const GUIAS: Readonly<Record<string, GuiaEjercicio>> = {
   },
   flexiones: {
     grupoMuscular: 'Pecho',
+    animacion: 'ejercicios/flexiones.mp4',
     ajusteMaquina:
       'Apoya las manos en el piso un poco más abiertas que los hombros, con el cuerpo en línea recta de la cabeza a los talones. Si te resulta muy difícil, apoya las rodillas.',
     movimiento:
@@ -123,6 +124,7 @@ export const GUIAS: Readonly<Record<string, GuiaEjercicio>> = {
   },
   'sentadilla-peso-corporal': {
     grupoMuscular: 'Piernas',
+    animacion: 'ejercicios/sentadilla-peso-corporal.mp4',
     ajusteMaquina:
       'Pon los pies al ancho de los hombros o un poco más, con las puntas ligeramente hacia afuera, y los brazos al frente para equilibrarte.',
     movimiento:
