@@ -1,5 +1,28 @@
 # Animaciones de ejercicios
 
+Hay dos formas de dar animación a un ejercicio:
+
+1. **Un video MP4** (recomendado si ya lo tienes): se copia en `public/ejercicios/` y se indica en la guía. Es la opción más fiel y liviana.
+2. **Tres imágenes** que el comando `npm run animacion:crear` convierte en una animación HTML con indicaciones sobre la imagen (como el press de banca).
+
+## Opción 1: video MP4
+
+Requisitos del video:
+
+- **Cuadrado**, sin audio, con cámara fija y el mismo fondo azul de las demás animaciones.
+- Que el último cuadro sea casi igual al primero, para que el bucle no dé un salto.
+- Sin texto ni etiquetas sobre el video: las indicaciones ya están en la guía escrita.
+
+Antes de añadirlo, se comprime (de 1 MB o más pasa a menos de 150 KB sin pérdida visible). Con `ffmpeg` instalado:
+
+```bash
+ffmpeg -i original.mp4 -vf "scale=480:480:flags=lanczos" -r 30 -an -c:v libx264 -profile:v main -level 3.1 -crf 27 -preset slow -pix_fmt yuv420p -movflags +faststart public/ejercicios/<id>.mp4
+```
+
+Después se añade `animacion: 'ejercicios/<id>.mp4'` a la guía del ejercicio en `src/data/guias.ts`; una prueba comprueba que el archivo exista. En la ficha el video se reproduce en bucle y silenciado, se pausa o reanuda al tocarlo y no arranca solo si el sistema pide menos movimiento.
+
+## Opción 2: tres imágenes
+
 Cada animación se arma con **3 imágenes de la misma escena** y se reproduce como el press de banca: pose inicial, pose intermedia, pose final y de regreso. Este documento dice qué debe mostrar cada imagen y cómo convertirlas en la animación.
 
 ## Cómo preparar las imágenes
@@ -56,7 +79,9 @@ La animación recorre **inicial → intermedia → final → intermedia**. La pa
 
 | Ejercicio | Animación |
 | --- | --- |
-| Press de banca | Hecha |
-| Los otros 15 | Pendiente: esperan sus 3 imágenes |
+| Press de banca | Hecha (HTML) |
+| Flexiones | Hecha (video) |
+| Sentadilla con peso corporal | Hecha (video) |
+| Los otros 13 | Pendiente: esperan su video o sus 3 imágenes |
 
 Mientras un ejercicio no tenga animación, su ficha muestra «Animación próximamente» y el resto de la guía.

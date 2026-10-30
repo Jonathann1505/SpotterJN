@@ -159,8 +159,8 @@ La ruta protegida `/sesion`, accesible desde «Empezar entrenamiento» en Hoy, c
 
 Cada ejercicio tiene una ficha en `/ejercicio/:id` con su animación, cómo ajustar la máquina, cómo hacer el movimiento y dónde suele estar. Se abre desde el botón de ayuda de cada ejercicio en `Hoy`. La primera vez muestra el aviso «Primera vez con esta máquina» y el botón «Listo, empezar series»; al pulsarlo se guarda que la ficha ya se vio (Capacitor Preferences) y no vuelve a mostrarse el aviso, aunque la ficha puede reabrirse con el botón de ayuda.
 
-- Las animaciones son archivos HTML autocontenidos en `public/ejercicios/` (hoy solo `press-banca.html`; el comando `npm run animacion:crear` genera las demás a partir de 3 imágenes, ver `docs/animaciones-ejercicios.md`), que se muestran en un `iframe` con `sandbox="allow-scripts"`. Se pausan al tocarlas y no se inician si el sistema pide menos movimiento.
-- El contenido de cada guía está en `src/data/guias.ts`; los 16 ejercicios del catálogo tienen su texto, pero solo el press de banca tiene animación. Los demás muestran «Animación próximamente». Un ejercicio que no esté en `guias.ts` usa un texto provisional.
+- Las animaciones están en `public/ejercicios/`: archivos HTML autocontenidos (hoy `press-banca.html`, que se muestra en un `iframe` con `sandbox="allow-scripts"`; el comando `npm run animacion:crear` genera más a partir de 3 imágenes) o videos MP4 comprimidos (hoy `flexiones.mp4` y `sentadilla-peso-corporal.mp4`, que se reproducen en bucle y silenciados). Ver `docs/animaciones-ejercicios.md`. Se pausan al tocarlas y no se inician si el sistema pide menos movimiento.
+- El contenido de cada guía está en `src/data/guias.ts`; los 16 ejercicios del catálogo tienen su texto, pero solo el press de banca, las flexiones y la sentadilla con peso corporal tienen animación. Los demás muestran «Animación próximamente». Un ejercicio que no esté en `guias.ts` usa un texto provisional.
 - «Listo, empezar series» guarda la ficha como vista y lleva a la sesión de entrenamiento (`/sesion`). El botón de cambiar ejercicio (RF-14) no está implementado.
 
 ## Glosario (M5, RF-22)
