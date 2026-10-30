@@ -20,6 +20,7 @@ import Glosario from './pages/Glosario';
 import Hoy from './pages/Hoy';
 import Login from './pages/Login';
 import Perfil from './pages/Perfil';
+import RecuperarContrasena from './pages/RecuperarContrasena';
 import Registro from './pages/Registro';
 import RutinaAsignada from './pages/RutinaAsignada';
 import { ProveedorPerfil } from './context/PerfilContext';
@@ -81,6 +82,11 @@ function RutasAplicacion() {
         <Route exact path="/registro">
           <RutaInvitado>
             <Registro />
+          </RutaInvitado>
+        </Route>
+        <Route exact path="/recuperar-contrasena">
+          <RutaInvitado>
+            <RecuperarContrasena />
           </RutaInvitado>
         </Route>
         <Route exact path="/hoy">

@@ -142,6 +142,9 @@ function Login() {
             </form>
 
             <p className="login-disclaimer">
+              <Link to="/recuperar-contrasena">¿Olvidaste tu contraseña?</Link>
+            </p>
+            <p className="login-disclaimer">
               ¿Aún no tienes cuenta? <Link to="/consentimientos">Crear cuenta</Link>
             </p>
           </section>
