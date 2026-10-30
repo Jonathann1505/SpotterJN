@@ -10,6 +10,7 @@ import {
 import { IonReactRouter } from '@ionic/react-router';
 import type { PropsWithChildren } from 'react';
 import { Redirect, Route } from 'react-router-dom';
+import BannerSinConexion from './components/BannerSinConexion';
 import Ajustes from './pages/Ajustes';
 import AvisoMedico from './pages/AvisoMedico';
 import Consentimientos from './pages/Consentimientos';
@@ -137,6 +138,7 @@ function RutasAplicacion() {
 function App() {
   return (
     <IonApp className="ion-palette-dark">
+      <BannerSinConexion />
       <ProveedorSesion>
         <ProveedorPerfil>
           <RutasAplicacion />
