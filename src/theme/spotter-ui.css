@@ -1027,3 +1027,38 @@ ion-modal {
   transform: translate(-50%, -50%);
   pointer-events: none;
 }
+
+/* Miniatura de ejercicio en listas */
+.sj-lista li.sj-fila-ejercicio {
+  justify-content: flex-start;
+}
+
+.sj-lista li.sj-fila-ejercicio > span:not(.sj-miniatura) {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.sj-miniatura {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  overflow: hidden;
+  border: var(--sj-linea);
+  border-radius: var(--sj-radio);
+  background: #aec7dd;
+  pointer-events: none;
+}
+
+.sj-miniatura video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.sj-miniatura-vacia {
+  color: var(--sj-blue-ink);
+  font-size: var(--sj-fuente-lg);
+  font-weight: 800;
+}
