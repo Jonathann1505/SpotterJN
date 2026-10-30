@@ -29,6 +29,8 @@ SpotterJN/
 │   ├── App.tsx
 │   ├── main.tsx
 │   ├── components/
+│   │   ├── AnimacionEjercicio.tsx # animación del ejercicio en iframe aislado
+│   │   ├── AyudaTermino.tsx      # ícono de ayuda con la definición de un término
 │   │   ├── CerrarSesion.tsx
 │   │   ├── PantallaSJ.tsx       # marco de pantalla, botones y acceso compartidos
 │   │   └── TemporizadorDescanso.tsx
@@ -36,12 +38,17 @@ SpotterJN/
 │   │   ├── PerfilContext.tsx     # perfil y unidad de peso (kg/lb)
 │   │   └── SesionContext.tsx
 │   ├── data/
-│   │   └── ejercicios.ts         # catálogo de ejercicios de las rutinas
+│   │   ├── ejercicios.ts         # catálogo de ejercicios de las rutinas
+│   │   ├── glosario.ts           # términos básicos y sus definiciones
+│   │   └── guias.ts              # guía de cada ejercicio (ajuste, movimiento, ubicación)
 │   ├── pages/
+│   │   ├── Ajustes.tsx
 │   │   ├── AvisoMedico.tsx
 │   │   ├── Consentimientos.tsx
 │   │   ├── CuestionarioRutina.tsx
 │   │   ├── CuestionarioSalud.tsx
+│   │   ├── FichaEjercicio.tsx
+│   │   ├── Glosario.tsx
 │   │   ├── Hoy.tsx
 │   │   ├── Login.tsx
 │   │   ├── Perfil.tsx
@@ -57,6 +64,7 @@ SpotterJN/
 │   │   └── almacenLocal.ts
 │   ├── services/
 │   │   ├── auth.ts
+│   │   ├── recordatorios.ts      # programa los recordatorios locales
 │   │   └── supabase.ts
 │   ├── types/
 │   │   ├── consentimientos.ts
@@ -146,6 +154,28 @@ Limitaciones actuales:
 ## Sesión de entrenamiento (M3)
 
 La ruta protegida `/sesion`, accesible desde «Empezar entrenamiento» en Hoy, carga y muestra los ejercicios de la primera jornada de la rutina del usuario. Permite volver a Hoy y no registra ni persiste actividad. El componente de descanso RF-11 es independiente: ofrece una cuenta regresiva inicial de 90 segundos, círculo de tiempo restante y controles para sumar/restar 30 segundos o saltar; no se conecta todavía al flujo de una sesión. La duración inicial es 90 segundos y comienza automáticamente.
+
+## Ficha de ejercicio (M5, RF-21)
+
+Cada ejercicio tiene una ficha en `/ejercicio/:id` con su animación, cómo ajustar la máquina, cómo hacer el movimiento y dónde suele estar. Se abre desde el botón de ayuda de cada ejercicio en `Hoy`. La primera vez muestra el aviso «Primera vez con esta máquina» y el botón «Listo, empezar series»; al pulsarlo se guarda que la ficha ya se vio (Capacitor Preferences) y no vuelve a mostrarse el aviso, aunque la ficha puede reabrirse con el botón de ayuda.
+
+- Las animaciones son archivos HTML autocontenidos en `public/ejercicios/` (hoy solo `press-banca.html`; el comando `npm run animacion:crear` genera las demás a partir de 3 imágenes, ver `docs/animaciones-ejercicios.md`), que se muestran en un `iframe` con `sandbox="allow-scripts"`. Se pausan al tocarlas y no se inician si el sistema pide menos movimiento.
+- El contenido de cada guía está en `src/data/guias.ts`; los 16 ejercicios del catálogo tienen su texto, pero solo el press de banca tiene animación. Los demás muestran «Animación próximamente». Un ejercicio que no esté en `guias.ts` usa un texto provisional.
+- «Listo, empezar series» guarda la ficha como vista y lleva a la sesión de entrenamiento (`/sesion`). El botón de cambiar ejercicio (RF-14) no está implementado.
+
+## Glosario (M5, RF-22)
+
+`/glosario` lista los términos básicos (serie, repetición, fallo, RIR y peso de trabajo) con una definición en lenguaje sencillo; se abre desde el botón «Glosario» del perfil. El componente `AyudaTermino` muestra un ícono de ayuda junto a un término y, al tocarlo, un cuadro con su definición (se cierra con «Entendido», con Escape o tocando el fondo). Hoy se usa en la rutina asignada para «series» y «repeticiones»; para añadir un término nuevo basta con agregarlo a `src/data/glosario.ts` y usar `<AyudaTermino termino="id">` donde aparezca.
+
+## Recordatorios (M5, RF-24)
+
+En `/ajustes` (botón «Recordatorios» del perfil) el usuario activa o desactiva los recordatorios y elige la hora con un selector de reloj. Se programa una notificación local semanal, «Hoy toca entrenar», en cada día de entrenamiento de la rutina, con `@capacitor/local-notifications`. Si el sistema no concede el permiso de notificaciones, se explica cómo activarlo en los ajustes del teléfono y los recordatorios no se activan. Al cambiar la rutina, o al abrir los ajustes, los recordatorios activos se reprograman.
+
+- La rutina define cuántos días se entrena, no cuáles; los días se reparten con descanso entre sesiones (por ejemplo, 3 días son lunes, miércoles y viernes, 2 son lunes y jueves). Está en `src/utils/recordatorios.ts`.
+- Los ajustes se guardan en el dispositivo con Capacitor Preferences, separados por usuario como el resto de datos de M2 y M5.
+- En Android 13 o superior el sistema pide el permiso `POST_NOTIFICATIONS`, que declara el propio plugin. Las alarmas no son exactas, así que el sistema puede retrasar unos minutos la notificación para ahorrar batería.
+- No se ha probado en un emulador ni en un dispositivo: las pruebas automáticas simulan el plugin. En el navegador las notificaciones programadas no se disparan con la app cerrada.
+- Tras añadir o cambiar plugins de Capacitor hay que ejecutar `npm run android:sync` y confirmar los archivos `android/capacitor.settings.gradle` y `android/app/capacitor.build.gradle`; sin ese paso el plugin no existe en la app nativa.
 
 ## Supabase y variables de entorno
 

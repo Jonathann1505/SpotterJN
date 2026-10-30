@@ -8,9 +8,12 @@ import CerrarSesion from './CerrarSesion';
 const mocks = vi.hoisted(() => ({
   cerrarSesion: vi.fn<() => Promise<ResultadoAuth>>(),
   mostrarToast: vi.fn(),
+  desactivarRecordatorios: vi.fn(),
 }));
 
 vi.mock('../services/auth', () => ({ cerrarSesion: mocks.cerrarSesion }));
+
+vi.mock('../services/recordatorios', () => ({ desactivarRecordatorios: mocks.desactivarRecordatorios }));
 
 vi.mock('@ionic/react', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@ionic/react')>();
@@ -77,6 +80,8 @@ describe('CerrarSesion', () => {
   beforeEach(() => {
     mocks.cerrarSesion.mockReset();
     mocks.mostrarToast.mockReset();
+    mocks.desactivarRecordatorios.mockReset();
+    mocks.desactivarRecordatorios.mockResolvedValue({ ok: true });
   });
 
   afterEach(cleanup);
@@ -108,6 +113,21 @@ describe('CerrarSesion', () => {
 
     expect(await screen.findByRole('heading', { name: 'Inicio de sesión' })).toBeInTheDocument();
     expect(mocks.cerrarSesion).toHaveBeenCalledTimes(1);
+  });
+
+  it('cancela los recordatorios del dispositivo al cerrar sesión y no lo hace si falla', async () => {
+    mocks.cerrarSesion.mockResolvedValue({ ok: false, mensaje: 'No se pudo cerrar sesión.' });
+    const { container } = renderizar();
+    abrirConfirmacion(container);
+    fireEvent.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Cerrar sesión' }));
+    await screen.findByRole('alert');
+    expect(mocks.desactivarRecordatorios).not.toHaveBeenCalled();
+
+    mocks.cerrarSesion.mockResolvedValue({ ok: true });
+    fireEvent.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Cerrar sesión' }));
+
+    expect(await screen.findByRole('heading', { name: 'Inicio de sesión' })).toBeInTheDocument();
+    expect(mocks.desactivarRecordatorios).toHaveBeenCalledTimes(1);
   });
 
   it('muestra el error y permanece en la pantalla si el servicio falla', async () => {

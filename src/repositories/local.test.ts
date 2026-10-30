@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { Preferences } from '@capacitor/preferences';
-import { perfilLocal, rutinaLocal, saludLocal } from './local';
+import { fichasVistasLocal, perfilLocal, recordatoriosLocal, rutinaLocal, saludLocal } from './local';
 import type { PerfilUsuario, RespuestasSalud, RutinaAsignada } from '../types/perfil';
 
 const USUARIO_A = 'usuario-a';
@@ -68,5 +68,47 @@ describe('repositorios locales', () => {
     await Preferences.set({ key: 'spotter.salud', value: JSON.stringify({ condiciones: ['otra'], respondidoEn: 'x' }) });
     expect(await perfilLocal.obtener(USUARIO_A)).toBeNull();
     expect(await saludLocal.obtener(USUARIO_A)).toBeNull();
+  });
+
+  it('registra las fichas de ejercicio vistas sin duplicarlas', async () => {
+    expect(await fichasVistasLocal.obtener('ana')).toEqual([]);
+
+    await fichasVistasLocal.marcarVista('ana', 'press-banca');
+    await fichasVistasLocal.marcarVista('ana', 'press-banca');
+    await fichasVistasLocal.marcarVista('ana', 'remo-maquina');
+
+    expect(await fichasVistasLocal.obtener('ana')).toEqual(['press-banca', 'remo-maquina']);
+  });
+
+  it('ignora una lista de fichas vistas corrupta', async () => {
+    await Preferences.set({ key: 'spotter.usuario.ana.fichasVistas', value: JSON.stringify([1, 2]) });
+    expect(await fichasVistasLocal.obtener('ana')).toEqual([]);
+  });
+
+  it('devuelve recordatorios desactivados a las 18:00 si no hay ajustes guardados', async () => {
+    expect(await recordatoriosLocal.obtener('ana')).toEqual({ activo: false, hora: '18:00' });
+  });
+
+  it('guarda y recupera los ajustes de recordatorios', async () => {
+    await recordatoriosLocal.guardar('ana', { activo: true, hora: '07:15' });
+    expect(await recordatoriosLocal.obtener('ana')).toEqual({ activo: true, hora: '07:15' });
+  });
+
+  it('ignora ajustes de recordatorios con una hora inválida', async () => {
+    await Preferences.set({ key: 'spotter.usuario.ana.recordatorios', value: JSON.stringify({ activo: true, hora: '99:99' }) });
+    expect(await recordatoriosLocal.obtener('ana')).toEqual({ activo: false, hora: '18:00' });
+  });
+
+  it('separa las fichas vistas y los recordatorios de cada usuario', async () => {
+    await fichasVistasLocal.marcarVista('ana', 'press-banca');
+    await recordatoriosLocal.guardar('ana', { activo: true, hora: '07:15' });
+
+    expect(await fichasVistasLocal.obtener('luis')).toEqual([]);
+    expect(await recordatoriosLocal.obtener('luis')).toEqual({ activo: false, hora: '18:00' });
+  });
+
+  it('exige un usuario para leer o guardar fichas vistas y recordatorios', async () => {
+    await expect(fichasVistasLocal.obtener('')).rejects.toThrow(/sesión/i);
+    await expect(recordatoriosLocal.guardar('', { activo: false, hora: '18:00' })).rejects.toThrow(/sesión/i);
   });
 });

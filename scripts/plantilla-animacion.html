@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>{{TITULO}}</title>
+<style>
+  :root {
+    --bg-top: #aec7dd;
+    --bg-bottom: #bbd2e7;
+    --ink: #0b1b33;
+    --chip-text: #ffffff;
+    --down: #5ab8ff;
+    --hold: #ffd166;
+    --up: #6ee7a8;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    /* flat colour outside the square, matching the frame's own gradient at its edges */
+    background: linear-gradient(var(--bg-top) calc(50% - min(50vw, 50vh)), var(--bg-bottom) calc(50% + min(50vw, 50vh)));
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .stage {
+    position: relative;
+    width: min(100vw, 100vh);
+    aspect-ratio: 1 / 1;
+    cursor: pointer;
+    background: linear-gradient(var(--bg-top), var(--bg-bottom));
+  }
+  .stage img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    pointer-events: none;
+    -webkit-user-drag: none;
+  }
+  .stage img.first { opacity: 1; }
+
+  .cue {
+    position: absolute;
+    z-index: 5;
+    left: 50%;
+    top: 3%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: .5em;
+    padding: .45em .95em .45em .75em;
+    border-radius: 999px;
+    background: rgba(11, 27, 51, .88);
+    color: var(--chip-text);
+    font-size: clamp(11px, 3.2vmin, 16px);
+    font-weight: 650;
+    letter-spacing: .01em;
+    white-space: nowrap;
+    box-shadow: 0 4px 14px rgba(11, 27, 51, .18);
+  }
+  .cue .dot {
+    width: .6em; height: .6em; border-radius: 50%;
+    background: var(--hold);
+    transition: background-color .2s;
+  }
+  .cue .arrow { opacity: .75; font-weight: 500; }
+  .cue[data-phase="down"] .dot { background: var(--down); }
+  .cue[data-phase="up"] .dot { background: var(--up); }
+  .cue[data-phase="hold"] .dot { background: var(--hold); }
+
+  .paused-badge {
+    position: absolute;
+    z-index: 6;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    opacity: 0;
+    transition: opacity .2s;
+    pointer-events: none;
+  }
+  .paused-badge span {
+    width: 16%; aspect-ratio: 1;
+    border-radius: 50%;
+    background: rgba(11, 27, 51, .7);
+    display: grid; place-items: center;
+  }
+  .paused-badge svg { width: 42%; height: 42%; margin-left: 8%; fill: #fff; }
+  .stage.is-paused .paused-badge { opacity: 1; }
+
+  .hide-cues .cue { display: none; }
+</style>
+</head>
+<body>
+  <div class="stage" id="stage" role="img" aria-label="{{DESCRIPCION}}">
+    <img id="pose-top"  class="first" alt="" src="{{IMG_ARRIBA}}">
+    <img id="pose-mid"  alt="" src="{{IMG_MEDIO}}">
+    <img id="pose-bot"  alt="" src="{{IMG_ABAJO}}">
+
+    <div class="cue" id="cue" data-phase="hold" aria-live="off">
+      <span class="dot"></span><span id="cue-text">{{PISTA_1}}</span>
+    </div>
+
+    <div class="paused-badge" aria-hidden="true">
+      <span><svg viewBox="0 0 24 24"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12-7.5a1 1 0 0 0 0-1.72l-12-7.5A1 1 0 0 0 7 4.5z"/></svg></span>
+    </div>
+  </div>
+
+<script>
+(function () {
+  /*
+   * Opciones por URL:  ?speed=0.75  ?cues=0  ?autoplay=0
+   * Control desde la app (iframe / WebView):
+   *   postMessage({ type: "play" })  |  { type: "pause" }  |  { type: "toggle" }
+   *   postMessage({ type: "speed", value: 1.25 })
+   *   window.exerciseVideo.play() / .pause() / .setSpeed(n) / .seek(segundos)
+ *   window.exerciseVideo.duration  -> segundos por repetición (a velocidad 1)
+   * Eventos que emite hacia la app (window.parent / ReactNativeWebView):
+   *   { source: "exercise-video", event: "rep", count }
+   *   { source: "exercise-video", event: "state", playing }
+   */
+  var params = new URLSearchParams(location.search);
+  var speed = clamp(parseFloat(params.get("speed")) || 1, 0.25, 3);
+  var playing = params.get("autoplay") !== "0";
+  if (params.get("cues") === "0") document.body.classList.add("hide-cues");
+
+  var layers = {
+    top: document.getElementById("pose-top"),
+    mid: document.getElementById("pose-mid"),
+    bot: document.getElementById("pose-bot")
+  };
+  var stage = document.getElementById("stage");
+  var cue = document.getElementById("cue");
+  var cueText = document.getElementById("cue-text");
+
+  // One repetition. hold = pose shown alone, fade = cross-dissolve into the next pose.
+  // Eccentric (lowering) ~1.5 s, short pause on the chest, faster concentric (~0.6 s).
+  var timeline = [
+    { pose: "top", hold: 0.70, fade: 0.35 },
+    { pose: "mid", hold: 0.75, fade: 0.35 },
+    { pose: "bot", hold: 0.45, fade: 0.20 },
+    { pose: "mid", hold: 0.15, fade: 0.20 }
+  ];
+  var cycle = 0, marks = [];
+  timeline.forEach(function (k) {
+    marks.push({ start: cycle, fadeStart: cycle + k.hold });
+    cycle += k.hold + k.fade;
+  });
+  // Coaching cues, timed to the movement (not to the poses).
+  var cues = [
+    { at: marks[0].start,     phase: "hold", text: "{{PISTA_1_JS}}" },
+    { at: marks[0].fadeStart, phase: "down", text: "{{PISTA_2_JS}}" },
+    { at: marks[2].start,     phase: "hold", text: "{{PISTA_3_JS}}" },
+    { at: marks[2].fadeStart, phase: "up",   text: "{{PISTA_4_JS}}" }
+  ];
+
+  var t = 0, last = null, reps = 0, lastCue = null;
+
+  function clamp(v, a, b) { return Math.min(b, Math.max(a, v)); }
+  function ease(x) { return x < .5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2; }
+
+  function render(time) {
+    var local = time % cycle;
+    for (var i = timeline.length - 1; i >= 0; i--) {
+      if (local < marks[i].start) continue;
+      var k = timeline[i], next = timeline[(i + 1) % timeline.length];
+      var into = local - marks[i].start;
+      var to = null, a = 0;
+      if (into > k.hold) { to = next.pose; a = ease(Math.min(1, (into - k.hold) / k.fade)); }
+      for (var name in layers) {
+        var el = layers[name];
+        if (name === k.pose) { el.style.opacity = 1; el.style.zIndex = 1; }
+        else if (name === to) { el.style.opacity = a; el.style.zIndex = 2; }
+        else { el.style.opacity = 0; el.style.zIndex = 0; }
+      }
+      break;
+    }
+    var c = cues[0];
+    for (var j = 0; j < cues.length; j++) if (local >= cues[j].at) c = cues[j];
+    setCue(c);
+  }
+
+  function setCue(c) {
+    if (lastCue === c) return;
+    lastCue = c;
+    cue.dataset.phase = c.phase;
+    cueText.textContent = c.text;
+  }
+
+  function frame(now) {
+    if (last !== null && playing) {
+      var dt = Math.min((now - last) / 1000, 0.1) * speed;
+      var before = Math.floor(t / cycle);
+      t += dt;
+      var after = Math.floor(t / cycle);
+      if (after > before) { reps += after - before; emit({ event: "rep", count: reps }); }
+    }
+    last = now;
+    render(t);
+    requestAnimationFrame(frame);
+  }
+
+  function emit(msg) {
+    msg.source = "exercise-video";
+    try { if (window.parent && window.parent !== window) window.parent.postMessage(msg, "*"); } catch (e) {}
+    try { if (window.ReactNativeWebView) window.ReactNativeWebView.postMessage(JSON.stringify(msg)); } catch (e) {}
+  }
+
+  function setPlaying(p) {
+    playing = !!p;
+    stage.classList.toggle("is-paused", !playing);
+    emit({ event: "state", playing: playing });
+  }
+
+  stage.addEventListener("click", function () { setPlaying(!playing); });
+  document.addEventListener("keydown", function (e) {
+    if (e.code === "Space") { e.preventDefault(); setPlaying(!playing); }
+  });
+  window.addEventListener("message", function (e) {
+    var d = e.data;
+    if (typeof d === "string") { try { d = JSON.parse(d); } catch (_) { return; } }
+    if (!d || !d.type) return;
+    if (d.type === "play") setPlaying(true);
+    else if (d.type === "pause") setPlaying(false);
+    else if (d.type === "toggle") setPlaying(!playing);
+    else if (d.type === "speed") speed = clamp(+d.value || 1, 0.25, 3);
+  });
+
+  window.exerciseVideo = {
+    play: function () { setPlaying(true); },
+    pause: function () { setPlaying(false); },
+    setSpeed: function (v) { speed = clamp(+v || 1, 0.25, 3); },
+    seek: function (sec) { t = Math.max(0, +sec || 0); render(t); },
+    get duration() { return cycle; },
+    get reps() { return reps; }
+  };
+
+  stage.classList.toggle("is-paused", !playing);
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

@@ -14,7 +14,7 @@ export interface EjercicioCatalogo {
 
 export const EJERCICIOS: readonly EjercicioCatalogo[] = [
   { id: 'press-pecho-maquina', nombre: 'Press de pecho en máquina', movimiento: 'empuje', equipo: 'maquinas', pesoInicialKg: 15 },
-  { id: 'press-banca', nombre: 'Press de banca con barra', movimiento: 'empuje', equipo: 'barra', pesoInicialKg: 20 },
+  { id: 'press-banca', nombre: 'Press de banca', movimiento: 'empuje', equipo: 'barra', pesoInicialKg: 20 },
   { id: 'press-mancuernas', nombre: 'Press con mancuernas', movimiento: 'empuje', equipo: 'mancuernas', pesoInicialKg: 8 },
   { id: 'triceps-polea', nombre: 'Extensión de tríceps en polea', movimiento: 'empuje', equipo: 'poleas', pesoInicialKg: 10 },
   { id: 'flexiones', nombre: 'Flexiones', movimiento: 'empuje', equipo: 'peso-corporal', pesoInicialKg: 0 },
@@ -30,3 +30,7 @@ export const EJERCICIOS: readonly EjercicioCatalogo[] = [
   { id: 'sentadilla-peso-corporal', nombre: 'Sentadilla con peso corporal', movimiento: 'piernas', equipo: 'peso-corporal', pesoInicialKg: 0 },
   { id: 'zancadas', nombre: 'Zancadas', movimiento: 'piernas', equipo: 'peso-corporal', pesoInicialKg: 0 },
 ];
+
+export function buscarEjercicio(id: string): EjercicioCatalogo | undefined {
+  return EJERCICIOS.find((ejercicio) => ejercicio.id === id);
+}

@@ -532,6 +532,189 @@ ion-content {
   color: var(--sj-muted);
 }
 
+/* Animación del ejercicio */
+.sj-animacion {
+  margin: 0 -1.25rem;
+  border-block: var(--sj-linea);
+  background: #aec7dd;
+}
+
+.sj-animacion-marco {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border: 0;
+}
+
+/* Ficha de ejercicio */
+.sj-mascota {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.sj-mascota .sj-logo {
+  flex: 0 0 auto;
+  width: 3.5rem;
+  margin: 0;
+}
+
+.sj-burbuja {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  background: var(--sj-campo);
+  font-size: 0.9375rem;
+  line-height: 1.4;
+}
+
+.sj-subtitulo-ficha {
+  margin-top: 1.25rem;
+}
+
+.sj-separador {
+  margin: 0 0 0.25rem;
+  border: 0;
+  border-top: 1px solid rgb(26 26 26 / 28%);
+}
+
+.sj-ubicacion {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin: 1rem 0 0;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.sj-ubicacion ion-icon {
+  flex: 0 0 auto;
+  margin-top: 0.2rem;
+  font-size: 1.5rem;
+}
+
+.sj-enlace-ejercicio {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--sj-ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sj-enlace-ejercicio ion-icon {
+  flex: 0 0 auto;
+  color: var(--sj-blue-ink);
+  font-size: 1.25rem;
+}
+
+/* Glosario: ayuda de términos */
+.sj-termino {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  vertical-align: baseline;
+  cursor: pointer;
+}
+
+.sj-termino-texto {
+  border-bottom: 2px dotted currentcolor;
+  font-weight: 700;
+}
+
+.sj-termino ion-icon {
+  color: var(--sj-blue-ink);
+  font-size: 1.25rem;
+}
+
+.sj-dialogo-fondo {
+  position: fixed;
+  z-index: 20000;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgb(26 26 26 / 60%);
+}
+
+.sj-dialogo {
+  width: min(100%, 34rem);
+  padding: 1.5rem 1.25rem max(1.25rem, env(safe-area-inset-bottom));
+  border-top: var(--sj-linea);
+  background: var(--sj-bg);
+  color: var(--sj-ink);
+}
+
+.sj-dialogo-titulo {
+  margin: 0.25rem 0 0.75rem;
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+.sj-glosario {
+  margin: 0;
+}
+
+.sj-glosario-item {
+  padding: 1rem 0;
+  border-top: 1px solid rgb(26 26 26 / 28%);
+}
+
+.sj-glosario-item:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.sj-glosario-item dt {
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
+.sj-glosario-item dd {
+  margin: 0.35rem 0 0;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+/* Selector de hora */
+.sj-hora {
+  width: 100%;
+  min-height: 3.5rem;
+  padding: 0 1rem;
+  border: var(--sj-linea);
+  border-radius: 0;
+  background: var(--sj-campo);
+  color: var(--sj-ink);
+  font: inherit;
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+.sj-hora:disabled {
+  opacity: 0.6;
+}
+
+.sj-sin-animacion {
+  display: grid;
+  place-items: center;
+  margin: 0 -1.25rem;
+  min-height: 9rem;
+  border-block: var(--sj-linea);
+  background: var(--sj-campo);
+  color: var(--sj-muted);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
 .sj-cabecera {
   margin-bottom: var(--sj-espacio-6);
 }

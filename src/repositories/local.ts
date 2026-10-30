@@ -8,9 +8,19 @@ import {
   type RutinaAsignada,
 } from '../types/perfil';
 import { guardarJson, leerJson } from './almacenLocal';
-import type { PerfilRepositorio, RutinaRepositorio, SaludRepositorio } from './repositorios';
+import type { AjustesRecordatorios } from '../types/recordatorios';
+import { HORA_PREDETERMINADA, esHoraValida } from '../utils/recordatorios';
+import type {
+  FichasVistasRepositorio,
+  PerfilRepositorio,
+  RecordatoriosRepositorio,
+  RutinaRepositorio,
+  SaludRepositorio,
+} from './repositorios';
 
-function crearClave(usuarioId: string, tipo: 'perfil' | 'salud' | 'rutina'): string {
+type TipoDato = 'perfil' | 'salud' | 'rutina' | 'fichasVistas' | 'recordatorios';
+
+function crearClave(usuarioId: string, tipo: TipoDato): string {
   if (!usuarioId) {
     throw new Error('Se requiere una sesión para acceder a los datos locales.');
   }
@@ -70,4 +80,31 @@ export const saludLocal: SaludRepositorio = {
 export const rutinaLocal: RutinaRepositorio = {
   obtener: (usuarioId) => leerJson(crearClave(usuarioId, 'rutina'), esRutina),
   guardar: (usuarioId, rutina) => guardarJson(crearClave(usuarioId, 'rutina'), rutina),
+};
+
+function esListaDeTextos(valor: unknown): valor is string[] {
+  return Array.isArray(valor) && valor.every((elemento) => typeof elemento === 'string');
+}
+
+export const fichasVistasLocal: FichasVistasRepositorio = {
+  obtener: async (usuarioId) => (await leerJson(crearClave(usuarioId, 'fichasVistas'), esListaDeTextos)) ?? [],
+  marcarVista: async (usuarioId, idEjercicio) => {
+    const clave = crearClave(usuarioId, 'fichasVistas');
+    const vistas = (await leerJson(clave, esListaDeTextos)) ?? [];
+    if (!vistas.includes(idEjercicio)) {
+      await guardarJson(clave, [...vistas, idEjercicio]);
+    }
+  },
+};
+
+const AJUSTES_RECORDATORIOS_INICIALES: AjustesRecordatorios = { activo: false, hora: HORA_PREDETERMINADA };
+
+function esAjustesRecordatorios(valor: unknown): valor is AjustesRecordatorios {
+  return esObjeto(valor) && typeof valor.activo === 'boolean' && typeof valor.hora === 'string' && esHoraValida(valor.hora);
+}
+
+export const recordatoriosLocal: RecordatoriosRepositorio = {
+  obtener: async (usuarioId) =>
+    (await leerJson(crearClave(usuarioId, 'recordatorios'), esAjustesRecordatorios)) ?? AJUSTES_RECORDATORIOS_INICIALES,
+  guardar: async (usuarioId, ajustes) => guardarJson(crearClave(usuarioId, 'recordatorios'), ajustes),
 };
