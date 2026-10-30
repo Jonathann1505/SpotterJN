@@ -1,9 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { iniciarSesion, registrar } from './auth';
+import { iniciarSesion, registrar, solicitarRecuperacion } from './auth';
 
 const authMock = vi.hoisted(() => ({
   signUp: vi.fn(),
   signInWithPassword: vi.fn(),
+  resetPasswordForEmail: vi.fn(),
 }));
 
 vi.mock('./supabase', () => ({
@@ -141,5 +142,27 @@ describe('servicio de autenticación', () => {
       );
       expect(resultado.mensaje).not.toContain('private provider details');
     }
+  });
+
+  it('solicita la recuperación de contraseña con el correo indicado', async () => {
+    authMock.resetPasswordForEmail.mockResolvedValue({ data: {}, error: null });
+
+    await expect(solicitarRecuperacion('persona@dominio.com')).resolves.toEqual({ ok: true });
+    expect(authMock.resetPasswordForEmail).toHaveBeenCalledWith('persona@dominio.com');
+  });
+
+  it('traduce un error al solicitar la recuperación de contraseña', async () => {
+    authMock.resetPasswordForEmail.mockResolvedValue({
+      data: {},
+      error: {
+        code: 'over_email_send_rate_limit',
+        message: 'private provider details',
+      },
+    });
+
+    await expect(solicitarRecuperacion('persona@dominio.com')).resolves.toEqual({
+      ok: false,
+      mensaje: 'Se enviaron demasiados correos. Espera un momento e inténtalo de nuevo.',
+    });
   });
 });
