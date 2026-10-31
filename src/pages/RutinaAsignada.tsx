@@ -8,18 +8,31 @@ import { rutinaLocal } from '../repositories/local';
 import type { RutinaAsignada as Rutina } from '../types/perfil';
 import { describirRutina } from '../utils/rutina';
 import { formatearPeso } from '../utils/unidades';
+import { useSesion } from '../context/SesionContext';
 
 function RutinaAsignada() {
   const [rutina, setRutina] = useState<Rutina | null>(null);
   const [cargando, setCargando] = useState(true);
   const [abierto, setAbierto] = useState(0);
   const { perfil } = usePerfil();
+  const { sesion } = useSesion();
+  const usuarioId = sesion?.user.id ?? null;
   const history = useHistory();
 
   useEffect(() => {
     let activo = true;
+    if (usuarioId === null) {
+      setRutina(null);
+      setCargando(false);
+      return () => {
+        activo = false;
+      };
+    }
+
+    setRutina(null);
+    setCargando(true);
     void rutinaLocal
-      .obtener()
+      .obtener(usuarioId)
       .then((guardada) => {
         if (activo) {
           setRutina(guardada);
@@ -35,12 +48,14 @@ function RutinaAsignada() {
     return () => {
       activo = false;
     };
-  }, []);
+  }, [usuarioId]);
 
   if (cargando) {
     return (
       <PantallaSJ titulo="Tu rutina">
-        <IonSpinner aria-label="Cargando rutina" />
+        <div className="sj-cargando">
+          <IonSpinner aria-label="Cargando rutina" />
+        </div>
       </PantallaSJ>
     );
   }

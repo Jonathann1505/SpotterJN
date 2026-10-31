@@ -1,15 +1,14 @@
 import {
   IonApp,
-  IonButton,
   IonContent,
   IonPage,
   IonRouterOutlet,
   IonSpinner,
-  IonText,
 } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
 import type { PropsWithChildren } from 'react';
 import { Redirect, Route } from 'react-router-dom';
+import { BotonSJ, PantallaSJ } from './components/PantallaSJ';
 import Ajustes from './pages/Ajustes';
 import AvisoMedico from './pages/AvisoMedico';
 import Consentimientos from './pages/Consentimientos';
@@ -23,6 +22,7 @@ import Perfil from './pages/Perfil';
 import RecuperarContrasena from './pages/RecuperarContrasena';
 import Registro from './pages/Registro';
 import RutinaAsignada from './pages/RutinaAsignada';
+import SesionEntrenamiento from './pages/SesionEntrenamiento';
 import { ProveedorPerfil } from './context/PerfilContext';
 import { ProveedorSesion, useSesion } from './context/SesionContext';
 
@@ -37,8 +37,14 @@ function EstadoInicialSesion() {
   if (cargando) {
     return (
       <IonPage>
-        <IonContent className="ion-padding ion-text-center">
-          <IonSpinner aria-label="Cargando sesión" />
+        <IonContent className="sj">
+          <div className="sj-layout">
+            <main className="sj-main">
+              <div className="sj-cargando">
+                <IonSpinner aria-label="Cargando sesión" />
+              </div>
+            </main>
+          </div>
         </IonContent>
       </IonPage>
     );
@@ -47,11 +53,13 @@ function EstadoInicialSesion() {
   if (error) {
     return (
       <IonPage>
-        <IonContent className="ion-padding ion-text-center">
-          <IonText color="danger">
-            <p>{error}</p>
-          </IonText>
-          <IonButton onClick={() => void recargarSesion()}>Reintentar</IonButton>
+        <IonContent className="sj">
+          <div className="sj-layout">
+            <main className="sj-main">
+              <p className="sj-error" role="alert">{error}</p>
+              <BotonSJ onClick={() => void recargarSesion()}>Reintentar</BotonSJ>
+            </main>
+          </div>
         </IonContent>
       </IonPage>
     );
@@ -116,15 +124,14 @@ function RutasAplicacion() {
         <Route exact path="/perfil">
           {sesion ? <Perfil /> : <Redirect to="/login" />}
         </Route>
+        <Route exact path="/sesion">
+          {sesion ? <SesionEntrenamiento /> : <Redirect to="/login" />}
+        </Route>
         <Route exact path="/terminos">
-          <IonPage>
-            <IonContent className="ion-padding"><h1>Términos</h1></IonContent>
-          </IonPage>
+          <PantallaSJ titulo="Términos">{null}</PantallaSJ>
         </Route>
         <Route exact path="/privacidad">
-          <IonPage>
-            <IonContent className="ion-padding"><h1>Privacidad</h1></IonContent>
-          </IonPage>
+          <PantallaSJ titulo="Privacidad">{null}</PantallaSJ>
         </Route>
         <Route>
           <Redirect to={sesion ? '/hoy' : '/login'} />
@@ -136,7 +143,7 @@ function RutasAplicacion() {
 
 function App() {
   return (
-    <IonApp className="ion-palette-dark">
+    <IonApp>
       <ProveedorSesion>
         <ProveedorPerfil>
           <RutasAplicacion />

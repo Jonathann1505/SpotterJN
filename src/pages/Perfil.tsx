@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { IonInput } from '@ionic/react';
 import { useHistory } from 'react-router-dom';
 import { BotonSJ, PantallaSJ } from '../components/PantallaSJ';
+import CerrarSesion from '../components/CerrarSesion';
 import { usePerfil } from '../context/PerfilContext';
 import { METAS_PRINCIPALES, type MetaPrincipal, type UnidadPeso } from '../types/perfil';
 import { LONGITUD_MAXIMA_NOMBRE, esNombreValido } from '../utils/validaciones';
@@ -65,14 +66,16 @@ function Perfil() {
           <BotonSJ onClick={() => void guardar()}>Guardar cambios</BotonSJ>
           <BotonSJ variante="secundario" onClick={() => history.push('/ajustes')}>Recordatorios</BotonSJ>
           <BotonSJ variante="secundario" onClick={() => history.push('/glosario')}>Glosario</BotonSJ>
+          <CerrarSesion />
           <BotonSJ variante="texto" onClick={() => history.goBack()}>Volver</BotonSJ>
         </>
       }
     >
-      <span className="sj-campo-etiqueta" id="etiqueta-nombre">Nombre</span>
       <IonInput
-        className="sj-input"
-        aria-label="Nombre"
+        className="sj-campo"
+        label="Nombre"
+        labelPlacement="stacked"
+        fill="outline"
         maxlength={LONGITUD_MAXIMA_NOMBRE + 10}
         value={nombre}
         onIonInput={(evento) => setNombre(String(evento.detail.value ?? ''))}

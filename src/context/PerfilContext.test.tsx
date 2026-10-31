@@ -1,14 +1,20 @@
 import { act, cleanup, render, waitFor } from '@testing-library/react';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { PerfilRepositorio } from '../repositories/repositorios';
 import type { PerfilUsuario } from '../types/perfil';
 import { PERFIL_INICIAL, ProveedorPerfil, usePerfil } from './PerfilContext';
 
-function repositorioEnMemoria(inicial: PerfilUsuario | null): PerfilRepositorio & { guardado: PerfilUsuario | null } {
+vi.mock('./SesionContext', () => ({
+  useSesion: () => ({ sesion: { user: { id: 'usuario-prueba' } } }),
+}));
+
+function repositorioEnMemoria(
+  inicial: PerfilUsuario | null,
+): PerfilRepositorio & { guardado: PerfilUsuario | null } {
   const repo = {
     guardado: inicial,
-    obtener: async () => repo.guardado,
-    guardar: async (perfil: PerfilUsuario) => {
+    obtener: async (_usuarioId: string) => repo.guardado,
+    guardar: async (_usuarioId: string, perfil: PerfilUsuario) => {
       repo.guardado = perfil;
     },
   };

@@ -1,12 +1,60 @@
 import type { ReactNode } from 'react';
 import { IonButton, IonContent, IonIcon, IonPage } from '@ionic/react';
 import { chevronForward } from 'ionicons/icons';
-import '@fontsource/archivo/latin-400.css';
-import '@fontsource/archivo/latin-500.css';
-import '@fontsource/archivo/latin-700.css';
-import '@fontsource/archivo/latin-800.css';
+import { Link } from 'react-router-dom';
 import logo from '../assets/logo-spotterjn.webp';
-import '../theme/spotter-ui.css';
+
+interface PropiedadesLogo {
+  grande?: boolean;
+}
+
+export function LogoSJ({ grande = false }: PropiedadesLogo) {
+  return (
+    <img
+      className={grande ? 'sj-logo sj-logo-grande' : 'sj-logo'}
+      src={logo}
+      alt="Logo de SpotterJN: una rata levantando pesas"
+    />
+  );
+}
+
+type VistaAcceso = 'registro' | 'login';
+
+interface PropiedadesPestanasAcceso {
+  activa: VistaAcceso;
+}
+
+export function PestanasAccesoSJ({ activa }: PropiedadesPestanasAcceso) {
+  return (
+    <nav className="sj-tabs" aria-label="Acceso a la cuenta">
+      <Link to="/consentimientos" aria-current={activa === 'registro' ? 'page' : undefined}>
+        Crear cuenta
+      </Link>
+      <Link to="/login" aria-current={activa === 'login' ? 'page' : undefined}>
+        Iniciar sesión
+      </Link>
+    </nav>
+  );
+}
+
+interface PropiedadesMarcoAcceso {
+  activa: VistaAcceso;
+  children: ReactNode;
+}
+
+export function MarcoAccesoSJ({ activa, children }: PropiedadesMarcoAcceso) {
+  return (
+    <IonPage>
+      <IonContent className="sj sj-acceso">
+        <main className="sj-acceso-layout">
+          <LogoSJ grande />
+          <PestanasAccesoSJ activa={activa} />
+          <section className="sj-acceso-panel">{children}</section>
+        </main>
+      </IonContent>
+    </IonPage>
+  );
+}
 
 interface PropiedadesPantalla {
   etiqueta?: string;
@@ -33,7 +81,7 @@ export function PantallaSJ({
         <div className="sj-layout">
           <main className="sj-main">
             {cabecera}
-            {mostrarLogo ? <img className="sj-logo" src={logo} alt="SpotterJN" /> : null}
+            {mostrarLogo ? <LogoSJ /> : null}
             {etiqueta ? <p className="sj-eyebrow">{etiqueta}</p> : null}
             <h1 className={reglaBajoTitulo ? 'sj-titulo sj-titulo-regla' : 'sj-titulo'}>{titulo}</h1>
             {children}

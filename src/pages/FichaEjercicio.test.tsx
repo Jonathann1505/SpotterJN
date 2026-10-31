@@ -2,10 +2,14 @@ import { cleanup, fireEvent, render, waitFor } from '@testing-library/react';
 import { IonApp } from '@ionic/react';
 import { MemoryRouter, Route } from 'react-router-dom';
 import { Preferences } from '@capacitor/preferences';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fichasVistasLocal, rutinaLocal } from '../repositories/local';
 import { asignarRutina } from '../utils/rutina';
 import FichaEjercicio from './FichaEjercicio';
+
+vi.mock('../context/SesionContext', () => ({
+  useSesion: () => ({ sesion: { user: { id: 'usuario-prueba' } } }),
+}));
 
 function renderizar(ruta: string) {
   return render(
@@ -14,6 +18,9 @@ function renderizar(ruta: string) {
         <Route path="/ejercicio/:id" component={FichaEjercicio} />
         <Route path="/hoy">
           <p>pantalla hoy</p>
+        </Route>
+        <Route path="/sesion">
+          <p>pantalla de sesión</p>
         </Route>
       </MemoryRouter>
     </IonApp>,
@@ -28,6 +35,7 @@ describe('FichaEjercicio', () => {
 
   it('muestra la ficha completa la primera vez', async () => {
     await rutinaLocal.guardar(
+      'usuario-prueba',
       asignarRutina({ experiencia: 'ninguna', diasPorSemana: 3, equipo: ['barra', 'maquinas'] }),
     );
     const { findByRole, getByText, getByTitle, container } = renderizar('/ejercicio/press-banca');
@@ -42,19 +50,20 @@ describe('FichaEjercicio', () => {
     expect(container.querySelector('ion-button.sj-boton')).toHaveTextContent('Listo, empezar series');
   });
 
-  it('marca la ficha como vista al continuar', async () => {
-    const { container, findByRole } = renderizar('/ejercicio/press-banca');
+  it('marca la ficha como vista al continuar y lleva a la sesión', async () => {
+    const { container, findByRole, findByText } = renderizar('/ejercicio/press-banca');
     await findByRole('heading', { name: 'Press de banca' });
 
     fireEvent.click(container.querySelector('ion-button.sj-boton') as Element);
 
+    expect(await findByText('pantalla de sesión')).toBeInTheDocument();
     await waitFor(async () => {
-      expect(await fichasVistasLocal.obtener()).toEqual(['press-banca']);
+      expect(await fichasVistasLocal.obtener('usuario-prueba')).toEqual(['press-banca']);
     });
   });
 
   it('no repite el aviso de primera vez cuando ya se vio y permite volver', async () => {
-    await fichasVistasLocal.marcarVista('press-banca');
+    await fichasVistasLocal.marcarVista('usuario-prueba', 'press-banca');
     const { container, findByRole, queryByText, findByText } = renderizar('/ejercicio/press-banca');
 
     await findByRole('heading', { name: 'Press de banca' });
@@ -65,12 +74,13 @@ describe('FichaEjercicio', () => {
     expect(await findByText('pantalla hoy')).toBeInTheDocument();
   });
 
-  it('usa una guía provisional si el ejercicio no tiene animación', async () => {
+  it('muestra la guía y un aviso si el ejercicio todavía no tiene animación', async () => {
     const { findByRole, queryByTitle, getByText } = renderizar('/ejercicio/remo-maquina');
 
     expect(await findByRole('heading', { name: 'Remo en máquina' })).toBeInTheDocument();
     expect(queryByTitle(/Animación del ejercicio/)).not.toBeInTheDocument();
-    expect(getByText(/estará disponible pronto/)).toBeInTheDocument();
+    expect(getByText('Animación próximamente')).toBeInTheDocument();
+    expect(getByText(/Ajusta el asiento para que las asas/)).toBeInTheDocument();
   });
 
   it('redirige a Hoy si el ejercicio no existe', async () => {

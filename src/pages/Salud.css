@@ -1,10 +1,10 @@
 .sj-aviso {
   margin-top: 1rem;
-  padding: 0.85rem 1rem;
-  border: 2px solid #1a1a1a;
-  background: #ffd9a0;
-  color: #1a1a1a;
-  font-size: 0.9375rem;
+  padding: var(--sj-espacio-3) var(--sj-espacio-4);
+  border: var(--sj-borde);
+  background: var(--sj-color-aviso);
+  color: var(--sj-color-tinta);
+  font-size: var(--sj-fuente-sm);
   font-weight: 600;
   line-height: 1.5;
 }

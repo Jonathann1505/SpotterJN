@@ -72,4 +72,16 @@ describe('Login', () => {
       'El correo electrónico o la contraseña no son correctos.',
     );
   });
+
+  it('muestra el logo accesible y marca Iniciar sesión como pestaña activa', () => {
+    renderLogin();
+
+    expect(
+      screen.getByRole('img', { name: 'Logo de SpotterJN: una rata levantando pesas' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('navigation', { name: 'Acceso a la cuenta' })
+        .querySelector('[aria-current="page"]'),
+    ).toHaveTextContent('Iniciar sesión');
+  });
 });

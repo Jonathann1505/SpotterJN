@@ -1,16 +1,10 @@
 import { useState, type FormEvent } from 'react';
-import {
-  IonButton,
-  IonContent,
-  IonIcon,
-  IonInput,
-  IonPage,
-} from '@ionic/react';
-import { eye, eyeOff, barbell } from 'ionicons/icons';
-import { Link, useHistory } from 'react-router-dom';
+import { IonButton, IonIcon, IonInput } from '@ionic/react';
+import { eye, eyeOff } from 'ionicons/icons';
+import { useHistory } from 'react-router-dom';
 import { iniciarSesion } from '../services/auth';
 import { esCorreoValido } from '../utils/validaciones';
-import './Login.css';
+import { MarcoAccesoSJ } from '../components/PantallaSJ';
 
 function Login() {
   const [correo, setCorreo] = useState('');
@@ -46,111 +40,73 @@ function Login() {
   };
 
   return (
-    <IonPage>
-      <IonContent className="login-content">
-        <main className="login-layout">
-          <section className="login-intro" aria-labelledby="login-title">
-            <div className="login-brand">
-              <span className="brand-mark" aria-hidden="true">
-                <IonIcon icon={barbell} />
-              </span>
-              <span className="brand-name">SPOTTER<span>JN</span></span>
-            </div>
+    <MarcoAccesoSJ activa="login">
+      <header className="sj-cabecera">
+        <h1 id="login-title">Iniciar sesión</h1>
+        <p>Ingresa tus datos para continuar.</p>
+      </header>
+      <form aria-labelledby="login-title" onSubmit={(evento) => void enviarFormulario(evento)}>
+        <IonInput
+          className="sj-campo"
+          label="Correo electrónico"
+          labelPlacement="stacked"
+          fill="outline"
+          type="email"
+          placeholder="usuario@dominio.com"
+          autocomplete="email"
+          inputmode="email"
+          required
+          value={correo}
+          onIonInput={(evento) => {
+            setCorreo(evento.detail.value ?? '');
+            setError(null);
+          }}
+          onIonBlur={() => setCorreoTocado(true)}
+          aria-invalid={correoTocado && !correoValido}
+          aria-describedby={correoTocado && !correoValido ? 'login-email-error' : undefined}
+        />
+        {correoTocado && !correoValido && (
+          <p id="login-email-error" className="sj-error" role="alert">
+            Ingresa un correo electrónico válido.
+          </p>
+        )}
+        <div className="sj-acceso-password">
+          <IonInput
+            className="sj-campo"
+            label="Contraseña"
+            labelPlacement="stacked"
+            fill="outline"
+            type={mostrarContrasena ? 'text' : 'password'}
+            placeholder="Ingresa tu contraseña"
+            autocomplete="current-password"
+            required
+            value={contrasena}
+            onIonInput={(evento) => {
+              setContrasena(evento.detail.value ?? '');
+              setError(null);
+            }}
+          />
+          <IonButton
+            fill="clear"
+            type="button"
+            aria-label={mostrarContrasena ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+            onClick={() => setMostrarContrasena((visible) => !visible)}
+          >
+            <IonIcon icon={mostrarContrasena ? eyeOff : eye} />
+          </IonButton>
+        </div>
+        {error && <p className="sj-error" role="alert">{error}</p>}
 
-            <div className="intro-copy">
-              <h1 id="login-title" className="login-title">
-                Cada repetición{' '}
-                <br />
-                <span>te acerca más.</span>
-              </h1>
-              <p className="login-description">
-                Registra tu progreso y descubre de lo que eres capaz, un
-                entrenamiento a la vez.
-              </p>
-            </div>
-          </section>
-
-          <section className="login-panel" aria-labelledby="form-title">
-            <div className="panel-heading">
-              <p className="panel-eyebrow">QUÉ BUENO TENERTE DE VUELTA</p>
-              <h2 id="form-title">Inicia sesión</h2>
-              <p>Ingresa tus datos para continuar.</p>
-            </div>
-
-            <form className="login-fields" onSubmit={(evento) => void enviarFormulario(evento)}>
-              <IonInput
-                className="login-field"
-                label="Correo electrónico"
-                labelPlacement="stacked"
-                fill="outline"
-                type="email"
-                placeholder="nombre@ejemplo.com"
-                autocomplete="email"
-                inputmode="email"
-                required
-                value={correo}
-                onIonInput={(evento) => {
-                  setCorreo(evento.detail.value ?? '');
-                  setError(null);
-                }}
-                onIonBlur={() => setCorreoTocado(true)}
-                aria-invalid={correoTocado && !correoValido}
-                aria-describedby={correoTocado && !correoValido ? 'login-email-error' : undefined}
-              />
-              {correoTocado && !correoValido && (
-                <p id="login-email-error" className="auth-field-error" role="alert">
-                  Ingresa un correo electrónico válido.
-                </p>
-              )}
-              <div className="login-password-wrapper">
-                <IonInput
-                  className="login-field"
-                  label="Contraseña"
-                  labelPlacement="stacked"
-                  fill="outline"
-                  type={mostrarContrasena ? 'text' : 'password'}
-                  placeholder="Ingresa tu contraseña"
-                  autocomplete="current-password"
-                  required
-                  value={contrasena}
-                  onIonInput={(evento) => {
-                    setContrasena(evento.detail.value ?? '');
-                    setError(null);
-                  }}
-                />
-                <IonButton
-                  className="password-toggle"
-                  fill="clear"
-                  type="button"
-                  aria-label={mostrarContrasena ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-                  onClick={() => setMostrarContrasena((visible) => !visible)}
-                >
-                  <IonIcon icon={mostrarContrasena ? eyeOff : eye} />
-                </IonButton>
-              </div>
-              {error && <p className="auth-form-error" role="alert">{error}</p>}
-
-              <IonButton
-                expand="block"
-                className="login-submit"
-                type="submit"
-                disabled={!formularioValido || cargando}
-              >
-                {cargando ? 'Iniciando sesión...' : 'Iniciar sesión'}
-                {!cargando && <span className="button-arrow" aria-hidden="true">→</span>}
-              </IonButton>
-            </form>
-
-            <p className="login-disclaimer">
-              <Link to="/recuperar-contrasena">¿Olvidaste tu contraseña?</Link>
-            </p>
-            <p className="login-disclaimer">
-              ¿Aún no tienes cuenta? <Link to="/consentimientos">Crear cuenta</Link>
-            </p>
-          </section>
-        </main>
-      </IonContent>
-    </IonPage>
+        <IonButton
+          expand="block"
+          className="sj-acceso-submit"
+          type="submit"
+          disabled={!formularioValido || cargando}
+        >
+          {cargando ? 'Iniciando sesión...' : 'Iniciar sesión'}
+        </IonButton>
+      </form>
+    </MarcoAccesoSJ>
   );
 }
 
