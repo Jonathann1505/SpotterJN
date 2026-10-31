@@ -8,6 +8,7 @@ import {
 import { IonReactRouter } from '@ionic/react-router';
 import type { PropsWithChildren } from 'react';
 import { Redirect, Route } from 'react-router-dom';
+import BannerSinConexion from './components/BannerSinConexion';
 import { BotonSJ, PantallaSJ } from './components/PantallaSJ';
 import Ajustes from './pages/Ajustes';
 import AvisoMedico from './pages/AvisoMedico';
@@ -144,11 +145,12 @@ function RutasAplicacion() {
 function App() {
   return (
     <IonApp>
+      <BannerSinConexion />
       <ProveedorSesion>
         <ProveedorPerfil>
           <RutasAplicacion />
         </ProveedorPerfil>
-      </ProveedorSesion>
+       </ProveedorSesion>
     </IonApp>
   );
 }
