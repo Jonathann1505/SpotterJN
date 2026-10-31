@@ -1,15 +1,9 @@
 import { useState, type FormEvent } from 'react';
-import {
-  IonButton,
-  IonContent,
-  IonInput,
-  IonItem,
-  IonPage,
-} from '@ionic/react';
+import { IonButton, IonInput } from '@ionic/react';
 import { Link } from 'react-router-dom';
 import { solicitarRecuperacion } from '../services/auth';
 import { esCorreoValido } from '../utils/validaciones';
-import './AuthPages.css';
+import { MarcoAccesoSJ } from '../components/PantallaSJ';
 
 function RecuperarContrasena() {
   const [correo, setCorreo] = useState('');
@@ -43,55 +37,55 @@ function RecuperarContrasena() {
   };
 
   return (
-    <IonPage>
-      <IonContent className="auth-page">
-        <main className="auth-page-content">
-          <section className="auth-page-card" aria-labelledby="recuperar-title">
-            <h1 id="recuperar-title">Olvidé mi contraseña</h1>
-            <p>Ingresa tu correo para solicitar un enlace de recuperación.</p>
-            <form onSubmit={(evento) => void enviarFormulario(evento)} noValidate>
-              <IonItem>
-                <IonInput
-                  label="Correo electrónico"
-                  labelPlacement="stacked"
-                  type="email"
-                  autocomplete="email"
-                  inputmode="email"
-                  required
-                  value={correo}
-                  onIonInput={(evento) => {
-                    setCorreo(evento.detail.value ?? '');
-                    setError(null);
-                    setConfirmacion(null);
-                  }}
-                  onIonBlur={() => setCorreoTocado(true)}
-                  aria-invalid={correoTocado && !correoValido}
-                  aria-describedby={correoTocado && !correoValido ? 'recuperar-correo-error' : undefined}
-                />
-              </IonItem>
-              {correoTocado && !correoValido && (
-                <p id="recuperar-correo-error" className="auth-inline-error" role="alert">
-                  Ingresa un correo electrónico válido.
-                </p>
-              )}
-              {error && <p className="auth-inline-error" role="alert">{error}</p>}
-              {confirmacion && <p className="auth-inline-message" role="status">{confirmacion}</p>}
-              <IonButton
-                className="auth-submit"
-                expand="block"
-                type="submit"
-                disabled={!correoValido || cargando}
-              >
-                {cargando ? 'Enviando...' : 'Enviar enlace'}
-              </IonButton>
-            </form>
-            <p>
-              <Link to="/login">Volver a iniciar sesión</Link>
-            </p>
-          </section>
-        </main>
-      </IonContent>
-    </IonPage>
+    <MarcoAccesoSJ activa="login">
+      <header className="sj-cabecera">
+        <h1 id="recuperar-title">Olvidé mi contraseña</h1>
+        <p>Ingresa tu correo para solicitar un enlace de recuperación.</p>
+      </header>
+      <form
+        aria-labelledby="recuperar-title"
+        onSubmit={(evento) => void enviarFormulario(evento)}
+        noValidate
+      >
+        <IonInput
+          className="sj-campo"
+          label="Correo electrónico"
+          labelPlacement="stacked"
+          fill="outline"
+          type="email"
+          autocomplete="email"
+          inputmode="email"
+          required
+          value={correo}
+          onIonInput={(evento) => {
+            setCorreo(evento.detail.value ?? '');
+            setError(null);
+            setConfirmacion(null);
+          }}
+          onIonBlur={() => setCorreoTocado(true)}
+          aria-invalid={correoTocado && !correoValido}
+          aria-describedby={correoTocado && !correoValido ? 'recuperar-correo-error' : undefined}
+        />
+        {correoTocado && !correoValido && (
+          <p id="recuperar-correo-error" className="sj-error" role="alert">
+            Ingresa un correo electrónico válido.
+          </p>
+        )}
+        {error && <p className="sj-error" role="alert">{error}</p>}
+        {confirmacion && <p className="sj-ok" role="status">{confirmacion}</p>}
+        <IonButton
+          className="sj-acceso-submit"
+          expand="block"
+          type="submit"
+          disabled={!correoValido || cargando}
+        >
+          {cargando ? 'Enviando...' : 'Enviar enlace'}
+        </IonButton>
+        <p className="sj-acceso-enlace">
+          <Link to="/login">Volver a iniciar sesión</Link>
+        </p>
+      </form>
+    </MarcoAccesoSJ>
   );
 }
 
