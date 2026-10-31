@@ -10,6 +10,7 @@ import {
 import { perfilLocal } from '../repositories/local';
 import type { PerfilRepositorio } from '../repositories/repositorios';
 import type { PerfilUsuario } from '../types/perfil';
+import { useSesion } from './SesionContext';
 
 export const PERFIL_INICIAL: PerfilUsuario = { nombre: '', meta: 'fuerza', unidadPeso: 'kg' };
 
@@ -26,39 +27,66 @@ interface PropiedadesProveedor extends PropsWithChildren {
 }
 
 export function ProveedorPerfil({ children, repositorio = perfilLocal }: PropiedadesProveedor) {
-  const [perfil, setPerfil] = useState<PerfilUsuario>(PERFIL_INICIAL);
-  const [cargando, setCargando] = useState(true);
+  const { sesion } = useSesion();
+  const usuarioId = sesion?.user.id ?? null;
+  const [estado, setEstado] = useState<{
+    usuarioId: string | null;
+    perfil: PerfilUsuario;
+    cargando: boolean;
+  }>({ usuarioId: null, perfil: PERFIL_INICIAL, cargando: true });
 
   useEffect(() => {
     let activo = true;
+    if (usuarioId === null) {
+      setEstado({ usuarioId: null, perfil: PERFIL_INICIAL, cargando: false });
+      return () => {
+        activo = false;
+      };
+    }
+
+    setEstado({ usuarioId, perfil: PERFIL_INICIAL, cargando: true });
     void repositorio
-      .obtener()
+      .obtener(usuarioId)
       .then((guardado) => {
-        if (activo && guardado) {
-          setPerfil(guardado);
+        if (activo) {
+          setEstado({
+            usuarioId,
+            perfil: guardado ?? PERFIL_INICIAL,
+            cargando: false,
+          });
         }
       })
-      .catch(() => undefined)
-      .finally(() => {
+      .catch(() => {
         if (activo) {
-          setCargando(false);
+          setEstado({ usuarioId, perfil: PERFIL_INICIAL, cargando: false });
         }
       });
 
     return () => {
       activo = false;
     };
-  }, [repositorio]);
+  }, [repositorio, usuarioId]);
 
   const guardarPerfil = useCallback(
     async (nuevo: PerfilUsuario): Promise<void> => {
-      await repositorio.guardar(nuevo);
-      setPerfil(nuevo);
+      if (usuarioId === null) {
+        throw new Error('No hay una sesión activa para guardar el perfil.');
+      }
+
+      await repositorio.guardar(usuarioId, nuevo);
+      setEstado({ usuarioId, perfil: nuevo, cargando: false });
     },
-    [repositorio],
+    [repositorio, usuarioId],
   );
 
-  const valor = useMemo(() => ({ perfil, cargando, guardarPerfil }), [perfil, cargando, guardarPerfil]);
+  const valor = useMemo(
+    () => ({
+      perfil: estado.usuarioId === usuarioId ? estado.perfil : PERFIL_INICIAL,
+      cargando: estado.cargando || estado.usuarioId !== usuarioId,
+      guardarPerfil,
+    }),
+    [estado, guardarPerfil, usuarioId],
+  );
 
   return <ContextoPerfil.Provider value={valor}>{children}</ContextoPerfil.Provider>;
 }

@@ -5,6 +5,7 @@ import { recordatoriosLocal, rutinaLocal } from '../repositories/local';
 import { sincronizarRecordatorios } from '../services/recordatorios';
 import { DIAS_MAXIMOS, DIAS_MINIMOS, asignarRutina } from '../utils/rutina';
 import { EQUIPOS, EXPERIENCIAS, type EquipoGimnasio, type Experiencia } from '../types/perfil';
+import { useSesion } from '../context/SesionContext';
 
 const ETIQUETAS_EXPERIENCIA: Record<Experiencia, string> = {
   ninguna: 'Ninguna',
@@ -27,6 +28,7 @@ function CuestionarioRutina() {
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const history = useHistory();
+  const { sesion } = useSesion();
   const completo = experiencia !== null && equipo.length > 0;
 
   const alternarEquipo = (item: EquipoGimnasio): void => {
@@ -37,15 +39,20 @@ function CuestionarioRutina() {
     if (experiencia === null || equipo.length === 0 || guardando) {
       return;
     }
+    if (!sesion) {
+      setError('No hay una sesión activa. Inicia sesión e inténtalo de nuevo.');
+      return;
+    }
 
     setGuardando(true);
     setError(null);
     try {
+      const usuarioId = sesion.user.id;
       const rutina = asignarRutina({ experiencia, diasPorSemana: dias, equipo });
-      await rutinaLocal.guardar(rutina);
+      await rutinaLocal.guardar(usuarioId, rutina);
       // Si ya había recordatorios activos, se ajustan a los días de la nueva rutina.
       void recordatoriosLocal
-        .obtener()
+        .obtener(usuarioId)
         .then((ajustes) => sincronizarRecordatorios(ajustes, rutina))
         .catch(() => undefined);
       history.replace('/rutina');
