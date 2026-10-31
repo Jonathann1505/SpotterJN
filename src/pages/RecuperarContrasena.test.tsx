@@ -34,8 +34,8 @@ describe('RecuperarContrasena', () => {
 
   it('mantiene el botón deshabilitado hasta que el correo sea válido', () => {
     const { container } = renderRecuperarContrasena();
-    const boton = container.querySelector('ion-button[type="submit"]');
-    const correo = container.querySelector('ion-input');
+    const boton = container.querySelector('ion-button.sj-acceso-submit[type="submit"]');
+    const correo = container.querySelector('ion-input.sj-campo');
 
     expect(correo).not.toBeNull();
     expect(boton).toHaveAttribute('disabled');
@@ -43,6 +43,15 @@ describe('RecuperarContrasena', () => {
       escribirCorreo(correo, 'persona@dominio.com');
     }
     expect(boton).toHaveAttribute('disabled', 'false');
+  });
+
+  it('permite volver al inicio de sesión desde el diseño de acceso', () => {
+    renderRecuperarContrasena();
+
+    expect(screen.getByRole('link', { name: 'Volver a iniciar sesión' })).toHaveAttribute(
+      'href',
+      '/login',
+    );
   });
 
   it('muestra una confirmación genérica sin revelar si el correo existe', async () => {

@@ -93,3 +93,10 @@
 - Añadida la ruta pública `/recuperar-contrasena`, reutilizando estilos de autenticación, validación de correo, carga y confirmación genérica.
 - Añadido desde Login el enlace «¿Olvidaste tu contraseña?» y pruebas unitarias con el servicio autenticado simulado.
 - Fuera de alcance: seguimiento del enlace recibido, regreso a la app, nueva contraseña y deep links Android.
+
+### 2026-10-30 — Corrección visual de recuperación tras fusión de ramas
+
+- La aplicación no compilaba porque `RecuperarContrasena.tsx` importaba el eliminado `AuthPages.css` y todavía usaba clases del diseño anterior.
+- Se migró la presentación a `MarcoAccesoSJ`, `sj-campo`, `sj-acceso-submit`, `sj-error`, `sj-ok` y `sj-acceso-enlace`, conservando la validación, carga y confirmación genérica existentes; se añadió el regreso a Login.
+- Se restauró desde Login el enlace «¿Olvidaste tu contraseña?» y se actualizaron las pruebas para validar el campo, el botón y la navegación con el diseño actual.
+- Pendiente: validar manualmente el flujo web y el envío real de correo mediante el proyecto Supabase configurado.
