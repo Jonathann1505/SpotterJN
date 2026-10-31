@@ -116,3 +116,12 @@
 - No se cambiaron servicios, repositorios, datos ni la lógica de autenticación y formularios. README actualizado con el sistema visual.
 - Verificación: `npm test` aprobó 93 pruebas en 19 archivos y `npm run build` finalizó correctamente. Vite mantiene la advertencia del bundle principal superior a 500 kB minificados.
 - Revisadas en navegador a 390 × 844 px las vistas Login, Consentimientos y Registro, incluido el paso entre pestañas; falta el recorrido visual de las pantallas protegidas y la revisión en emulador Android.
+
+### 2026-10-22 — Contador numérico reutilizable (RF-10)
+
+- Confirmada la rama activa `feature/contador-serie`; contiene `/sesion` y `TemporizadorDescanso`. El árbol estaba limpio antes de iniciar este trabajo.
+- Añadidos `ContadorNumerico` como componente controlado y utilidades puras para limitar, incrementar/decrementar con precisión decimal y determinar el paso de peso (0,5 kg o 1 lb).
+- Decisiones: no integrar aún el contador en `/sesion`; conservar valores vacíos/fuera de rango durante la edición y corregirlos al salir del campo; peso con mínimo 0 y sin máximo arbitrario. Se reutilizan las conversiones existentes de `src/utils/unidades.ts`.
+- La suite completa aprobó 108 pruebas en 21 archivos y `npm run build` finalizó correctamente; Vite mantiene la advertencia existente del bundle principal superior a 500 kB minificados.
+- Accesibilidad revisada: etiqueta enlazada al campo, nombres `aria-label` en botones, flechas arriba/abajo para el valor, entradas numéricas y texto de 14 px o más. Contraste medido para texto deshabilitado: 4,74:1.
+- Pendiente: integrar el control al flujo de sesión cuando se defina la captura de serie; no se implementó selector de autoevaluación, guardado, persistencia, progresión ni sincronización.
