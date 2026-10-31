@@ -53,6 +53,7 @@ SpotterJN/
 │   │   ├── Hoy.tsx
 │   │   ├── Login.tsx
 │   │   ├── Perfil.tsx
+│   │   ├── RecuperarContrasena.tsx
 │   │   ├── Registro.tsx
 │   │   ├── RutinaAsignada.tsx
 │   │   ├── SesionEntrenamiento.tsx
@@ -199,7 +200,7 @@ El cliente Supabase se centraliza en `src/services/supabase.ts` y falla explíci
 
 Si Auth devuelve un error, la interfaz muestra un mensaje localizado y, para códigos desconocidos, el código técnico sin el texto crudo del proveedor. Si indica que no pudo conectar, comprueba localmente la URL del proyecto en `.env`, la conexión a internet y que el proyecto Supabase esté disponible. Un HTTP 404 suele indicar que la URL no corresponde a la **Project URL** actual o que el proyecto ya no está activo. Compara localmente `VITE_SUPABASE_URL` con **Project Settings > API > Project URL**; usa la URL base `https://<project-ref>.supabase.co`, sin añadir `/auth/v1` ni `/rest/v1`. No compartas `.env`, claves ni capturas que las muestren.
 
-Las rutas de acceso y registro usan `/login`, `/consentimientos` y `/registro`; la ruta protegida `/hoy` requiere una sesión. Consentimientos y registro transmiten la autorización opcional de datos de salud y la fecha ISO de aceptación en los metadatos del usuario de Supabase Auth.
+Las rutas de acceso y registro usan `/login`, `/consentimientos`, `/registro` y `/recuperar-contrasena`; la ruta protegida `/hoy` requiere una sesión. Consentimientos y registro transmiten la autorización opcional de datos de salud y la fecha ISO de aceptación en los metadatos del usuario de Supabase Auth. La recuperación solicita el enlace a Supabase sin revelar si el correo está registrado.
 
 ### Cierre de sesión (RF-01)
 
@@ -216,7 +217,8 @@ La sesión persiste mediante los tokens que administra Supabase en el almacenami
 3. Registra un correo nuevo y una contraseña de al menos ocho caracteres con una letra y un número.
 4. Cierra sesión desde **Hoy** y confirma el cierre.
 5. Inicia sesión con la misma cuenta. Cierra y vuelve a abrir la aplicación para comprobar si Supabase restaura la sesión.
-6. En Supabase, verifica el usuario en **Authentication > Users**.
+6. Prueba **¿Olvidaste tu contraseña?** con un correo válido y verifica que la pantalla muestre el mensaje genérico sin confirmar si la cuenta existe.
+7. En Supabase, verifica el usuario en **Authentication > Users**.
 
 ### Probar el flujo en Android
 
@@ -243,7 +245,7 @@ Para ejecutar las pruebas en modo watch mientras desarrollas:
 npm run test:watch
 ```
 
-La suite automatizada cubre validaciones, el estado habilitado de los botones, errores de login y registro, consentimientos obligatorios y la redirección de `/hoy` sin sesión. Las pruebas simulan el servicio de autenticación y no llaman al proyecto Supabase real.
+La suite automatizada cubre validaciones, el estado habilitado de los botones, errores de login y registro, recuperación de contraseña, consentimientos obligatorios y la redirección de `/hoy` sin sesión. Las pruebas simulan el servicio de autenticación y no llaman al proyecto Supabase real.
 
 Valida también tipos y compilación de producción:
 

@@ -59,7 +59,7 @@
 
 - En Hoy, el cierre de sesión se confirma con un diálogo Cancelar/Cerrar sesión; se informa el error de cierre sin filtrar mensajes del proveedor.
 - Actualizado README con configuración de Supabase, ejecución web y Android, pruebas, estructura de carpetas y estado de persistencia.
-- Pendiente fuera de alcance: RF-03 recuperación de contraseña, RF-04 eliminación de cuenta, `profiles` y políticas RLS, confirmación de correo y deep links Android.
+- Implementado RF-03 en la parte visual y de solicitud del servicio; fuera de alcance permanecen RF-04 eliminación de cuenta, nueva contraseña, enlaces de regreso y deep links Android.
 - La persistencia de sesión opera con los tokens administrados por Supabase; el requisito de 30 días de RF-01 queda pendiente de verificar en la configuración del proyecto Supabase.
 - Cómo probar: ejecutar `npm test`, `npm run build`, configurar `.env` localmente usando `.env.example`, correr `npm run dev`; para Android ejecutar `npx cap sync android` y `npm run android:run`. Crear una cuenta, cerrar sesión, iniciar sesión, reabrir la app y confirmar el usuario en Supabase Authentication > Users.
 
@@ -87,41 +87,9 @@
 - Añadidas aserciones para verificar que los textos y elementos retirados no reaparezcan.
 - Verificación: `npm test` y `npm run build` completados.
 
-### 2026-10-15 — Cierre de sesión RF-01 y separación local por usuario
+### 2026-10-29 — RF-03 visual y solicitud de recuperación
 
-- Confirmada la rama de trabajo `feature/cerrar-sesion`, basada en el mismo commit que `feature/perfil-rutina`; el flujo M2 y el servicio de autenticación están presentes.
-- El servicio cierra sesión con alcance local (`signOut({ scope: 'local' })`); las sesiones de otros dispositivos no se invalidan.
-- Añadido el componente reutilizable de cierre en Hoy y Perfil: modal Cancelar/Cerrar sesión, estado de carga, bloqueo de doble confirmación, error localizado y reemplazo de la ruta por `/login` al completar.
-- Las interfaces y repositorios de perfil, salud y rutina reciben el ID del usuario y guardan en claves locales separadas. No se borran al cerrar sesión.
-- Los registros anteriores sin ID no se migran ni se eliminan; la versión actual no los lee. No atribuirlos automáticamente a un usuario.
-- La separación por usuario en Preferences no cifra los datos ni sustituye el almacenamiento backend/RLS, pendiente junto con la sincronización a Supabase.
-- Validación final: suite completa de Vitest aprobada (83 pruebas en 17 archivos) y `npm run build` aprobado. Vite mantiene la advertencia existente por el bundle principal superior a 500 kB minificados.
-
-### 2026-10-16 — Esqueleto de sesión y temporizador de descanso (M3/RF-11)
-
-- Creada la rama `feature/sesion-entrenamiento` desde `feature/cerrar-sesion`, que conserva los cambios de acceso y M2. Los cambios locales de Gradle continúan en el stash previo; no reaplicarlos automáticamente.
-- Añadida la ruta protegida `/sesion`: muestra los ejercicios de la primera jornada de la rutina del usuario, sugiere volver a Hoy y no registra ni persiste entrenamiento (M3 sigue incompleto).
-- Añadido el componente independiente de descanso RF-11: inicia en 90 segundos, presenta el progreso circular mm:ss y permite sumar/restar 30 segundos y saltar. No se integra con `/sesion`.
-- Pendiente: persistir sesiones y series (resto de M3/RF-10), conectar el temporizador con el entrenamiento y cualquier recuperación de contraseña (RF-03).
-- La duración predeterminada del temporizador es 90 segundos y comienza automáticamente.
-- Verificación final: 91 pruebas en 19 archivos aprobadas; `npm run build` aprobado con la advertencia de Vite por el bundle principal superior a 500 kB minificados.
-
-### 2026-10-22 — Sistema visual claro y acceso armonizado
-
-- Confirmada y conservada la rama activa `feature/rediseño-visual`; no se cambió de rama.
-- Aprobado el tema claro fijo, usando los colores existentes y el fondo/campo muestreados de la referencia compartida.
-- Centralizados colores, bordes, radios, espacios y tamaños tipográficos en `src/theme/spotter-ui.css`; `src/theme/variables.css` los asigna a Ionic.
-- Reutilizado `src/assets/logo-spotterjn.webp` mediante `LogoSJ`; Login, Consentimientos y Registro comparten el marco y la navegación por pestañas. El registro conserva el paso obligatorio de consentimientos y las rutas existentes.
-- Login, Registro, Consentimientos, pantallas `PantallaSJ`, alertas, cargas y estados de error usan el tema común. Eliminadas las hojas `Login.css` y `AuthPages.css`, que ya no se usan.
-- No se cambiaron servicios, repositorios, datos ni la lógica de autenticación y formularios. README actualizado con el sistema visual.
-- Verificación: `npm test` aprobó 93 pruebas en 19 archivos y `npm run build` finalizó correctamente. Vite mantiene la advertencia del bundle principal superior a 500 kB minificados.
-- Revisadas en navegador a 390 × 844 px las vistas Login, Consentimientos y Registro, incluido el paso entre pestañas; falta el recorrido visual de las pantallas protegidas y la revisión en emulador Android.
-
-### 2026-10-22 — Contador numérico reutilizable (RF-10)
-
-- Confirmada la rama activa `feature/contador-serie`; contiene `/sesion` y `TemporizadorDescanso`. El árbol estaba limpio antes de iniciar este trabajo.
-- Añadidos `ContadorNumerico` como componente controlado y utilidades puras para limitar, incrementar/decrementar con precisión decimal y determinar el paso de peso (0,5 kg o 1 lb).
-- Decisiones: no integrar aún el contador en `/sesion`; conservar valores vacíos/fuera de rango durante la edición y corregirlos al salir del campo; peso con mínimo 0 y sin máximo arbitrario. Se reutilizan las conversiones existentes de `src/utils/unidades.ts`.
-- La suite completa aprobó 108 pruebas en 21 archivos y `npm run build` finalizó correctamente; Vite mantiene la advertencia existente del bundle principal superior a 500 kB minificados.
-- Accesibilidad revisada: etiqueta enlazada al campo, nombres `aria-label` en botones, flechas arriba/abajo para el valor, entradas numéricas y texto de 14 px o más. Contraste medido para texto deshabilitado: 4,74:1.
-- Pendiente: integrar el control al flujo de sesión cuando se defina la captura de serie; no se implementó selector de autoevaluación, guardado, persistencia, progresión ni sincronización.
+- Añadido `solicitarRecuperacion(email)` con `resetPasswordForEmail` y traducción de errores mediante el flujo existente.
+- Añadida la ruta pública `/recuperar-contrasena`, reutilizando estilos de autenticación, validación de correo, carga y confirmación genérica.
+- Añadido desde Login el enlace «¿Olvidaste tu contraseña?» y pruebas unitarias con el servicio autenticado simulado.
+- Fuera de alcance: seguimiento del enlace recibido, regreso a la app, nueva contraseña y deep links Android.

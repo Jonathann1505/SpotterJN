@@ -43,6 +43,15 @@ describe('Login', () => {
     expect(boton).toHaveAttribute('disabled', 'false');
   });
 
+  it('incluye el enlace para recuperar la contraseña', () => {
+    renderLogin();
+
+    expect(screen.getByRole('link', { name: '¿Olvidaste tu contraseña?' })).toHaveAttribute(
+      'href',
+      '/recuperar-contrasena',
+    );
+  });
+
   it('muestra el error cuando las credenciales no coinciden', async () => {
     vi.mocked(iniciarSesion).mockResolvedValue({
       ok: false,
