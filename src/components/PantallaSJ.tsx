@@ -61,6 +61,7 @@ interface PropiedadesPantalla {
   titulo: string;
   reglaBajoTitulo?: boolean;
   mostrarLogo?: boolean;
+  cabecera?: ReactNode;
   pie?: ReactNode;
   children: ReactNode;
 }
@@ -70,6 +71,7 @@ export function PantallaSJ({
   titulo,
   reglaBajoTitulo = false,
   mostrarLogo = false,
+  cabecera,
   pie,
   children,
 }: PropiedadesPantalla) {
@@ -78,6 +80,7 @@ export function PantallaSJ({
       <IonContent className="sj">
         <div className="sj-layout">
           <main className="sj-main">
+            {cabecera}
             {mostrarLogo ? <LogoSJ /> : null}
             {etiqueta ? <p className="sj-eyebrow">{etiqueta}</p> : null}
             <h1 className={reglaBajoTitulo ? 'sj-titulo sj-titulo-regla' : 'sj-titulo'}>{titulo}</h1>

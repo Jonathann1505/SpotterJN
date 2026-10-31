@@ -3,6 +3,7 @@ import { IonAlert, IonLoading, useIonToast } from '@ionic/react';
 import { useHistory } from 'react-router-dom';
 import { BotonSJ } from './PantallaSJ';
 import { cerrarSesion } from '../services/auth';
+import { desactivarRecordatorios } from '../services/recordatorios';
 
 function CerrarSesion() {
   const [alertaAbierta, setAlertaAbierta] = useState(false);
@@ -29,6 +30,8 @@ function CerrarSesion() {
         return;
       }
 
+      // Las notificaciones programadas son del dispositivo, no del usuario: se cancelan al salir.
+      await desactivarRecordatorios();
       setAlertaAbierta(false);
       history.replace('/login');
     } catch {

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { IonSpinner } from '@ionic/react';
 import { Redirect, useHistory } from 'react-router-dom';
+import { AyudaTermino } from '../components/AyudaTermino';
 import { BotonSJ, PantallaSJ } from '../components/PantallaSJ';
 import { usePerfil } from '../context/PerfilContext';
 import { rutinaLocal } from '../repositories/local';
@@ -70,6 +71,10 @@ function RutinaAsignada() {
       pie={<BotonSJ onClick={() => history.replace('/hoy')}>Ir a Hoy</BotonSJ>}
     >
       <p className="sj-texto sj-suave">{describirRutina(rutina)} Toca un día para ver sus ejercicios.</p>
+      <p className="sj-texto">
+        Cada ejercicio indica sus <AyudaTermino termino="serie">series</AyudaTermino> y{' '}
+        <AyudaTermino termino="repeticion">repeticiones</AyudaTermino>.
+      </p>
       <div className="sj-cierre-lista">
         {rutina.dias.map((dia, indice) => {
           const expandido = abierto === indice;

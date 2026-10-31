@@ -103,7 +103,17 @@ describe('App', () => {
       expect(screen.getByRole('heading', { name: 'Iniciar sesión' })).toBeInTheDocument();
     });
   });
-  it.each(['/aviso-medico', '/salud', '/cuestionario-rutina', '/rutina', '/perfil', '/sesion'])(
+  it.each([
+    '/aviso-medico',
+    '/salud',
+    '/cuestionario-rutina',
+    '/rutina',
+    '/perfil',
+    '/sesion',
+    '/ejercicio/press-banca',
+    '/glosario',
+    '/ajustes',
+  ])(
     'redirige %s a login cuando no existe sesión',
     async (ruta) => {
       window.history.replaceState({}, '', ruta);

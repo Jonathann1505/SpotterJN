@@ -29,6 +29,8 @@ SpotterJN/
 │   ├── App.tsx
 │   ├── main.tsx
 │   ├── components/
+│   │   ├── AnimacionEjercicio.tsx # animación del ejercicio en iframe aislado
+│   │   ├── AyudaTermino.tsx      # ícono de ayuda con la definición de un término
 │   │   ├── CerrarSesion.tsx
 │   │   ├── ContadorNumerico.tsx  # stepper controlado de peso y repeticiones (RF-10)
 │   │   ├── PantallaSJ.tsx       # marco de pantalla, botones y acceso compartidos
@@ -37,12 +39,17 @@ SpotterJN/
 │   │   ├── PerfilContext.tsx     # perfil y unidad de peso (kg/lb)
 │   │   └── SesionContext.tsx
 │   ├── data/
-│   │   └── ejercicios.ts         # catálogo de ejercicios de las rutinas
+│   │   ├── ejercicios.ts         # catálogo de ejercicios de las rutinas
+│   │   ├── glosario.ts           # términos básicos y sus definiciones
+│   │   └── guias.ts              # guía de cada ejercicio (ajuste, movimiento, ubicación)
 │   ├── pages/
+│   │   ├── Ajustes.tsx
 │   │   ├── AvisoMedico.tsx
 │   │   ├── Consentimientos.tsx
 │   │   ├── CuestionarioRutina.tsx
 │   │   ├── CuestionarioSalud.tsx
+│   │   ├── FichaEjercicio.tsx
+│   │   ├── Glosario.tsx
 │   │   ├── Hoy.tsx
 │   │   ├── Login.tsx
 │   │   ├── Perfil.tsx
@@ -58,6 +65,7 @@ SpotterJN/
 │   │   └── almacenLocal.ts
 │   ├── services/
 │   │   ├── auth.ts
+│   │   ├── recordatorios.ts      # programa los recordatorios locales
 │   │   └── supabase.ts
 │   ├── types/
 │   │   ├── consentimientos.ts

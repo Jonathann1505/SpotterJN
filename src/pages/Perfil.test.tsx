@@ -7,6 +7,8 @@ import { ProveedorPerfil } from '../context/PerfilContext';
 import { perfilLocal } from '../repositories/local';
 import Perfil from './Perfil';
 
+vi.mock('../services/auth', () => ({ cerrarSesion: vi.fn() }));
+
 vi.mock('../context/SesionContext', () => ({
   useSesion: () => ({ sesion: { user: { id: 'usuario-prueba' } } }),
 }));
