@@ -18,8 +18,9 @@ import '@ionic/react/css/display.css';
 import './theme/variables.css';
 import './theme/spotter-ui.css';
 import App from './App';
+import { transicionPaginaSJ } from './theme/transiciones';
 
-setupIonicReact();
+setupIonicReact({ navAnimation: transicionPaginaSJ });
 
 const rootElement = document.getElementById('root');
 
