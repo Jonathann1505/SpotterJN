@@ -8,6 +8,14 @@
 - Mantén README y demás documentación alineados con las dependencias, scripts y configuración reales.
 - Limita cada cambio al alcance acordado y conserva los cambios preexistentes de otras personas.
 
+## Convención de commits
+
+- Prefijo en inglés y descripción en español, en presente, con tildes y sin punto final: `fix` (corrección), `feat` (funcionalidad nueva), `docs` (documentación), `style` (cambios solo visuales), `test` (solo pruebas) y `chore` (solo configuración de compilación). Incluye el requisito cuando aplique, por ejemplo `fix: migra la pantalla de recuperación al diseño de acceso actual (RF-03)`.
+- Commits atómicos: un cambio lógico por commit. Agrega los archivos uno por uno con `git add ruta/archivo`; nunca `git add .` ni `git add -A`.
+- Antes de cada commit revisa `git status` y `git diff --cached --stat`, confirma que `.env` no aparece y que no hay archivos ajenos al cambio. No confirmes código que rompa `npm test` o `npm run build`.
+- Haz `git push` después de cada commit. Sin atribuciones de IA, firmas ni coautores.
+- No reescribas historial (`--force`, `--force-with-lease`, `--amend`, `rebase`, `reset --hard`) ni trabajes directamente en `main` o `develop`; integra por Pull Request hacia `develop`.
+
 ## Avances de implementación
 
 ### 2026-10-08 — Paso 1: configuración base de Supabase
@@ -100,3 +108,14 @@
 - Se migró la presentación a `MarcoAccesoSJ`, `sj-campo`, `sj-acceso-submit`, `sj-error`, `sj-ok` y `sj-acceso-enlace`, conservando la validación, carga y confirmación genérica existentes; se añadió el regreso a Login.
 - Se restauró desde Login el enlace «¿Olvidaste tu contraseña?» y se actualizaron las pruebas para validar el campo, el botón y la navegación con el diseño actual.
 - Pendiente: validar manualmente el flujo web y el envío real de correo mediante el proyecto Supabase configurado.
+
+### 2026-11-05 — Login estable y APK de depuración
+
+- Diagnóstico: `develop` ya compilaba y el enlace «¿Olvidaste tu contraseña?» ya existía tras el PR #12; no quedaban imports de CSS ni componentes inexistentes. Registro, inicio y cierre de sesión con modal, sesión persistida, rutas protegidas y prevención de doble envío se revisaron sin encontrar errores.
+- Añadida `scripts/validarEntornoSupabase.ts` y un plugin en `vite.config.ts` que hacen fallar `npm run build` si faltan `VITE_SUPABASE_URL` o `VITE_SUPABASE_ANON_KEY`, si la URL no es válida o si la clave es secreta (`sb_secret_` o JWT `service_role`), sin mostrar valores. Antes, la APK compilaba y quedaba en blanco al abrir.
+- Reemplazado el ícono predeterminado de Capacitor por el logo de SpotterJN con `@capacitor/assets` ejecutado fuera del proyecto; las imágenes fuente quedan en `assets/`. No se añadió dependencia a `package.json`.
+- `npx cap sync android` solo reescribió los finales de línea de `capacitor.build.gradle` y `capacitor.settings.gradle`, sin cambios de contenido; Preferences y Local Notifications ya estaban registrados, por lo que no se confirmaron.
+- APK de depuración generada con JDK 21 y `gradlew assembleDebug` en `android/app/build/outputs/apk/debug/app-debug.apk`; está ignorada por Git.
+- Decisiones: la rama `feature/primera-vez-progreso` de Nayeli (RF-21) no se incluyó y se integrará por su propio PR; sin firma de release ni publicación en tiendas.
+- Pendientes: probar manualmente en emulador y celular real con el proyecto Supabase, flujo de nueva contraseña y deep links (RF-03), duración de sesión de 30 días (RF-01) y advertencia de Vite por el chunk principal de 2,2 MB.
+- Verificación: `npm test` (210 pruebas/35 archivos), `npm run build`, `npx cap sync android` y `gradlew assembleDebug` aprobados.
