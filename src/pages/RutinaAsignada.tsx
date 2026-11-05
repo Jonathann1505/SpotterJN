@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { IonSpinner } from '@ionic/react';
 import { Redirect, useHistory } from 'react-router-dom';
 import { AyudaTermino } from '../components/AyudaTermino';
+import { MiniaturaEjercicio } from '../components/MiniaturaEjercicio';
 import { BotonSJ, PantallaSJ } from '../components/PantallaSJ';
 import { usePerfil } from '../context/PerfilContext';
 import { rutinaLocal } from '../repositories/local';
@@ -97,7 +98,8 @@ function RutinaAsignada() {
               {expandido ? (
                 <ul className="sj-lista" id={idPanel}>
                   {dia.ejercicios.map((ejercicio) => (
-                    <li key={ejercicio.id}>
+                    <li key={ejercicio.id} className="sj-fila-ejercicio">
+                      <MiniaturaEjercicio idEjercicio={ejercicio.id} nombre={ejercicio.nombre} />
                       <span>
                         {ejercicio.nombre}
                         <small className="sj-suave sj-bloque">

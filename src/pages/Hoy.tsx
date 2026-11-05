@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { IonIcon, IonSpinner } from '@ionic/react';
 import { helpCircleOutline } from 'ionicons/icons';
 import { Redirect, useHistory } from 'react-router-dom';
+import { MiniaturaEjercicio } from '../components/MiniaturaEjercicio';
 import { BotonSJ, PantallaSJ } from '../components/PantallaSJ';
 import { usePerfil } from '../context/PerfilContext';
 import { rutinaLocal, saludLocal } from '../repositories/local';
@@ -87,7 +88,8 @@ function Hoy() {
     >
       <ul className="sj-lista sj-lista-hoy">
         {proximaSesion.ejercicios.map((ejercicio) => (
-          <li key={ejercicio.id}>
+          <li key={ejercicio.id} className="sj-fila-ejercicio">
+            <MiniaturaEjercicio idEjercicio={ejercicio.id} nombre={ejercicio.nombre} />
             <span>
               <button
                 type="button"
