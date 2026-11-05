@@ -87,6 +87,11 @@ SpotterJN/
 │   └── pages/*.test.tsx
 ├── AGENTS.md
 ├── android/                      # Proyecto nativo Capacitor
+├── assets/                       # imágenes fuente del ícono Android
+├── scripts/
+│   ├── android.mjs               # lanzador de Android con JDK y SDK detectados
+│   ├── animacion.mjs             # genera la animación de un ejercicio
+│   └── validarEntornoSupabase.ts # valida las variables de Supabase al compilar
 ├── index.html
 ├── .env.example
 ├── ionic.config.json
@@ -196,7 +201,7 @@ Los valores editados temporalmente vacíos o fuera de rango se corrigen al salir
    Coloca localmente los valores de tu proyecto en esas variables. No compartas ni confirmes `.env`. La clave `service_role` y las claves `sb_secret_` son secretas y nunca deben incluirse en la app cliente.
 3. En Supabase, durante el desarrollo, desactiva **Authentication > Providers > Email > Confirm email** para permitir que el registro cree una sesión inmediatamente. La confirmación y sus enlaces de retorno no forman parte del alcance actual.
 
-El cliente Supabase se centraliza en `src/services/supabase.ts` y falla explícitamente si falta una variable requerida.
+El cliente Supabase se centraliza en `src/services/supabase.ts` y falla explícitamente si falta una variable requerida. Además, `npm run build` se detiene con un mensaje claro si falta `VITE_SUPABASE_URL` o `VITE_SUPABASE_ANON_KEY`, si la URL no es válida o si la clave es secreta (`sb_secret_` o JWT con rol `service_role`); el mensaje nunca muestra los valores. La validación está en `scripts/validarEntornoSupabase.ts` y solo se aplica al compilar, no a `npm run dev` ni a las pruebas.
 
 Si Auth devuelve un error, la interfaz muestra un mensaje localizado y, para códigos desconocidos, el código técnico sin el texto crudo del proveedor. Si indica que no pudo conectar, comprueba localmente la URL del proyecto en `.env`, la conexión a internet y que el proyecto Supabase esté disponible. Un HTTP 404 suele indicar que la URL no corresponde a la **Project URL** actual o que el proyecto ya no está activo. Compara localmente `VITE_SUPABASE_URL` con **Project Settings > API > Project URL**; usa la URL base `https://<project-ref>.supabase.co`, sin añadir `/auth/v1` ni `/rest/v1`. No compartas `.env`, claves ni capturas que las muestren.
 
@@ -313,6 +318,69 @@ Para reflejar los cambios de Vite automáticamente durante el diseño, usa dos t
    ```
 
 El comando usa `10.0.2.2`, la dirección con la que el emulador Android alcanza el equipo anfitrión. Este comando es para el emulador; para un dispositivo físico conectado, usa la IP local del equipo y asegúrate de que ambos estén en la misma red.
+
+## Generar la APK
+
+APK de **depuración** para probar la app en emuladores y celulares del equipo. No está firmada para publicación ni se distribuye por tiendas.
+
+### Requisitos
+
+- Node.js y npm, con las dependencias instaladas (`npm ci`).
+- Android SDK API 35 y Build-Tools 35.0.0 (ver [Requisitos del equipo](#requisitos-del-equipo)).
+- JDK 21. El `java` del sistema puede ser otra versión: Gradle usa el JDK indicado en `JAVA_HOME`.
+- `.env` en la raíz con `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY` (clave **anon/publicable**). Estos valores se incrustan en la APK al compilar; si faltan o la clave es secreta, `npm run build` falla con un mensaje claro.
+
+### Comandos
+
+Desde la raíz del repositorio, en PowerShell (ajusta la ruta del JDK si está en otra ubicación):
+
+```powershell
+npm run build
+npx cap sync android
+$env:JAVA_HOME = "$env:LOCALAPPDATA\Programs\SpotterJN\Temurin21\jdk-21.0.12.1+1"
+cd android
+.\gradlew.bat assembleDebug
+cd ..
+```
+
+El archivo generado queda en:
+
+```text
+android/app/build/outputs/apk/debug/app-debug.apk
+```
+
+Las carpetas `build/`, `dist/` y los archivos `*.apk` están en `.gitignore`: comparte la APK por fuera del repositorio (por ejemplo, Drive) y nunca la confirmes en Git.
+
+### Ícono de la app
+
+El ícono se genera desde `assets/icon-only.png`, `assets/icon-foreground.png` y `assets/icon-background.png`, creados a partir de `src/assets/logo-spotterjn.webp`. Si se cambia el logo, regenera los recursos de Android con:
+
+```bash
+npx @capacitor/assets generate --android --iconBackgroundColor "#ffffff" --iconBackgroundColorDark "#ffffff"
+```
+
+Revisa después que la herramienta no haya reformateado `AndroidManifest.xml`; ese cambio no es necesario.
+
+### Instalar en un celular
+
+1. Copia `app-debug.apk` al celular o descárgalo desde el enlace compartido.
+2. Abre el archivo y permite **Instalar apps desconocidas** para la aplicación con la que lo abriste (Archivos, Drive o el navegador).
+3. Si Play Protect advierte que la app es desconocida, elige instalar de todas formas; ocurre porque es una APK de depuración.
+4. Si ya existe una versión anterior firmada en otro equipo, desinstálala primero: Android rechaza actualizar una APK de depuración firmada con otra clave.
+
+Con un cable USB y depuración activada también puedes instalarla con `adb install -r android/app/build/outputs/apk/debug/app-debug.apk`.
+
+## Probar el acceso
+
+Requiere conexión a internet y un proyecto Supabase con **Confirm email** desactivado.
+
+1. **Crear cuenta:** en **Crear cuenta**, acepta los dos consentimientos obligatorios, registra un correo nuevo y una contraseña de ocho o más caracteres con una letra y un número. Debe abrirse **Hoy**.
+2. **Cerrar sesión:** toca **Cerrar sesión**, comprueba que **Cancelar** no hace nada y que confirmar regresa a **Iniciar sesión**.
+3. **Iniciar sesión:** entra con la misma cuenta; una contraseña incorrecta debe mostrar un error en español. El botón queda deshabilitado mientras carga.
+4. **Reabrir la app:** cierra la app por completo (o recarga el navegador) y ábrela de nuevo; debe abrir **Hoy** sin pedir credenciales.
+5. **Recuperar contraseña:** desde **¿Olvidaste tu contraseña?**, envía un correo válido y verifica el mensaje genérico «Si el correo existe, te enviamos un enlace». El cambio de contraseña desde el enlace aún no está implementado.
+6. **Dos cuentas:** crea una segunda cuenta en el mismo dispositivo, completa perfil o rutina y comprueba que al volver a la primera no aparecen los datos de la segunda.
+7. En Supabase, confirma los usuarios en **Authentication > Users**.
 
 ## Flujo de trabajo
 
