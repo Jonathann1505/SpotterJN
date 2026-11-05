@@ -112,6 +112,14 @@ export async function cerrarSesion(): Promise<ResultadoAuth> {
     : { ok: true };
 }
 
+export async function solicitarRecuperacion(email: string): Promise<ResultadoAuth> {
+  const { error } = await supabase.auth.resetPasswordForEmail(email);
+
+  return error
+    ? { ok: false, mensaje: traducirError(error) }
+    : { ok: true };
+}
+
 export async function obtenerSesion(): Promise<Session | null> {
   const { data, error } = await supabase.auth.getSession();
 

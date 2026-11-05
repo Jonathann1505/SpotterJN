@@ -33,6 +33,7 @@ SpotterJN/
 │   │   ├── MiniaturaEjercicio.tsx # miniatura animada en Hoy y Rutina
 │   │   ├── AyudaTermino.tsx      # ícono de ayuda con la definición de un término
 │   │   ├── CerrarSesion.tsx
+│   │   ├── ContadorNumerico.tsx  # stepper controlado de peso y repeticiones (RF-10)
 │   │   ├── PantallaSJ.tsx       # marco de pantalla, botones y acceso compartidos
 │   │   └── TemporizadorDescanso.tsx
 │   ├── context/
@@ -53,6 +54,7 @@ SpotterJN/
 │   │   ├── Hoy.tsx
 │   │   ├── Login.tsx
 │   │   ├── Perfil.tsx
+│   │   ├── RecuperarContrasena.tsx
 │   │   ├── Registro.tsx
 │   │   ├── RutinaAsignada.tsx
 │   │   ├── SesionEntrenamiento.tsx
@@ -71,6 +73,7 @@ SpotterJN/
 │   │   ├── consentimientos.ts
 │   │   └── perfil.ts
 │   ├── utils/
+│   │   ├── contadorNumerico.ts   # límites, pasos e incrementos numéricos (RF-10)
 │   │   ├── rutina.ts             # asignación de la rutina inicial
 │   │   ├── unidades.ts           # conversión kg/lb
 │   │   └── validaciones.ts
@@ -85,6 +88,11 @@ SpotterJN/
 │   └── pages/*.test.tsx
 ├── AGENTS.md
 ├── android/                      # Proyecto nativo Capacitor
+├── assets/                       # imágenes fuente del ícono Android
+├── scripts/
+│   ├── android.mjs               # lanzador de Android con JDK y SDK detectados
+│   ├── animacion.mjs             # genera la animación de un ejercicio
+│   └── validarEntornoSupabase.ts # valida las variables de Supabase al compilar
 ├── index.html
 ├── .env.example
 ├── ionic.config.json
@@ -152,11 +160,7 @@ Limitaciones actuales:
 - `/sesion` muestra los ejercicios de la primera jornada y permite volver a Hoy. Es un esqueleto visual: todavía no registra series, pesos ni historial (M3).
 - El cuestionario de rutina se asigna con plantillas fijas según días y equipo, sin IA.
 
-## Sesión de entrenamiento (M3)
-
-La ruta protegida `/sesion`, accesible desde «Empezar entrenamiento» en Hoy, carga y muestra los ejercicios de la primera jornada de la rutina del usuario. Permite volver a Hoy y no registra ni persiste actividad. El componente de descanso RF-11 es independiente: ofrece una cuenta regresiva inicial de 90 segundos, círculo de tiempo restante y controles para sumar/restar 30 segundos o saltar; no se conecta todavía al flujo de una sesión. La duración inicial es 90 segundos y comienza automáticamente.
-
-## Ficha de ejercicio (M5, RF-21)
+## Ficha de ejercicio (M5)
 
 Cada ejercicio tiene una ficha en `/ejercicio/:id` con su animación, cómo ajustar la máquina, cómo hacer el movimiento y dónde suele estar. Se abre desde el botón de ayuda de cada ejercicio en `Hoy`. La primera vez muestra un aviso de primera vez (con «esta máquina» o «este ejercicio» según el equipo) y los títulos de preparación se adaptan al equipo (`textosFicha` en `src/data/guias.ts`) y el botón «Listo, empezar series»; al pulsarlo se guarda que la ficha ya se vio (Capacitor Preferences) y no vuelve a mostrarse el aviso, aunque la ficha puede reabrirse con el botón de ayuda.
 
@@ -164,19 +168,34 @@ Cada ejercicio tiene una ficha en `/ejercicio/:id` con su animación, cómo ajus
 - El contenido de cada guía está en `src/data/guias.ts`; los 16 ejercicios del catálogo tienen su texto, pero solo el press de banca, las flexiones y la sentadilla con peso corporal tienen animación. Los demás muestran «Animación próximamente». Las listas de `Hoy` y de la rutina muestran una miniatura animada de cada ejercicio con video (los demás, un recuadro con su inicial). Un ejercicio que no esté en `guias.ts` usa un texto provisional.
 - «Listo, empezar series» guarda la ficha como vista y lleva a la sesión de entrenamiento (`/sesion`). El botón de cambiar ejercicio (RF-14) no está implementado.
 
-## Glosario (M5, RF-22)
+## Sesión de entrenamiento (M3)
 
-`/glosario` lista los términos básicos (serie, repetición, fallo, RIR y peso de trabajo) con una definición en lenguaje sencillo; se abre desde el botón «Glosario» del perfil. El componente `AyudaTermino` muestra un ícono de ayuda junto a un término y, al tocarlo, un cuadro con su definición (se cierra con «Entendido», con Escape o tocando el fondo). Hoy se usa en la rutina asignada para «series» y «repeticiones»; para añadir un término nuevo basta con agregarlo a `src/data/glosario.ts` y usar `<AyudaTermino termino="id">` donde aparezca.
+La ruta protegida `/sesion`, accesible desde «Empezar entrenamiento» en Hoy, carga y muestra los ejercicios de la primera jornada de la rutina del usuario. Permite volver a Hoy y no registra ni persiste actividad. El componente de descanso RF-11 es independiente: ofrece una cuenta regresiva inicial de 90 segundos, círculo de tiempo restante y controles para sumar/restar 30 segundos o saltar; no se conecta todavía al flujo de una sesión. La duración inicial es 90 segundos y comienza automáticamente.
 
-## Recordatorios (M5, RF-24)
+### Contador numérico (RF-10)
 
-En `/ajustes` (botón «Recordatorios» del perfil) el usuario activa o desactiva los recordatorios y elige la hora con un selector de reloj. Se programa una notificación local semanal, «Hoy toca entrenar», en cada día de entrenamiento de la rutina, con `@capacitor/local-notifications`. Si el sistema no concede el permiso de notificaciones, se explica cómo activarlo en los ajustes del teléfono y los recordatorios no se activan. Al cambiar la rutina, o al abrir los ajustes, los recordatorios activos se reprograman.
+`ContadorNumerico` (`src/components/ContadorNumerico.tsx`) es un control reutilizable y controlado; recibe la etiqueta, el valor, `onChange` y límites/paso opcionales. Para repeticiones, configura `minimo={0}`, `maximo={50}` y `paso={1}`. Para peso, pasa `unidad="kg"` o `unidad="lb"`: el componente aplica automáticamente incrementos de 0,5 kg o 1 lb y no impone un máximo arbitrario. Ejemplo:
 
-- La rutina define cuántos días se entrena, no cuáles; los días se reparten con descanso entre sesiones (por ejemplo, 3 días son lunes, miércoles y viernes, 2 son lunes y jueves). Está en `src/utils/recordatorios.ts`.
-- Los ajustes se guardan en el dispositivo con Capacitor Preferences, separados por usuario como el resto de datos de M2 y M5.
-- En Android 13 o superior el sistema pide el permiso `POST_NOTIFICATIONS`, que declara el propio plugin. Las alarmas no son exactas, así que el sistema puede retrasar unos minutos la notificación para ahorrar batería.
-- No se ha probado en un emulador ni en un dispositivo: las pruebas automáticas simulan el plugin. En el navegador las notificaciones programadas no se disparan con la app cerrada.
-- Tras añadir o cambiar plugins de Capacitor hay que ejecutar `npm run android:sync` y confirmar los archivos `android/capacitor.settings.gradle` y `android/app/capacitor.build.gradle`; sin ese paso el plugin no existe en la app nativa.
+```tsx
+<ContadorNumerico
+  etiqueta="Repeticiones logradas"
+  valor={repeticiones}
+  onChange={setRepeticiones}
+  minimo={0}
+  maximo={50}
+  paso={1}
+/>
+
+<ContadorNumerico
+  etiqueta="Peso"
+  valor={pesoEnUnidad(ejercicio.pesoInicialKg, perfil.unidadPeso)}
+  onChange={setPeso}
+  minimo={0}
+  unidad={perfil.unidadPeso}
+/>
+```
+
+Los valores editados temporalmente vacíos o fuera de rango se corrigen al salir del campo; los valores válidos se notifican mediante `onChange`. Las flechas arriba/abajo ajustan el valor por teclado; la etiqueta está asociada a la entrada y los botones tienen nombres accesibles. Los estilos usan los tokens del tema, con contraste medido de 4,74:1 incluso en los botones deshabilitados. Las operaciones numéricas y el paso por unidad están en `src/utils/contadorNumerico.ts`. El contador se prueba de forma aislada y todavía no está integrado en `/sesion`; no guarda series ni modifica el peso recomendado del catálogo.
 
 ## Supabase y variables de entorno
 
@@ -191,11 +210,11 @@ En `/ajustes` (botón «Recordatorios» del perfil) el usuario activa o desactiv
    Coloca localmente los valores de tu proyecto en esas variables. No compartas ni confirmes `.env`. La clave `service_role` y las claves `sb_secret_` son secretas y nunca deben incluirse en la app cliente.
 3. En Supabase, durante el desarrollo, desactiva **Authentication > Providers > Email > Confirm email** para permitir que el registro cree una sesión inmediatamente. La confirmación y sus enlaces de retorno no forman parte del alcance actual.
 
-El cliente Supabase se centraliza en `src/services/supabase.ts` y falla explícitamente si falta una variable requerida.
+El cliente Supabase se centraliza en `src/services/supabase.ts` y falla explícitamente si falta una variable requerida. Además, `npm run build` se detiene con un mensaje claro si falta `VITE_SUPABASE_URL` o `VITE_SUPABASE_ANON_KEY`, si la URL no es válida o si la clave es secreta (`sb_secret_` o JWT con rol `service_role`); el mensaje nunca muestra los valores. La validación está en `scripts/validarEntornoSupabase.ts` y solo se aplica al compilar, no a `npm run dev` ni a las pruebas.
 
 Si Auth devuelve un error, la interfaz muestra un mensaje localizado y, para códigos desconocidos, el código técnico sin el texto crudo del proveedor. Si indica que no pudo conectar, comprueba localmente la URL del proyecto en `.env`, la conexión a internet y que el proyecto Supabase esté disponible. Un HTTP 404 suele indicar que la URL no corresponde a la **Project URL** actual o que el proyecto ya no está activo. Compara localmente `VITE_SUPABASE_URL` con **Project Settings > API > Project URL**; usa la URL base `https://<project-ref>.supabase.co`, sin añadir `/auth/v1` ni `/rest/v1`. No compartas `.env`, claves ni capturas que las muestren.
 
-Las rutas de acceso y registro usan `/login`, `/consentimientos` y `/registro`; la ruta protegida `/hoy` requiere una sesión. Consentimientos y registro transmiten la autorización opcional de datos de salud y la fecha ISO de aceptación en los metadatos del usuario de Supabase Auth.
+Las rutas de acceso y registro usan `/login`, `/consentimientos`, `/registro` y `/recuperar-contrasena`; la ruta protegida `/hoy` requiere una sesión. Consentimientos y registro transmiten la autorización opcional de datos de salud y la fecha ISO de aceptación en los metadatos del usuario de Supabase Auth. La recuperación solicita el enlace a Supabase sin revelar si el correo está registrado.
 
 ### Cierre de sesión (RF-01)
 
@@ -212,7 +231,8 @@ La sesión persiste mediante los tokens que administra Supabase en el almacenami
 3. Registra un correo nuevo y una contraseña de al menos ocho caracteres con una letra y un número.
 4. Cierra sesión desde **Hoy** y confirma el cierre.
 5. Inicia sesión con la misma cuenta. Cierra y vuelve a abrir la aplicación para comprobar si Supabase restaura la sesión.
-6. En Supabase, verifica el usuario en **Authentication > Users**.
+6. Prueba **¿Olvidaste tu contraseña?** con un correo válido y verifica que la pantalla muestre el mensaje genérico sin confirmar si la cuenta existe.
+7. En Supabase, verifica el usuario en **Authentication > Users**.
 
 ### Probar el flujo en Android
 
@@ -239,7 +259,7 @@ Para ejecutar las pruebas en modo watch mientras desarrollas:
 npm run test:watch
 ```
 
-La suite automatizada cubre validaciones, el estado habilitado de los botones, errores de login y registro, consentimientos obligatorios y la redirección de `/hoy` sin sesión. Las pruebas simulan el servicio de autenticación y no llaman al proyecto Supabase real.
+La suite automatizada cubre validaciones, el estado habilitado de los botones, errores de login y registro, recuperación de contraseña, consentimientos obligatorios y la redirección de `/hoy` sin sesión. Las pruebas simulan el servicio de autenticación y no llaman al proyecto Supabase real.
 
 Valida también tipos y compilación de producción:
 
@@ -307,6 +327,69 @@ Para reflejar los cambios de Vite automáticamente durante el diseño, usa dos t
    ```
 
 El comando usa `10.0.2.2`, la dirección con la que el emulador Android alcanza el equipo anfitrión. Este comando es para el emulador; para un dispositivo físico conectado, usa la IP local del equipo y asegúrate de que ambos estén en la misma red.
+
+## Generar la APK
+
+APK de **depuración** para probar la app en emuladores y celulares del equipo. No está firmada para publicación ni se distribuye por tiendas.
+
+### Requisitos
+
+- Node.js y npm, con las dependencias instaladas (`npm ci`).
+- Android SDK API 35 y Build-Tools 35.0.0 (ver [Requisitos del equipo](#requisitos-del-equipo)).
+- JDK 21. El `java` del sistema puede ser otra versión: Gradle usa el JDK indicado en `JAVA_HOME`.
+- `.env` en la raíz con `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY` (clave **anon/publicable**). Estos valores se incrustan en la APK al compilar; si faltan o la clave es secreta, `npm run build` falla con un mensaje claro.
+
+### Comandos
+
+Desde la raíz del repositorio, en PowerShell (ajusta la ruta del JDK si está en otra ubicación):
+
+```powershell
+npm run build
+npx cap sync android
+$env:JAVA_HOME = "$env:LOCALAPPDATA\Programs\SpotterJN\Temurin21\jdk-21.0.12.1+1"
+cd android
+.\gradlew.bat assembleDebug
+cd ..
+```
+
+El archivo generado queda en:
+
+```text
+android/app/build/outputs/apk/debug/app-debug.apk
+```
+
+Las carpetas `build/`, `dist/` y los archivos `*.apk` están en `.gitignore`: comparte la APK por fuera del repositorio (por ejemplo, Drive) y nunca la confirmes en Git.
+
+### Ícono de la app
+
+El ícono se genera desde `assets/icon-only.png`, `assets/icon-foreground.png` y `assets/icon-background.png`, creados a partir de `src/assets/logo-spotterjn.webp`. Si se cambia el logo, regenera los recursos de Android con:
+
+```bash
+npx @capacitor/assets generate --android --iconBackgroundColor "#ffffff" --iconBackgroundColorDark "#ffffff"
+```
+
+Revisa después que la herramienta no haya reformateado `AndroidManifest.xml`; ese cambio no es necesario.
+
+### Instalar en un celular
+
+1. Copia `app-debug.apk` al celular o descárgalo desde el enlace compartido.
+2. Abre el archivo y permite **Instalar apps desconocidas** para la aplicación con la que lo abriste (Archivos, Drive o el navegador).
+3. Si Play Protect advierte que la app es desconocida, elige instalar de todas formas; ocurre porque es una APK de depuración.
+4. Si ya existe una versión anterior firmada en otro equipo, desinstálala primero: Android rechaza actualizar una APK de depuración firmada con otra clave.
+
+Con un cable USB y depuración activada también puedes instalarla con `adb install -r android/app/build/outputs/apk/debug/app-debug.apk`.
+
+## Probar el acceso
+
+Requiere conexión a internet y un proyecto Supabase con **Confirm email** desactivado.
+
+1. **Crear cuenta:** en **Crear cuenta**, acepta los dos consentimientos obligatorios, registra un correo nuevo y una contraseña de ocho o más caracteres con una letra y un número. Debe abrirse **Hoy**.
+2. **Cerrar sesión:** toca **Cerrar sesión**, comprueba que **Cancelar** no hace nada y que confirmar regresa a **Iniciar sesión**.
+3. **Iniciar sesión:** entra con la misma cuenta; una contraseña incorrecta debe mostrar un error en español. El botón queda deshabilitado mientras carga.
+4. **Reabrir la app:** cierra la app por completo (o recarga el navegador) y ábrela de nuevo; debe abrir **Hoy** sin pedir credenciales.
+5. **Recuperar contraseña:** desde **¿Olvidaste tu contraseña?**, envía un correo válido y verifica el mensaje genérico «Si el correo existe, te enviamos un enlace». El cambio de contraseña desde el enlace aún no está implementado.
+6. **Dos cuentas:** crea una segunda cuenta en el mismo dispositivo, completa perfil o rutina y comprueba que al volver a la primera no aparecen los datos de la segunda.
+7. En Supabase, confirma los usuarios en **Authentication > Users**.
 
 ## Flujo de trabajo
 

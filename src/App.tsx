@@ -8,6 +8,7 @@ import {
 import { IonReactRouter } from '@ionic/react-router';
 import type { PropsWithChildren } from 'react';
 import { Redirect, Route } from 'react-router-dom';
+import BannerSinConexion from './components/BannerSinConexion';
 import { BotonSJ, PantallaSJ } from './components/PantallaSJ';
 import Ajustes from './pages/Ajustes';
 import AvisoMedico from './pages/AvisoMedico';
@@ -19,6 +20,7 @@ import Glosario from './pages/Glosario';
 import Hoy from './pages/Hoy';
 import Login from './pages/Login';
 import Perfil from './pages/Perfil';
+import RecuperarContrasena from './pages/RecuperarContrasena';
 import Registro from './pages/Registro';
 import RutinaAsignada from './pages/RutinaAsignada';
 import SesionEntrenamiento from './pages/SesionEntrenamiento';
@@ -91,6 +93,11 @@ function RutasAplicacion() {
             <Registro />
           </RutaInvitado>
         </Route>
+        <Route exact path="/recuperar-contrasena">
+          <RutaInvitado>
+            <RecuperarContrasena />
+          </RutaInvitado>
+        </Route>
         <Route exact path="/hoy">
           {sesion ? <Hoy /> : <Redirect to="/login" />}
         </Route>
@@ -138,11 +145,12 @@ function RutasAplicacion() {
 function App() {
   return (
     <IonApp>
+      <BannerSinConexion />
       <ProveedorSesion>
         <ProveedorPerfil>
           <RutasAplicacion />
         </ProveedorPerfil>
-      </ProveedorSesion>
+       </ProveedorSesion>
     </IonApp>
   );
 }

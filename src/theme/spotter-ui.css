@@ -17,7 +17,7 @@
   --sj-color-separador: var(--sj-color-paso-150);
   --sj-color-deshabilitado: #b8b8b8;
   --sj-color-texto-deshabilitado: #4d4d4d;
-  --sj-color-deshabilitado-suave: #7a7a7a;
+  --sj-color-deshabilitado-suave: var(--sj-color-suave);
   --sj-color-fondo-deshabilitado: var(--sj-color-paso-100);
   --sj-color-primario-hover: #0059b8;
   --sj-color-primario-activo: #004f9f;
@@ -391,6 +391,91 @@ ion-content {
   background: var(--sj-campo);
   font-size: var(--sj-fuente-titulo);
   font-weight: 800;
+}
+
+.sj-contador-numerico {
+  display: grid;
+  gap: var(--sj-espacio-2);
+  width: 100%;
+}
+
+.sj-contador-etiqueta {
+  color: var(--sj-color-tinta);
+  font-size: var(--sj-fuente-base);
+  font-weight: 700;
+}
+
+.sj-contador-control {
+  display: grid;
+  grid-template-columns: var(--sj-alto-control) minmax(0, 1fr) var(--sj-alto-control);
+  min-height: var(--sj-alto-control);
+  border: var(--sj-borde);
+  background: var(--sj-color-campo);
+}
+
+.sj-contador-boton {
+  display: grid;
+  min-width: var(--sj-alto-control);
+  min-height: var(--sj-alto-control);
+  place-items: center;
+  border: 0;
+  background: var(--sj-color-tinta);
+  color: var(--sj-color-blanco);
+  font: inherit;
+  font-size: var(--sj-fuente-peso);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.sj-contador-boton:disabled {
+  background: var(--sj-color-fondo-deshabilitado);
+  color: var(--sj-color-deshabilitado-suave);
+  cursor: default;
+}
+
+.sj-contador-boton:focus-visible,
+.sj-contador-valor:focus-visible {
+  position: relative;
+  z-index: 1;
+  outline: 3px solid var(--sj-color-primario);
+  outline-offset: 2px;
+}
+
+.sj-contador-entrada {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  gap: var(--sj-espacio-2);
+  padding-inline: var(--sj-espacio-2);
+}
+
+.sj-contador-valor {
+  width: 100%;
+  min-width: 0;
+  padding: var(--sj-espacio-1);
+  border: 0;
+  border-radius: var(--sj-radio);
+  background: transparent;
+  color: var(--sj-color-tinta);
+  font: inherit;
+  font-size: var(--sj-fuente-peso);
+  font-weight: 800;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.sj-contador-valor::-webkit-inner-spin-button,
+.sj-contador-valor::-webkit-outer-spin-button {
+  margin: 0;
+  appearance: none;
+}
+
+.sj-contador-unidad {
+  flex: 0 0 auto;
+  color: var(--sj-color-suave);
+  font-size: var(--sj-fuente-base);
+  font-weight: 700;
 }
 
 .sj ion-input.sj-campo {

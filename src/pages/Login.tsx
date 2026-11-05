@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { IonButton, IonIcon, IonInput } from '@ionic/react';
 import { eye, eyeOff } from 'ionicons/icons';
-import { useHistory } from 'react-router-dom';
+import { Link, useHistory } from 'react-router-dom';
 import { iniciarSesion } from '../services/auth';
 import { esCorreoValido } from '../utils/validaciones';
 import { MarcoAccesoSJ } from '../components/PantallaSJ';
@@ -105,6 +105,9 @@ function Login() {
         >
           {cargando ? 'Iniciando sesión...' : 'Iniciar sesión'}
         </IonButton>
+        <p className="sj-acceso-enlace">
+          <Link to="/recuperar-contrasena">¿Olvidaste tu contraseña?</Link>
+        </p>
       </form>
     </MarcoAccesoSJ>
   );

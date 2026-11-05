@@ -8,6 +8,14 @@
 - Mantén README y demás documentación alineados con las dependencias, scripts y configuración reales.
 - Limita cada cambio al alcance acordado y conserva los cambios preexistentes de otras personas.
 
+## Convención de commits
+
+- Prefijo en inglés y descripción en español, en presente, con tildes y sin punto final: `fix` (corrección), `feat` (funcionalidad nueva), `docs` (documentación), `style` (cambios solo visuales), `test` (solo pruebas) y `chore` (solo configuración de compilación). Incluye el requisito cuando aplique, por ejemplo `fix: migra la pantalla de recuperación al diseño de acceso actual (RF-03)`.
+- Commits atómicos: un cambio lógico por commit. Agrega los archivos uno por uno con `git add ruta/archivo`; nunca `git add .` ni `git add -A`.
+- Antes de cada commit revisa `git status` y `git diff --cached --stat`, confirma que `.env` no aparece y que no hay archivos ajenos al cambio. No confirmes código que rompa `npm test` o `npm run build`.
+- Haz `git push` después de cada commit. Sin atribuciones de IA, firmas ni coautores.
+- No reescribas historial (`--force`, `--force-with-lease`, `--amend`, `rebase`, `reset --hard`) ni trabajes directamente en `main` o `develop`; integra por Pull Request hacia `develop`.
+
 ## Avances de implementación
 
 ### 2026-10-08 — Paso 1: configuración base de Supabase
@@ -59,7 +67,7 @@
 
 - En Hoy, el cierre de sesión se confirma con un diálogo Cancelar/Cerrar sesión; se informa el error de cierre sin filtrar mensajes del proveedor.
 - Actualizado README con configuración de Supabase, ejecución web y Android, pruebas, estructura de carpetas y estado de persistencia.
-- Pendiente fuera de alcance: RF-03 recuperación de contraseña, RF-04 eliminación de cuenta, `profiles` y políticas RLS, confirmación de correo y deep links Android.
+- Implementado RF-03 en la parte visual y de solicitud del servicio; fuera de alcance permanecen RF-04 eliminación de cuenta, nueva contraseña, enlaces de regreso y deep links Android.
 - La persistencia de sesión opera con los tokens administrados por Supabase; el requisito de 30 días de RF-01 queda pendiente de verificar en la configuración del proyecto Supabase.
 - Cómo probar: ejecutar `npm test`, `npm run build`, configurar `.env` localmente usando `.env.example`, correr `npm run dev`; para Android ejecutar `npx cap sync android` y `npm run android:run`. Crear una cuenta, cerrar sesión, iniciar sesión, reabrir la app y confirmar el usuario en Supabase Authentication > Users.
 
@@ -87,32 +95,27 @@
 - Añadidas aserciones para verificar que los textos y elementos retirados no reaparezcan.
 - Verificación: `npm test` y `npm run build` completados.
 
-### 2026-10-15 — Cierre de sesión RF-01 y separación local por usuario
+### 2026-10-29 — RF-03 visual y solicitud de recuperación
 
-- Confirmada la rama de trabajo `feature/cerrar-sesion`, basada en el mismo commit que `feature/perfil-rutina`; el flujo M2 y el servicio de autenticación están presentes.
-- El servicio cierra sesión con alcance local (`signOut({ scope: 'local' })`); las sesiones de otros dispositivos no se invalidan.
-- Añadido el componente reutilizable de cierre en Hoy y Perfil: modal Cancelar/Cerrar sesión, estado de carga, bloqueo de doble confirmación, error localizado y reemplazo de la ruta por `/login` al completar.
-- Las interfaces y repositorios de perfil, salud y rutina reciben el ID del usuario y guardan en claves locales separadas. No se borran al cerrar sesión.
-- Los registros anteriores sin ID no se migran ni se eliminan; la versión actual no los lee. No atribuirlos automáticamente a un usuario.
-- La separación por usuario en Preferences no cifra los datos ni sustituye el almacenamiento backend/RLS, pendiente junto con la sincronización a Supabase.
-- Validación final: suite completa de Vitest aprobada (83 pruebas en 17 archivos) y `npm run build` aprobado. Vite mantiene la advertencia existente por el bundle principal superior a 500 kB minificados.
+- Añadido `solicitarRecuperacion(email)` con `resetPasswordForEmail` y traducción de errores mediante el flujo existente.
+- Añadida la ruta pública `/recuperar-contrasena`, reutilizando estilos de autenticación, validación de correo, carga y confirmación genérica.
+- Añadido desde Login el enlace «¿Olvidaste tu contraseña?» y pruebas unitarias con el servicio autenticado simulado.
+- Fuera de alcance: seguimiento del enlace recibido, regreso a la app, nueva contraseña y deep links Android.
 
-### 2026-10-16 — Esqueleto de sesión y temporizador de descanso (M3/RF-11)
+### 2026-10-30 — Corrección visual de recuperación tras fusión de ramas
 
-- Creada la rama `feature/sesion-entrenamiento` desde `feature/cerrar-sesion`, que conserva los cambios de acceso y M2. Los cambios locales de Gradle continúan en el stash previo; no reaplicarlos automáticamente.
-- Añadida la ruta protegida `/sesion`: muestra los ejercicios de la primera jornada de la rutina del usuario, sugiere volver a Hoy y no registra ni persiste entrenamiento (M3 sigue incompleto).
-- Añadido el componente independiente de descanso RF-11: inicia en 90 segundos, presenta el progreso circular mm:ss y permite sumar/restar 30 segundos y saltar. No se integra con `/sesion`.
-- Pendiente: persistir sesiones y series (resto de M3/RF-10), conectar el temporizador con el entrenamiento y cualquier recuperación de contraseña (RF-03).
-- La duración predeterminada del temporizador es 90 segundos y comienza automáticamente.
-- Verificación final: 91 pruebas en 19 archivos aprobadas; `npm run build` aprobado con la advertencia de Vite por el bundle principal superior a 500 kB minificados.
+- La aplicación no compilaba porque `RecuperarContrasena.tsx` importaba el eliminado `AuthPages.css` y todavía usaba clases del diseño anterior.
+- Se migró la presentación a `MarcoAccesoSJ`, `sj-campo`, `sj-acceso-submit`, `sj-error`, `sj-ok` y `sj-acceso-enlace`, conservando la validación, carga y confirmación genérica existentes; se añadió el regreso a Login.
+- Se restauró desde Login el enlace «¿Olvidaste tu contraseña?» y se actualizaron las pruebas para validar el campo, el botón y la navegación con el diseño actual.
+- Pendiente: validar manualmente el flujo web y el envío real de correo mediante el proyecto Supabase configurado.
 
-### 2026-10-22 — Sistema visual claro y acceso armonizado
+### 2026-11-05 — Login estable y APK de depuración
 
-- Confirmada y conservada la rama activa `feature/rediseño-visual`; no se cambió de rama.
-- Aprobado el tema claro fijo, usando los colores existentes y el fondo/campo muestreados de la referencia compartida.
-- Centralizados colores, bordes, radios, espacios y tamaños tipográficos en `src/theme/spotter-ui.css`; `src/theme/variables.css` los asigna a Ionic.
-- Reutilizado `src/assets/logo-spotterjn.webp` mediante `LogoSJ`; Login, Consentimientos y Registro comparten el marco y la navegación por pestañas. El registro conserva el paso obligatorio de consentimientos y las rutas existentes.
-- Login, Registro, Consentimientos, pantallas `PantallaSJ`, alertas, cargas y estados de error usan el tema común. Eliminadas las hojas `Login.css` y `AuthPages.css`, que ya no se usan.
-- No se cambiaron servicios, repositorios, datos ni la lógica de autenticación y formularios. README actualizado con el sistema visual.
-- Verificación: `npm test` aprobó 93 pruebas en 19 archivos y `npm run build` finalizó correctamente. Vite mantiene la advertencia del bundle principal superior a 500 kB minificados.
-- Revisadas en navegador a 390 × 844 px las vistas Login, Consentimientos y Registro, incluido el paso entre pestañas; falta el recorrido visual de las pantallas protegidas y la revisión en emulador Android.
+- Diagnóstico: `develop` ya compilaba y el enlace «¿Olvidaste tu contraseña?» ya existía tras el PR #12; no quedaban imports de CSS ni componentes inexistentes. Registro, inicio y cierre de sesión con modal, sesión persistida, rutas protegidas y prevención de doble envío se revisaron sin encontrar errores.
+- Añadida `scripts/validarEntornoSupabase.ts` y un plugin en `vite.config.ts` que hacen fallar `npm run build` si faltan `VITE_SUPABASE_URL` o `VITE_SUPABASE_ANON_KEY`, si la URL no es válida o si la clave es secreta (`sb_secret_` o JWT `service_role`), sin mostrar valores. Antes, la APK compilaba y quedaba en blanco al abrir.
+- Reemplazado el ícono predeterminado de Capacitor por el logo de SpotterJN con `@capacitor/assets` ejecutado fuera del proyecto; las imágenes fuente quedan en `assets/`. No se añadió dependencia a `package.json`.
+- `npx cap sync android` solo reescribió los finales de línea de `capacitor.build.gradle` y `capacitor.settings.gradle`, sin cambios de contenido; Preferences y Local Notifications ya estaban registrados, por lo que no se confirmaron.
+- APK de depuración generada con JDK 21 y `gradlew assembleDebug` en `android/app/build/outputs/apk/debug/app-debug.apk`; está ignorada por Git.
+- Decisiones: la rama `feature/primera-vez-progreso` de Nayeli (RF-21) no se incluyó y se integrará por su propio PR; sin firma de release ni publicación en tiendas.
+- Pendientes: probar manualmente en emulador y celular real con el proyecto Supabase, flujo de nueva contraseña y deep links (RF-03), duración de sesión de 30 días (RF-01) y advertencia de Vite por el chunk principal de 2,2 MB.
+- Verificación: `npm test` (210 pruebas/35 archivos), `npm run build`, `npx cap sync android` y `gradlew assembleDebug` aprobados.
