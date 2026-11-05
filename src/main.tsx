@@ -17,6 +17,7 @@ import '@ionic/react/css/flex-utils.css';
 import '@ionic/react/css/display.css';
 import './theme/variables.css';
 import './theme/spotter-ui.css';
+import './theme/microinteracciones.css';
 import App from './App';
 import { transicionPaginaSJ } from './theme/transiciones';
 
