@@ -119,3 +119,14 @@
 - Decisiones: la rama `feature/primera-vez-progreso` de Nayeli (RF-21) no se incluyó y se integrará por su propio PR; sin firma de release ni publicación en tiendas.
 - Pendientes: probar manualmente en emulador y celular real con el proyecto Supabase, flujo de nueva contraseña y deep links (RF-03), duración de sesión de 30 días (RF-01) y advertencia de Vite por el chunk principal de 2,2 MB.
 - Verificación: `npm test` (210 pruebas/35 archivos), `npm run build`, `npx cap sync android` y `gradlew assembleDebug` aprobados.
+
+### 2026-11-05 — Microinteracciones y transiciones
+
+- Integrado `develop` con el PR #13 (login y APK) y el PR #14 de Nayeli (RF-21); `npm test` y `npm run build` aprobados antes de empezar.
+- Añadida `transicionPaginaSJ` (`src/theme/transiciones.ts`) con `createAnimation` de Ionic: 260 ms al avanzar y 200 ms al regresar, solo con transform y opacity; registrada como `navAnimation`.
+- Añadido `src/theme/microinteracciones.css`: entrada escalonada del contenido, escala 0,97 al tocar botones, opciones y pestañas, y animación de mensajes, paneles y diálogo; todo entre 150 y 300 ms y desactivado con «Reducir movimiento».
+- Añadido `CargandoSJ` con `IonSkeletonText` en Hoy, Rutina, Sesión, Ajustes y Ficha. Se conserva el spinner de la verificación inicial de sesión porque aún no se conoce la pantalla destino.
+- Decisión: Angular Animations no aplica porque el proyecto es React; se usan las animaciones nativas de Ionic y CSS.
+- APK de depuración regenerada con JDK 21 en `android/app/build/outputs/apk/debug/app-debug.apk`.
+- Pendiente: revisar las animaciones en un emulador o celular real; no había dispositivo conectado durante la implementación.
+- Verificación: `npm test` (229 pruebas/38 archivos), `npm run build`, `npx cap sync android` y `gradlew assembleDebug` aprobados.
