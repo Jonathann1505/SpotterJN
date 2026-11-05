@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { IonSpinner } from '@ionic/react';
 import { useHistory } from 'react-router-dom';
+import { CargandoSJ } from '../components/CargandoSJ';
 import { BotonSJ, PantallaSJ } from '../components/PantallaSJ';
 import { useSesion } from '../context/SesionContext';
 import { recordatoriosLocal, rutinaLocal } from '../repositories/local';
@@ -62,7 +62,7 @@ function Ajustes() {
   if (cargando) {
     return (
       <PantallaSJ titulo="Recordatorios">
-        <IonSpinner aria-label="Cargando ajustes" />
+        <CargandoSJ etiqueta="Cargando ajustes" variante="detalle" />
       </PantallaSJ>
     );
   }

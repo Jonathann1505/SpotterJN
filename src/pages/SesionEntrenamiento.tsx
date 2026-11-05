@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { IonSpinner } from '@ionic/react';
 import { Redirect, useHistory } from 'react-router-dom';
+import { CargandoSJ } from '../components/CargandoSJ';
 import { BotonSJ, PantallaSJ } from '../components/PantallaSJ';
 import { usePerfil } from '../context/PerfilContext';
 import { useSesion } from '../context/SesionContext';
@@ -57,9 +57,7 @@ function SesionEntrenamiento() {
   if (cargando) {
     return (
       <PantallaSJ etiqueta="Sesión de entrenamiento" titulo="Preparando tu sesión">
-        <div className="sj-cargando">
-          <IonSpinner aria-label="Cargando tu rutina" />
-        </div>
+        <CargandoSJ etiqueta="Cargando tu rutina" />
       </PantallaSJ>
     );
   }

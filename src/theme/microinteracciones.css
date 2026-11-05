@@ -134,6 +134,40 @@
   transform: scale(0.94);
 }
 
+/* Estados de carga con skeleton */
+.sj-skeleton {
+  display: grid;
+  gap: var(--sj-espacio-3);
+  margin-top: var(--sj-espacio-4);
+  animation: sj-aparecer var(--sj-duracion-media) var(--sj-easing-estandar) backwards;
+}
+
+.sj-skeleton ion-skeleton-text {
+  --background: var(--sj-color-paso-100);
+  --background-rgb: 217, 217, 217;
+  --border-radius: var(--sj-radio);
+  margin: 0;
+}
+
+.sj-skeleton-tarjeta {
+  display: grid;
+  gap: var(--sj-espacio-2);
+  padding: var(--sj-espacio-4);
+  border: var(--sj-borde-ancho) solid var(--sj-color-paso-100);
+}
+
+.sj-skeleton-fila {
+  display: flex;
+  align-items: center;
+  gap: var(--sj-espacio-3);
+}
+
+.sj-skeleton-fila > div {
+  display: grid;
+  flex: 1 1 auto;
+  gap: var(--sj-espacio-1);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
