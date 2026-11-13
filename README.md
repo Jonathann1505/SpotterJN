@@ -75,6 +75,7 @@ SpotterJN/
 │   ├── utils/
 │   │   ├── contadorNumerico.ts   # límites, pasos e incrementos numéricos (RF-10)
 │   │   ├── rutina.ts             # asignación de la rutina inicial
+│   │   ├── sesion.ts             # avance de series y ejercicios de la sesión
 │   │   ├── unidades.ts           # conversión kg/lb
 │   │   └── validaciones.ts
 │   ├── vite-env.d.ts
@@ -170,7 +171,24 @@ Cada ejercicio tiene una ficha en `/ejercicio/:id` con su animación, cómo ajus
 
 ## Sesión de entrenamiento (M3)
 
-La ruta protegida `/sesion`, accesible desde «Empezar entrenamiento» en Hoy, carga y muestra los ejercicios de la primera jornada de la rutina del usuario. Permite volver a Hoy y no registra ni persiste actividad. El componente de descanso RF-11 es independiente: ofrece una cuenta regresiva inicial de 90 segundos, círculo de tiempo restante y controles para sumar/restar 30 segundos o saltar; no se conecta todavía al flujo de una sesión. La duración inicial es 90 segundos y comienza automáticamente.
+La ruta protegida `/sesion`, accesible desde «Empezar entrenamiento» en Hoy, carga la primera jornada de la rutina del usuario y la recorre ejercicio por ejercicio. Permite volver a Hoy y **no persiste** series, autoevaluaciones ni interrupciones. El componente de descanso RF-11 es independiente: ofrece una cuenta regresiva inicial de 90 segundos, círculo de tiempo restante y controles para sumar/restar 30 segundos o saltar; no se conecta todavía al flujo de una sesión. La duración inicial es 90 segundos y comienza automáticamente.
+
+### Registro de serie y autoevaluación (RF-10)
+
+- Para el ejercicio actual se muestran «Ejercicio N de M» y «Serie X de Y» según la rutina, con el objetivo de repeticiones.
+- `ContadorNumerico` de repeticiones (0 a 50, paso 1) y de peso en la unidad del perfil (paso de 0,5 kg o 1 lb). En ejercicios de peso corporal (equipo `peso-corporal` del catálogo o sin carga inicial) no se muestra el contador de peso.
+- Autoevaluación de selección única Fácil, Normal o Difícil (`role="radiogroup"` con botones `role="radio"` y la clase `sj-segmento`).
+- «Guardar serie» está deshabilitado hasta elegir una autoevaluación. Al guardar avanza a la siguiente serie y reinicia la autoevaluación; tras la última serie pasa al siguiente ejercicio (serie 1), y tras el último ejercicio muestra «Sesión completada» con «Volver a Hoy».
+- Las repeticiones y el peso se conservan entre series del mismo ejercicio y vuelven a los valores de la rutina al cambiar de ejercicio.
+- La lógica de avance está en funciones puras de `src/utils/sesion.ts` (`avanzarSerie`, `saltarEjercicio`, `esPesoCorporal`).
+
+### Sentí dolor (RF-13)
+
+- Botón secundario «Sentí dolor», con ícono de alerta y borde, en el pie fijo de la sesión (`pieFijo` de `PantallaSJ`), visible aunque se desplace la pantalla.
+- Abre un `IonAlert` que recomienda detener el ejercicio y consultar a un profesional de la salud si el dolor continúa, e indica que la serie no cuenta como fallida. No se cierra tocando el fondo.
+- «Entendido, continuar con otro ejercicio» pasa al siguiente ejercicio sin contar la serie en curso. En el último ejercicio el botón dice «Entendido, terminar la sesión» y muestra «Sesión finalizada» con la recomendación y «Volver a Hoy».
+
+Pendientes: persistir series y autoevaluaciones, registrar «interrumpido por molestia» en un historial (aún no existe), calcular la progresión de carga y conectar el descanso RF-11 entre series.
 
 ### Contador numérico (RF-10)
 
@@ -195,7 +213,7 @@ La ruta protegida `/sesion`, accesible desde «Empezar entrenamiento» en Hoy, c
 />
 ```
 
-Los valores editados temporalmente vacíos o fuera de rango se corrigen al salir del campo; los valores válidos se notifican mediante `onChange`. Las flechas arriba/abajo ajustan el valor por teclado; la etiqueta está asociada a la entrada y los botones tienen nombres accesibles. Los estilos usan los tokens del tema, con contraste medido de 4,74:1 incluso en los botones deshabilitados. Las operaciones numéricas y el paso por unidad están en `src/utils/contadorNumerico.ts`. El contador se prueba de forma aislada y todavía no está integrado en `/sesion`; no guarda series ni modifica el peso recomendado del catálogo.
+Los valores editados temporalmente vacíos o fuera de rango se corrigen al salir del campo; los valores válidos se notifican mediante `onChange`. Las flechas arriba/abajo ajustan el valor por teclado; la etiqueta está asociada a la entrada y los botones tienen nombres accesibles. Los estilos usan los tokens del tema, con contraste medido de 4,74:1 incluso en los botones deshabilitados. Las operaciones numéricas y el paso por unidad están en `src/utils/contadorNumerico.ts`. El contador se usa en `/sesion` para repeticiones y peso; no guarda series ni modifica el peso recomendado del catálogo.
 
 ## Supabase y variables de entorno
 

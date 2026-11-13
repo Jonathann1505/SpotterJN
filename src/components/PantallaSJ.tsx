@@ -63,6 +63,8 @@ interface PropiedadesPantalla {
   mostrarLogo?: boolean;
   cabecera?: ReactNode;
   pie?: ReactNode;
+  /** Mantiene el pie visible al desplazarse (por ejemplo, acciones de seguridad). */
+  pieFijo?: boolean;
   children: ReactNode;
 }
 
@@ -73,6 +75,7 @@ export function PantallaSJ({
   mostrarLogo = false,
   cabecera,
   pie,
+  pieFijo = false,
   children,
 }: PropiedadesPantalla) {
   return (
@@ -86,7 +89,7 @@ export function PantallaSJ({
             <h1 className={reglaBajoTitulo ? 'sj-titulo sj-titulo-regla' : 'sj-titulo'}>{titulo}</h1>
             {children}
           </main>
-          {pie ? <footer className="sj-pie">{pie}</footer> : null}
+          {pie ? <footer className={pieFijo ? 'sj-pie sj-pie-fijo' : 'sj-pie'}>{pie}</footer> : null}
         </div>
       </IonContent>
     </IonPage>
@@ -98,9 +101,17 @@ interface PropiedadesBoton {
   onClick?: () => void;
   deshabilitado?: boolean;
   variante?: 'principal' | 'secundario' | 'texto';
+  /** Ícono opcional al inicio, para no depender solo del color. */
+  icono?: string;
 }
 
-export function BotonSJ({ children, onClick, deshabilitado = false, variante = 'principal' }: PropiedadesBoton) {
+export function BotonSJ({
+  children,
+  onClick,
+  deshabilitado = false,
+  variante = 'principal',
+  icono,
+}: PropiedadesBoton) {
   const clase =
     variante === 'principal'
       ? 'sj-boton'
@@ -110,6 +121,7 @@ export function BotonSJ({ children, onClick, deshabilitado = false, variante = '
 
   return (
     <IonButton className={clase} expand="block" disabled={deshabilitado} onClick={onClick}>
+      {icono ? <IonIcon slot="start" icon={icono} aria-hidden="true" /> : null}
       <span>{children}</span>
       {variante === 'principal' ? <IonIcon slot="end" icon={chevronForward} aria-hidden="true" /> : null}
     </IonButton>

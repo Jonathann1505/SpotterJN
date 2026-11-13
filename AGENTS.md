@@ -119,3 +119,14 @@
 - Decisiones: la rama `feature/primera-vez-progreso` de Nayeli (RF-21) no se incluyó y se integrará por su propio PR; sin firma de release ni publicación en tiendas.
 - Pendientes: probar manualmente en emulador y celular real con el proyecto Supabase, flujo de nueva contraseña y deep links (RF-03), duración de sesión de 30 días (RF-01) y advertencia de Vite por el chunk principal de 2,2 MB.
 - Verificación: `npm test` (210 pruebas/35 archivos), `npm run build`, `npx cap sync android` y `gradlew assembleDebug` aprobados.
+
+### 2026-11-13 — Registro de serie, autoevaluación y Sentí dolor
+
+- Rama `feature/sesion-autoevaluacion` creada desde `develop`; no incluye `feature/microinteracciones`, que sigue sin integrarse.
+- `/sesion` pasó de listar la jornada a recorrerla ejercicio por ejercicio: «Ejercicio N de M», «Serie X de Y», `ContadorNumerico` de repeticiones (0-50) y de peso según la unidad del perfil (oculto en peso corporal), autoevaluación Fácil/Normal/Difícil como `radiogroup` y «Guardar serie» deshabilitado hasta elegir una opción (RF-10).
+- Decisión: al guardar la última serie del último ejercicio se muestra «Sesión completada» con «Volver a Hoy».
+- Añadido «Sentí dolor» (RF-13): botón secundario con ícono en un pie fijo (`pieFijo` de `PantallaSJ`; `BotonSJ` acepta `icono`), `IonAlert` sin cierre por fondo que recomienda detenerse y consultar a un profesional; al confirmar pasa al siguiente ejercicio sin contar la serie. «Volver» pasó a variante texto para distinguirlo del botón de seguridad.
+- Decisión: en el último ejercicio el botón dice «Entendido, terminar la sesión» y se muestra «Sesión finalizada» con la recomendación.
+- Lógica de avance en funciones puras de `src/utils/sesion.ts` con pruebas propias.
+- Pendientes: persistir series y autoevaluaciones, registrar «interrumpido por molestia» en un historial, progresión de carga, conectar el descanso RF-11 entre series y revisar la pantalla en navegador y celular (no se verificó visualmente).
+- Verificación: `npm test` (241 pruebas/37 archivos) y `npm run build` aprobados.
