@@ -5,7 +5,7 @@ import { Preferences } from '@capacitor/preferences';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ProveedorPerfil } from '../context/PerfilContext';
 import { perfilLocal, rutinaLocal, saludLocal } from '../repositories/local';
-import { asignarRutina } from '../utils/rutina';
+import { asignarRutina, describirSesion } from '../utils/rutina';
 import Hoy from './Hoy';
 
 vi.mock('../services/auth', () => ({ cerrarSesion: vi.fn() }));
@@ -66,6 +66,14 @@ describe('Hoy', () => {
     expect(await findByRole('heading', { name: rutina.dias[0].nombre })).toBeInTheDocument();
     expect(getAllByText('3x12').length).toBeGreaterThan(0);
     expect(getByText('Empezar entrenamiento')).toBeInTheDocument();
+  });
+
+  it('resume la sesión con ejercicios, series y minutos aproximados', async () => {
+    await saludLocal.guardar('usuario-prueba', salud);
+    await rutinaLocal.guardar('usuario-prueba', rutina);
+    const { findByText } = renderizar();
+
+    expect(await findByText(describirSesion(rutina.dias[0]))).toBeInTheDocument();
   });
 
   it('muestra los pesos en libras si el perfil usa lb', async () => {

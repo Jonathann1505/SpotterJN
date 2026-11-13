@@ -7,6 +7,7 @@ import { BotonSJ, PantallaSJ } from '../components/PantallaSJ';
 import { usePerfil } from '../context/PerfilContext';
 import { rutinaLocal, saludLocal } from '../repositories/local';
 import type { RespuestasSalud, RutinaAsignada } from '../types/perfil';
+import { describirSesion } from '../utils/rutina';
 import { pesoEnUnidad } from '../utils/unidades';
 import { useSesion } from '../context/SesionContext';
 import CerrarSesion from '../components/CerrarSesion';
@@ -86,6 +87,7 @@ function Hoy() {
         </>
       }
     >
+      <p className="sj-texto sj-suave">{describirSesion(proximaSesion)}</p>
       <ul className="sj-lista sj-lista-hoy">
         {proximaSesion.ejercicios.map((ejercicio) => (
           <li key={ejercicio.id} className="sj-fila-ejercicio">
