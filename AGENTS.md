@@ -141,3 +141,14 @@
 - Lógica de avance en funciones puras de `src/utils/sesion.ts` con pruebas propias.
 - Pendientes: persistir series y autoevaluaciones, registrar «interrumpido por molestia» en un historial, progresión de carga, conectar el descanso RF-11 entre series y revisar la pantalla en navegador y celular (no se verificó visualmente).
 - Verificación: `npm test` (241 pruebas/37 archivos) y `npm run build` aprobados.
+
+### 2026-11-13 — Navegación hacia atrás nativa
+
+- Rama `feature/navegacion-atras` desde `develop` (ya con microinteracciones y sesión).
+- Añadido `EncabezadoSJ` en `src/components/PantallaSJ.tsx` (`IonHeader`, `IonToolbar`, `IonBackButton` con `defaultHref` obligatoria, texto «Atrás» visible solo en iOS, etiqueta «Volver», 44×44 px, transparente). `PantallaSJ` y `MarcoAccesoSJ` lo muestran con la prop `atras`.
+- Regla: toda pantalla secundaria usa `atras` con su ruta por defecto; las raíz no. Reemplazados los «Volver» de Perfil, Recordatorios, Glosario, Sesión y Recuperar contraseña; añadido el encabezado a Ficha, Términos y Privacidad. Rutas por defecto en el README.
+- Decisión: el flujo inicial obligatorio (`/aviso-medico`, `/salud`, `/cuestionario-rutina`, `/rutina`) queda sin botón atrás; se mantienen las acciones «Volver a Hoy», «Entendido» e «Ir a Hoy».
+- Hallazgo y corrección: `@ionic/react-router@8.8.8` fijaba `@ionic/react@8.8.8` y el proyecto usaba 8.8.19, lo que empaquetaba dos copias de Ionic y dejaba al router sin contexto compartido (el botón atrás recargaba la página). Se alineó `@ionic/react-router` a 8.8.19; el chunk principal bajó de 2,2 MB a 1,47 MB. Con la pila de Ionic activa, las páginas anteriores quedan ocultas en el DOM y las pruebas consultan solo la página visible.
+- No hay manejadores propios del botón físico de Android ni del gesto de iOS: los gestiona `IonRouterOutlet`.
+- Pendiente: probar en navegador (vista Android e iPhone), emulador con botón físico y, si es posible, iPhone con gesto de deslizar y notch; revisar que las transiciones de página se vean bien ahora que la pila de Ionic funciona.
+- Verificación: `npm test` (270 pruebas/40 archivos) y `npm run build` aprobados.
