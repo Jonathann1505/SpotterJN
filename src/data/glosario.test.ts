@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { GLOSARIO, buscarTermino } from './glosario';
+import { GLOSARIO, buscarTermino, filtrarGlosario } from './glosario';
 
 describe('glosario', () => {
   it('incluye los términos básicos de serie, repetición y fallo', () => {
@@ -23,5 +23,18 @@ describe('glosario', () => {
   it('busca un término por su identificador', () => {
     expect(buscarTermino('rir')?.termino).toBe('RIR');
     expect(buscarTermino('no-existe')).toBeUndefined();
+  });
+
+  it('filtra por término o definición sin distinguir tildes ni mayúsculas', () => {
+    expect(filtrarGlosario('repeticion').map((t) => t.id)).toContain('repeticion');
+    expect(filtrarGlosario('TECNICA').map((t) => t.id)).toContain('tecnica');
+    expect(filtrarGlosario('articulaciones').map((t) => t.id)).toEqual(
+      expect.arrayContaining(['calentamiento', 'tecnica']),
+    );
+  });
+
+  it('devuelve todo con una consulta vacía y nada si no hay coincidencias', () => {
+    expect(filtrarGlosario('   ')).toEqual(GLOSARIO);
+    expect(filtrarGlosario('zzzz')).toEqual([]);
   });
 });

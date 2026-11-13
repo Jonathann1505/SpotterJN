@@ -69,3 +69,23 @@ export const GLOSARIO: readonly TerminoGlosario[] = [
 export function buscarTermino(id: string): TerminoGlosario | undefined {
   return GLOSARIO.find((termino) => termino.id === id);
 }
+
+function normalizar(texto: string): string {
+  return texto
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .toLowerCase()
+    .trim();
+}
+
+/** Términos cuyo nombre o definición contienen la consulta, sin distinguir mayúsculas ni tildes. */
+export function filtrarGlosario(consulta: string): readonly TerminoGlosario[] {
+  const buscada = normalizar(consulta);
+  if (buscada === '') {
+    return GLOSARIO;
+  }
+
+  return GLOSARIO.filter(
+    (entrada) => normalizar(entrada.termino).includes(buscada) || normalizar(entrada.definicion).includes(buscada),
+  );
+}
