@@ -8,7 +8,7 @@ import { BotonSJ, PantallaSJ } from '../components/PantallaSJ';
 import { usePerfil } from '../context/PerfilContext';
 import { rutinaLocal } from '../repositories/local';
 import type { RutinaAsignada as Rutina } from '../types/perfil';
-import { describirRutina } from '../utils/rutina';
+import { describirRutina, describirSesion } from '../utils/rutina';
 import { formatearPeso } from '../utils/unidades';
 import { useSesion } from '../context/SesionContext';
 
@@ -92,7 +92,7 @@ function RutinaAsignada() {
               >
                 <span>
                   <strong>{dia.nombre}</strong>
-                  <small>{dia.ejercicios.length} ejercicios</small>
+                  <small>{describirSesion(dia)}</small>
                 </span>
                 <span className="sj-fila-signo" aria-hidden="true">{expandido ? '−' : '+'}</span>
               </button>

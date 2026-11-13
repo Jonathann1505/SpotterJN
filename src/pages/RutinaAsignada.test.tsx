@@ -51,6 +51,7 @@ describe('RutinaAsignada', () => {
     expect(await findByRole('heading', { name: '3 días por semana' })).toBeInTheDocument();
     expect(getAllByRole('button', { name: /Día \d/ })).toHaveLength(3);
     expect(getByText(/Entrenas cuerpo completo/)).toBeInTheDocument();
+    expect(getAllByText(/series · ≈ \d+ min/)).toHaveLength(3);
     expect(getAllByText(/3x12/).length).toBeGreaterThan(0);
   });
 
