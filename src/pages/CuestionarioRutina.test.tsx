@@ -5,6 +5,7 @@ import { Preferences } from '@capacitor/preferences';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import CuestionarioRutina from './CuestionarioRutina';
 import { recordatoriosLocal, rutinaLocal } from '../repositories/local';
+import { asignarRutina } from '../utils/rutina';
 
 const sincronizarRecordatorios = vi.hoisted(() => vi.fn());
 
@@ -45,6 +46,20 @@ describe('CuestionarioRutina', () => {
     expect(boton).toHaveAttribute('disabled');
     fireEvent.click(getByRole('checkbox', { name: 'Mancuernas' }));
     expect(boton).toHaveAttribute('disabled', 'false');
+  });
+
+  it('precarga las respuestas anteriores al cambiar de rutina', async () => {
+    await rutinaLocal.guardar(
+      'usuario-prueba',
+      asignarRutina({ experiencia: 'mas-6-meses', diasPorSemana: 5, equipo: ['barra', 'poleas'] }),
+    );
+    const { findByRole, getByRole } = renderizar();
+
+    await waitFor(() => expect(getByRole('radio', { name: 'Más de 6 meses' })).toHaveAttribute('aria-checked', 'true'));
+    expect(getByRole('checkbox', { name: /Barra y discos/ })).toHaveAttribute('aria-checked', 'true');
+    expect(getByRole('checkbox', { name: /Poleas/ })).toHaveAttribute('aria-checked', 'true');
+    expect(getByRole('checkbox', { name: /Mancuernas/ })).toHaveAttribute('aria-checked', 'false');
+    expect(await findByRole('status')).toHaveTextContent('5');
   });
 
   it('limita los días entre 2 y 6', () => {

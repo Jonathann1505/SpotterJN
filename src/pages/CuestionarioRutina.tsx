@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { BotonSJ, PantallaSJ } from '../components/PantallaSJ';
 import { recordatoriosLocal, rutinaLocal } from '../repositories/local';
@@ -21,15 +21,42 @@ const ETIQUETAS_EQUIPO: Record<EquipoGimnasio, string> = {
   'peso-corporal': 'Solo peso corporal',
 };
 
+const DIAS_PREDETERMINADOS = 3;
+
 function CuestionarioRutina() {
   const [experiencia, setExperiencia] = useState<Experiencia | null>(null);
-  const [dias, setDias] = useState(3);
+  const [dias, setDias] = useState(DIAS_PREDETERMINADOS);
   const [equipo, setEquipo] = useState<EquipoGimnasio[]>([]);
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const history = useHistory();
   const { sesion } = useSesion();
   const completo = experiencia !== null && equipo.length > 0;
+  const usuarioId = sesion?.user.id ?? null;
+
+  // Al cambiar de rutina se parte de las respuestas anteriores, sin pisar lo que ya se haya tocado.
+  useEffect(() => {
+    if (usuarioId === null) {
+      return undefined;
+    }
+
+    let activo = true;
+    void rutinaLocal
+      .obtener(usuarioId)
+      .then((rutina) => {
+        if (!activo || rutina === null) {
+          return;
+        }
+        setExperiencia((actual) => actual ?? rutina.cuestionario.experiencia);
+        setDias((actual) => (actual === DIAS_PREDETERMINADOS ? rutina.cuestionario.diasPorSemana : actual));
+        setEquipo((actual) => (actual.length === 0 ? rutina.cuestionario.equipo : actual));
+      })
+      .catch(() => undefined);
+
+    return () => {
+      activo = false;
+    };
+  }, [usuarioId]);
 
   const alternarEquipo = (item: EquipoGimnasio): void => {
     setEquipo((actual) => (actual.includes(item) ? actual.filter((e) => e !== item) : [...actual, item]));
