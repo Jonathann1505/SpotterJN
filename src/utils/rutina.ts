@@ -93,3 +93,26 @@ export function describirRutina(rutina: RutinaAsignada): string {
 
   return tipos.length === 1 ? `Entrenas ${lista} en cada sesión.` : `Alternamos sesiones de ${lista}.`;
 }
+
+export interface ResumenSesion {
+  ejercicios: number;
+  series: number;
+  minutos: number;
+}
+
+/** Minutos aproximados por serie: unos 45 s de trabajo más el descanso de 90 s del temporizador. */
+const MINUTOS_POR_SERIE = 2.25;
+
+/** Resume un día de la rutina; los minutos son una estimación redondeada a múltiplos de 5. */
+export function resumirSesion(dia: DiaRutina): ResumenSesion {
+  const series = dia.ejercicios.reduce((total, ejercicio) => total + ejercicio.series, 0);
+  const minutos = Math.max(5, Math.round((series * MINUTOS_POR_SERIE) / 5) * 5);
+
+  return { ejercicios: dia.ejercicios.length, series, minutos };
+}
+
+export function describirSesion(dia: DiaRutina): string {
+  const { ejercicios, series, minutos } = resumirSesion(dia);
+
+  return `${ejercicios} ejercicios · ${series} series · ≈ ${minutos} min`;
+}

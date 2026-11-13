@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { EJERCICIOS } from '../data/ejercicios';
 import type { CuestionarioRutina } from '../types/perfil';
-import { asignarRutina, describirRutina, tipoDeSesion } from './rutina';
+import { asignarRutina, describirRutina, describirSesion, resumirSesion, tipoDeSesion } from './rutina';
 
 const base: CuestionarioRutina = { experiencia: 'ninguna', diasPorSemana: 3, equipo: ['maquinas', 'mancuernas'] };
 
@@ -60,5 +60,25 @@ describe('describirRutina', () => {
 
   it('quita el prefijo del día al nombrar el tipo', () => {
     expect(tipoDeSesion('Día 2 – Tren inferior')).toBe('Tren inferior');
+  });
+});
+
+describe('resumirSesion', () => {
+  const ejercicio = (series: number) => ({ id: 'x', nombre: 'X', series, repeticiones: 10, pesoInicialKg: 0 });
+
+  it('suma las series y estima los minutos en múltiplos de 5', () => {
+    const resumen = resumirSesion({ nombre: 'Día 1 – Empuje', ejercicios: [ejercicio(3), ejercicio(3), ejercicio(3), ejercicio(3)] });
+
+    expect(resumen).toEqual({ ejercicios: 4, series: 12, minutos: 25 });
+  });
+
+  it('nunca estima menos de 5 minutos', () => {
+    expect(resumirSesion({ nombre: 'Día 1', ejercicios: [ejercicio(1)] }).minutos).toBe(5);
+  });
+
+  it('lo describe en una línea legible', () => {
+    expect(describirSesion({ nombre: 'Día 1', ejercicios: [ejercicio(3), ejercicio(3)] })).toBe(
+      '2 ejercicios · 6 series · ≈ 15 min',
+    );
   });
 });
