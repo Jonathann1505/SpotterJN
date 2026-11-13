@@ -4,7 +4,8 @@ import { MemoryRouter, Route } from 'react-router-dom';
 import { Preferences } from '@capacitor/preferences';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ProveedorPerfil } from '../context/PerfilContext';
-import { perfilLocal } from '../repositories/local';
+import { perfilLocal, rutinaLocal } from '../repositories/local';
+import { asignarRutina } from '../utils/rutina';
 import Perfil from './Perfil';
 import { botonAtras } from '../test/navegacion';
 
@@ -98,5 +99,22 @@ describe('Perfil', () => {
     const { container, queryByText } = renderizar();
     expect(botonAtras(container)).toHaveAttribute('default-href', '/hoy');
     expect(queryByText('Volver')).not.toBeInTheDocument();
+  });
+
+  it('resume la rutina actual con días, experiencia y equipo', async () => {
+    await rutinaLocal.guardar(
+      'usuario-prueba',
+      asignarRutina({ experiencia: 'mas-6-meses', diasPorSemana: 4, equipo: ['barra', 'poleas'] }),
+    );
+    const { findByText } = renderizar();
+
+    expect(await findByText(/4 días por semana · Experiencia: más de 6 meses/)).toBeInTheDocument();
+    expect(await findByText('Equipo: barra y discos, poleas')).toBeInTheDocument();
+  });
+
+  it('no muestra el resumen si todavía no hay rutina', async () => {
+    const { queryByText } = renderizar();
+
+    await waitFor(() => expect(queryByText('Tu rutina actual')).not.toBeInTheDocument());
   });
 });

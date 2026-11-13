@@ -5,21 +5,8 @@ import { recordatoriosLocal, rutinaLocal } from '../repositories/local';
 import { sincronizarRecordatorios } from '../services/recordatorios';
 import { DIAS_MAXIMOS, DIAS_MINIMOS, asignarRutina } from '../utils/rutina';
 import { EQUIPOS, EXPERIENCIAS, type EquipoGimnasio, type Experiencia } from '../types/perfil';
+import { ETIQUETAS_EQUIPO, ETIQUETAS_EXPERIENCIA } from '../utils/etiquetasRutina';
 import { useSesion } from '../context/SesionContext';
-
-const ETIQUETAS_EXPERIENCIA: Record<Experiencia, string> = {
-  ninguna: 'Ninguna',
-  'menos-6-meses': 'Menos de 6 meses',
-  'mas-6-meses': 'Más de 6 meses',
-};
-
-const ETIQUETAS_EQUIPO: Record<EquipoGimnasio, string> = {
-  mancuernas: 'Mancuernas',
-  barra: 'Barra y discos',
-  maquinas: 'Máquinas guiadas',
-  poleas: 'Poleas',
-  'peso-corporal': 'Solo peso corporal',
-};
 
 const DIAS_PREDETERMINADOS = 3;
 

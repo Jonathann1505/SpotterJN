@@ -4,7 +4,10 @@ import { useHistory } from 'react-router-dom';
 import { BotonSJ, PantallaSJ } from '../components/PantallaSJ';
 import CerrarSesion from '../components/CerrarSesion';
 import { usePerfil } from '../context/PerfilContext';
-import { METAS_PRINCIPALES, type MetaPrincipal, type UnidadPeso } from '../types/perfil';
+import { useSesion } from '../context/SesionContext';
+import { rutinaLocal } from '../repositories/local';
+import { METAS_PRINCIPALES, type MetaPrincipal, type RutinaAsignada, type UnidadPeso } from '../types/perfil';
+import { ETIQUETAS_EQUIPO, ETIQUETAS_EXPERIENCIA } from '../utils/etiquetasRutina';
 import { LONGITUD_MAXIMA_NOMBRE, esNombreValido } from '../utils/validaciones';
 
 const ETIQUETAS_META: Record<MetaPrincipal, string> = {
@@ -23,8 +26,31 @@ function Perfil() {
   const [nombreTocado, setNombreTocado] = useState(false);
   const [mensaje, setMensaje] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [rutina, setRutina] = useState<RutinaAsignada | null>(null);
   const history = useHistory();
+  const { sesion } = useSesion();
+  const usuarioId = sesion?.user.id ?? null;
   const nombreValido = esNombreValido(nombre);
+
+  useEffect(() => {
+    if (usuarioId === null) {
+      return undefined;
+    }
+
+    let activo = true;
+    void rutinaLocal
+      .obtener(usuarioId)
+      .then((guardada) => {
+        if (activo) {
+          setRutina(guardada);
+        }
+      })
+      .catch(() => undefined);
+
+    return () => {
+      activo = false;
+    };
+  }, [usuarioId]);
 
   useEffect(() => {
     setNombre(perfil.nombre);
@@ -86,6 +112,18 @@ function Perfil() {
         <p className="sj-error" role="alert">
           El nombre es obligatorio y admite hasta {LONGITUD_MAXIMA_NOMBRE} caracteres.
         </p>
+      ) : null}
+
+      {rutina ? (
+        <section className="sj-resumen-rutina" aria-labelledby="resumen-rutina">
+          <h2 className="sj-subtitulo" id="resumen-rutina">Tu rutina actual</h2>
+          <p className="sj-texto">
+            {rutina.dias.length} días por semana · Experiencia: {ETIQUETAS_EXPERIENCIA[rutina.cuestionario.experiencia].toLowerCase()}
+          </p>
+          <p className="sj-texto sj-suave">
+            Equipo: {rutina.cuestionario.equipo.map((item) => ETIQUETAS_EQUIPO[item].toLowerCase()).join(', ')}
+          </p>
+        </section>
       ) : null}
 
       <h2 className="sj-subtitulo" id="pregunta-meta">Meta principal</h2>
