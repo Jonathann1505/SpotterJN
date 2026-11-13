@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { IonSpinner } from '@ionic/react';
+import { IonIcon, IonSpinner } from '@ionic/react';
+import { helpCircleOutline } from 'ionicons/icons';
 import { Redirect, useHistory } from 'react-router-dom';
 import { AyudaTermino } from '../components/AyudaTermino';
 import { MiniaturaEjercicio } from '../components/MiniaturaEjercicio';
@@ -101,7 +102,15 @@ function RutinaAsignada() {
                     <li key={ejercicio.id} className="sj-fila-ejercicio">
                       <MiniaturaEjercicio idEjercicio={ejercicio.id} nombre={ejercicio.nombre} />
                       <span>
-                        {ejercicio.nombre}
+                        <button
+                          type="button"
+                          className="sj-enlace-ejercicio"
+                          aria-label={`Ver la ficha de ${ejercicio.nombre}`}
+                          onClick={() => history.push(`/ejercicio/${ejercicio.id}`)}
+                        >
+                          <span>{ejercicio.nombre}</span>
+                          <IonIcon icon={helpCircleOutline} aria-hidden="true" />
+                        </button>
                         <small className="sj-suave sj-bloque">
                           {formatearPeso(ejercicio.pesoInicialKg, perfil.unidadPeso)}
                         </small>

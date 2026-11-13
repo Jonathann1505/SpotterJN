@@ -18,6 +18,9 @@ function renderizar() {
       <ProveedorPerfil>
         <MemoryRouter initialEntries={['/rutina']}>
           <Route path="/rutina" component={RutinaAsignada} />
+          <Route path="/ejercicio/:id">
+            <p>ficha abierta</p>
+          </Route>
           <Route path="/cuestionario-rutina">
             <p>cuestionario</p>
           </Route>
@@ -83,5 +86,15 @@ describe('RutinaAsignada', () => {
     fireEvent.click(await findByRole('button', { name: '¿Qué es serie?' }));
 
     expect(getByRole('dialog')).toHaveTextContent(/grupo de repeticiones/i);
+  });
+
+  it('abre la ficha de un ejercicio desde la rutina', async () => {
+    await rutinaLocal.guardar('usuario-prueba', asignarRutina({ experiencia: 'ninguna', diasPorSemana: 3, equipo: ['maquinas'] }));
+    const { findAllByRole, findByText } = renderizar();
+
+    const [primeraFicha] = await findAllByRole('button', { name: /^Ver la ficha de / });
+    fireEvent.click(primeraFicha);
+
+    expect(await findByText('ficha abierta')).toBeInTheDocument();
   });
 });
