@@ -1,6 +1,7 @@
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import App from './App';
+import { botonAtras } from './test/navegacion';
 
 vi.mock('./services/auth', () => ({
   cerrarSesion: vi.fn(),
@@ -139,4 +140,32 @@ describe('App', () => {
       });
     },
   );
+
+  it.each(['/terminos', '/privacidad'])('%s vuelve a Consentimientos con el botón atrás', async (ruta) => {
+    window.history.replaceState({}, '', ruta);
+    const { container } = render(<App />);
+
+    await waitFor(() => {
+      expect(botonAtras(container)).toHaveAttribute('default-href', '/consentimientos');
+    });
+  });
+
+  it('las pantallas de acceso raíz no tienen botón atrás', async () => {
+    render(<App />);
+
+    const login = await paginaActiva('Iniciar sesión');
+    expect(login.querySelector('ion-back-button')).toBeNull();
+    fireEvent.click(pestanas(login).getByRole('link', { name: 'Crear cuenta' }));
+
+    const consentimientos = await paginaActiva('Antes de crear tu cuenta');
+    expect(consentimientos.querySelector('ion-back-button')).toBeNull();
+  });
+
+  it('recuperar contraseña vuelve al inicio de sesión con el botón atrás', async () => {
+    window.history.replaceState({}, '', '/recuperar-contrasena');
+    render(<App />);
+
+    const recuperar = await paginaActiva('Olvidé mi contraseña');
+    expect(botonAtras(recuperar)).toHaveAttribute('default-href', '/login');
+  });
 });

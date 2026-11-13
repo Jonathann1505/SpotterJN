@@ -97,4 +97,14 @@ describe('RutinaAsignada', () => {
 
     expect(await findByText('ficha abierta')).toBeInTheDocument();
   });
+
+  it('forma parte del flujo inicial obligatorio y no tiene botón atrás', async () => {
+    await rutinaLocal.guardar(
+      'usuario-prueba',
+      asignarRutina({ experiencia: 'ninguna', diasPorSemana: 3, equipo: ['maquinas'] }),
+    );
+    const { container, findByRole } = renderizar();
+    await findByRole('heading', { name: '3 días por semana' });
+    expect(container.querySelector('ion-back-button')).toBeNull();
+  });
 });

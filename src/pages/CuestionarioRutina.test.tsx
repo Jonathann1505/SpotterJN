@@ -93,4 +93,9 @@ describe('CuestionarioRutina', () => {
     expect(ajustes).toEqual({ activo: true, hora: '07:00' });
     expect(rutina.cuestionario.diasPorSemana).toBe(3);
   });
+
+  it('forma parte del flujo inicial obligatorio y no tiene botón atrás', async () => {
+    const { container } = renderizar();
+    expect(container.querySelector('ion-back-button')).toBeNull();
+  });
 });

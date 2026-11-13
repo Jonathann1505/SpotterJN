@@ -96,4 +96,9 @@ describe('Registro', () => {
       expect(screen.getByTestId('ruta-actual')).toHaveTextContent('/consentimientos');
     });
   });
+
+  it('es una pantalla raíz sin botón atrás', async () => {
+    const { container } = renderRegistro();
+    expect(container.querySelector('ion-back-button')).toBeNull();
+  });
 });
