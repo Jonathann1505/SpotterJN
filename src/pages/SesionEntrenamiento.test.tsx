@@ -45,19 +45,21 @@ describe('SesionEntrenamiento', () => {
 
   afterEach(cleanup);
 
-  it('muestra los ejercicios de la primera jornada de la rutina', async () => {
+  it('muestra la primera jornada con su primer ejercicio como ejercicio actual', async () => {
     const rutina = asignarRutina({
       experiencia: 'ninguna',
       diasPorSemana: 3,
       equipo: ['maquinas'],
     });
     await rutinaLocal.guardar('usuario-prueba', rutina);
+    const [primero] = rutina.dias[0].ejercicios;
 
     const { container } = renderizar();
 
     expect(await screen.findByRole('heading', { name: rutina.dias[0].nombre })).toBeInTheDocument();
-    expect(screen.getByText(rutina.dias[0].ejercicios[0].nombre)).toBeInTheDocument();
-    expect(screen.getAllByText(/series/)).toHaveLength(rutina.dias[0].ejercicios.length);
+    expect(screen.getByRole('heading', { name: primero.nombre })).toBeInTheDocument();
+    expect(screen.getByText(`Ejercicio 1 de ${rutina.dias[0].ejercicios.length}`)).toBeInTheDocument();
+    expect(screen.getByText(`Serie 1 de ${primero.series}`)).toBeInTheDocument();
     expect(container.querySelector('ion-button.sj-boton-secundario')).toHaveTextContent('Volver');
   });
 
