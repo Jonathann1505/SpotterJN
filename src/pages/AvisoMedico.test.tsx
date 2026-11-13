@@ -23,4 +23,15 @@ describe('AvisoMedico', () => {
     fireEvent.click(container.querySelector('ion-button') as Element);
     expect(await findByText('cuestionario')).toBeInTheDocument();
   });
+
+  it('forma parte del flujo inicial obligatorio y no tiene botón atrás', async () => {
+    const { container } = render(
+      <IonApp>
+        <MemoryRouter initialEntries={['/aviso-medico']}>
+          <Route path="/aviso-medico" component={AvisoMedico} />
+        </MemoryRouter>
+      </IonApp>,
+    );
+    expect(container.querySelector('ion-back-button')).toBeNull();
+  });
 });

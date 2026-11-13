@@ -1,5 +1,7 @@
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
-import { IonApp } from '@ionic/react';
+import { IonApp, IonRouterOutlet } from '@ionic/react';
+import { IonReactMemoryRouter } from '@ionic/react-router';
+import { createMemoryHistory } from 'history';
 import { Preferences } from '@capacitor/preferences';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { MemoryRouter, Route } from 'react-router-dom';
@@ -7,6 +9,7 @@ import { ProveedorPerfil } from '../context/PerfilContext';
 import { rutinaLocal } from '../repositories/local';
 import type { RutinaAsignada } from '../types/perfil';
 import { asignarRutina } from '../utils/rutina';
+import { botonAtras, pulsarAtras } from '../test/navegacion';
 import SesionEntrenamiento from './SesionEntrenamiento';
 
 vi.mock('../context/SesionContext', () => ({
@@ -46,14 +49,6 @@ vi.mock('@ionic/react', async (importOriginal) => {
       ) : null,
   };
 });
-
-function pulsarBotonVolver(contenedor: HTMLElement): void {
-  const boton = within(contenedor).getByText('Volver').closest('ion-button');
-  if (!boton) {
-    throw new Error('No se encontró el botón Volver.');
-  }
-  fireEvent.click(boton);
-}
 
 function renderizar() {
   return render(
@@ -95,7 +90,8 @@ describe('SesionEntrenamiento', () => {
     expect(screen.getByRole('heading', { name: primero.nombre })).toBeInTheDocument();
     expect(screen.getByText(`Ejercicio 1 de ${rutina.dias[0].ejercicios.length}`)).toBeInTheDocument();
     expect(screen.getByText(`Serie 1 de ${primero.series}`)).toBeInTheDocument();
-    expect(within(container).getByText('Volver').closest('ion-button')).toBeInTheDocument();
+    expect(botonAtras(container)).toHaveAttribute('default-href', '/hoy');
+    expect(within(container).queryByText('Volver')).not.toBeInTheDocument();
   });
 
   it('vuelve a Hoy sin registrar la sesión', async () => {
@@ -109,18 +105,20 @@ describe('SesionEntrenamiento', () => {
     const { container } = render(
       <IonApp>
         <ProveedorPerfil>
-          <MemoryRouter initialEntries={['/sesion']}>
-            <Route exact path="/sesion" component={SesionEntrenamiento} />
-            <Route exact path="/hoy">
-              <h1>Hoy</h1>
-            </Route>
-          </MemoryRouter>
+          <IonReactMemoryRouter history={createMemoryHistory({ initialEntries: ['/sesion'] })}>
+            <IonRouterOutlet>
+              <Route exact path="/sesion" component={SesionEntrenamiento} />
+              <Route exact path="/hoy">
+                <h1>Hoy</h1>
+              </Route>
+            </IonRouterOutlet>
+          </IonReactMemoryRouter>
         </ProveedorPerfil>
       </IonApp>,
     );
 
     await screen.findByRole('heading', { name: rutina.dias[0].nombre });
-    pulsarBotonVolver(container);
+    pulsarAtras(container);
 
     expect(await screen.findByRole('heading', { name: 'Hoy' })).toBeInTheDocument();
     expect(await rutinaLocal.obtener('usuario-prueba')).toEqual(rutina);

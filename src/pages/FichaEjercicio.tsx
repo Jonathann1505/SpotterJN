@@ -58,7 +58,7 @@ function FichaEjercicio() {
 
   if (cargando) {
     return (
-      <PantallaSJ titulo={ejercicio.nombre}>
+      <PantallaSJ atras="/hoy" titulo={ejercicio.nombre}>
         <CargandoSJ etiqueta="Cargando la ficha" variante="detalle" />
       </PantallaSJ>
     );
@@ -90,6 +90,7 @@ function FichaEjercicio() {
 
   return (
     <PantallaSJ
+      atras="/hoy"
       etiqueta={etiqueta}
       titulo={ejercicio.nombre}
       cabecera={

@@ -104,6 +104,45 @@ ion-content {
   padding-top: var(--sj-espacio-6);
 }
 
+/* Encabezado con botón atrás nativo */
+.sj-encabezado {
+  background: var(--sj-bg);
+}
+
+.sj-encabezado-barra {
+  --background: transparent;
+  --border-width: 0;
+  --color: var(--sj-ink);
+  --min-height: var(--sj-alto-tactil);
+  max-width: var(--sj-ancho-contenido);
+  margin: 0 auto;
+  padding-inline: var(--sj-espacio-2);
+}
+
+.sj-atras {
+  --color: var(--sj-ink);
+  --min-height: 44px;
+  --min-width: 44px;
+  font-family: var(--sj-fuente-familia);
+  font-weight: 600;
+}
+
+/* Android (md) muestra solo la flecha; iOS conserva «‹ Atrás». */
+.sj-atras.md::part(text) {
+  display: none;
+}
+
+.sj-atras:focus-visible {
+  outline: 3px solid var(--sj-blue);
+  outline-offset: 2px;
+}
+
+/* El toolbar ya reserva el área segura superior: se evita duplicarla. */
+.sj-layout.sj-con-encabezado,
+.sj-acceso-layout.sj-con-encabezado {
+  padding-top: var(--sj-espacio-2);
+}
+
 .sj-pie-fijo {
   position: sticky;
   bottom: 0;

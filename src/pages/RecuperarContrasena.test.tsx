@@ -2,6 +2,7 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { IonApp } from '@ionic/react';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { botonAtras } from '../test/navegacion';
 import RecuperarContrasena from './RecuperarContrasena';
 import { solicitarRecuperacion } from '../services/auth';
 
@@ -45,13 +46,11 @@ describe('RecuperarContrasena', () => {
     expect(boton).toHaveAttribute('disabled', 'false');
   });
 
-  it('permite volver al inicio de sesión desde el diseño de acceso', () => {
-    renderRecuperarContrasena();
+  it('permite volver al inicio de sesión con el botón atrás del encabezado', () => {
+    const { container } = renderRecuperarContrasena();
 
-    expect(screen.getByRole('link', { name: 'Volver a iniciar sesión' })).toHaveAttribute(
-      'href',
-      '/login',
-    );
+    expect(botonAtras(container)).toHaveAttribute('default-href', '/login');
+    expect(screen.queryByRole('link', { name: 'Volver a iniciar sesión' })).not.toBeInTheDocument();
   });
 
   it('muestra una confirmación genérica sin revelar si el correo existe', async () => {

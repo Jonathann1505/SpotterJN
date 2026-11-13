@@ -129,10 +129,10 @@ function RutasAplicacion() {
           {sesion ? <SesionEntrenamiento /> : <Redirect to="/login" />}
         </Route>
         <Route exact path="/terminos">
-          <PantallaSJ titulo="Términos">{null}</PantallaSJ>
+          <PantallaSJ atras="/consentimientos" titulo="Términos">{null}</PantallaSJ>
         </Route>
         <Route exact path="/privacidad">
-          <PantallaSJ titulo="Privacidad">{null}</PantallaSJ>
+          <PantallaSJ atras="/consentimientos" titulo="Privacidad">{null}</PantallaSJ>
         </Route>
         <Route>
           <Redirect to={sesion ? '/hoy' : '/login'} />

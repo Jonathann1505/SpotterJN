@@ -1,5 +1,15 @@
 import type { ReactNode } from 'react';
-import { IonButton, IonContent, IonIcon, IonPage } from '@ionic/react';
+import {
+  IonBackButton,
+  IonButton,
+  IonButtons,
+  IonContent,
+  IonHeader,
+  IonIcon,
+  IonPage,
+  IonTitle,
+  IonToolbar,
+} from '@ionic/react';
 import { chevronForward } from 'ionicons/icons';
 import { Link } from 'react-router-dom';
 import logo from '../assets/logo-spotterjn.webp';
@@ -15,6 +25,29 @@ export function LogoSJ({ grande = false }: PropiedadesLogo) {
       src={logo}
       alt="Logo de SpotterJN: una rata levantando pesas"
     />
+  );
+}
+
+interface PropiedadesEncabezado {
+  /** Ruta a la que vuelve el botón si no hay historial (por ejemplo, al abrir la app en esta pantalla). */
+  defaultHref: string;
+  titulo?: string;
+}
+
+/**
+ * Encabezado transparente con el botón atrás nativo de Ionic: flecha en Android y «‹ Atrás» en iOS.
+ * Respeta el área segura y deja que Ionic gestione el botón físico de Android y el gesto de iOS.
+ */
+export function EncabezadoSJ({ defaultHref, titulo }: PropiedadesEncabezado) {
+  return (
+    <IonHeader className="sj sj-encabezado ion-no-border">
+      <IonToolbar className="sj-encabezado-barra">
+        <IonButtons slot="start">
+          <IonBackButton className="sj-atras" defaultHref={defaultHref} text="Atrás" aria-label="Volver" />
+        </IonButtons>
+        {titulo ? <IonTitle>{titulo}</IonTitle> : null}
+      </IonToolbar>
+    </IonHeader>
   );
 }
 
@@ -39,14 +72,17 @@ export function PestanasAccesoSJ({ activa }: PropiedadesPestanasAcceso) {
 
 interface PropiedadesMarcoAcceso {
   activa: VistaAcceso;
+  /** Ruta por defecto del botón atrás; omítela en las pantallas raíz. */
+  atras?: string;
   children: ReactNode;
 }
 
-export function MarcoAccesoSJ({ activa, children }: PropiedadesMarcoAcceso) {
+export function MarcoAccesoSJ({ activa, atras, children }: PropiedadesMarcoAcceso) {
   return (
     <IonPage>
+      {atras ? <EncabezadoSJ defaultHref={atras} /> : null}
       <IonContent className="sj sj-acceso">
-        <main className="sj-acceso-layout">
+        <main className={atras ? 'sj-acceso-layout sj-con-encabezado' : 'sj-acceso-layout'}>
           <LogoSJ grande />
           <PestanasAccesoSJ activa={activa} />
           <section className="sj-acceso-panel">{children}</section>
@@ -57,6 +93,8 @@ export function MarcoAccesoSJ({ activa, children }: PropiedadesMarcoAcceso) {
 }
 
 interface PropiedadesPantalla {
+  /** Ruta por defecto del botón atrás; toda pantalla secundaria debe indicarla. */
+  atras?: string;
   etiqueta?: string;
   titulo: string;
   reglaBajoTitulo?: boolean;
@@ -69,6 +107,7 @@ interface PropiedadesPantalla {
 }
 
 export function PantallaSJ({
+  atras,
   etiqueta,
   titulo,
   reglaBajoTitulo = false,
@@ -80,8 +119,9 @@ export function PantallaSJ({
 }: PropiedadesPantalla) {
   return (
     <IonPage>
+      {atras ? <EncabezadoSJ defaultHref={atras} /> : null}
       <IonContent className="sj">
-        <div className="sj-layout">
+        <div className={atras ? 'sj-layout sj-con-encabezado' : 'sj-layout'}>
           <main className="sj-main">
             {cabecera}
             {mostrarLogo ? <LogoSJ /> : null}

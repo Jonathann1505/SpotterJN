@@ -58,6 +58,7 @@ function Perfil() {
 
   return (
     <PantallaSJ
+      atras="/hoy"
       etiqueta="Tu cuenta"
       titulo="Tu perfil"
       reglaBajoTitulo
@@ -67,7 +68,6 @@ function Perfil() {
           <BotonSJ variante="secundario" onClick={() => history.push('/ajustes')}>Recordatorios</BotonSJ>
           <BotonSJ variante="secundario" onClick={() => history.push('/glosario')}>Glosario</BotonSJ>
           <CerrarSesion />
-          <BotonSJ variante="texto" onClick={() => history.goBack()}>Volver</BotonSJ>
         </>
       }
     >

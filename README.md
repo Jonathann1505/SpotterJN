@@ -127,6 +127,38 @@ Para nuevas pantallas autenticadas o de entrenamiento, usa `PantallaSJ` y `Boton
 
 Los campos Ionic usan la clase `sj-campo` y una etiqueta visible; las casillas de acceso reciben el estilo compartido por `.sj-acceso`. `sj-tarjeta` sirve para superficies con borde, los estados usan `sj-error` y `sj-ok`, y las cargas de contenido usan `CargandoSJ` (skeletons con la forma de la pantalla); `sj-cargando` queda solo para la verificación inicial de sesión. Las alertas, cargas, toast y modales de Ionic reciben colores, tipografía y bordes del tema global. No dupliques valores de color, radios, espacios o tamaños en hojas de estilo de páginas; usa los tokens o las clases compartidas. Las pantallas respetan las áreas seguras con `env(safe-area-inset-*)`.
 
+### Navegación hacia atrás
+
+Toda pantalla **secundaria** usa el encabezado con el botón atrás nativo de Ionic indicando su ruta por defecto; las pantallas **raíz** no lo llevan. No se usan botones «Volver» propios.
+
+```tsx
+<PantallaSJ atras="/perfil" titulo="Glosario">…</PantallaSJ>
+<MarcoAccesoSJ activa="login" atras="/login">…</MarcoAccesoSJ>
+```
+
+- `EncabezadoSJ` (`src/components/PantallaSJ.tsx`) usa `IonHeader`, `IonToolbar` e `IonBackButton` en `slot="start"` con `defaultHref` obligatoria. `PantallaSJ` y `MarcoAccesoSJ` lo muestran con la prop `atras`.
+- Ionic adapta el estilo a la plataforma: solo flecha en Android (modo `md`) y «‹ Atrás» en iOS. No se fuerza un modo.
+- Es transparente, sin borde ni sombra, con la flecha en el color de texto del tema. Tiene la etiqueta «Volver» para lectores de pantalla y una zona táctil mínima de 44×44 px.
+- El toolbar reserva el área segura superior; la clase `sj-con-encabezado` reduce el margen del contenido para no duplicarla.
+- El botón físico de Android y el gesto de deslizar en iOS los gestiona `IonRouterOutlet`; no hay manejadores propios.
+- `defaultHref` solo se usa si no hay historial (por ejemplo, al abrir la app en esa pantalla); si lo hay, se vuelve a la pantalla anterior.
+
+| Pantalla | Ruta | `atras` |
+| --- | --- | --- |
+| Perfil | `/perfil` | `/hoy` |
+| Recordatorios | `/ajustes` | `/perfil` |
+| Glosario | `/glosario` | `/perfil` |
+| Sesión | `/sesion` | `/hoy` |
+| Ficha del ejercicio | `/ejercicio/:id` | `/hoy` |
+| Recuperar contraseña | `/recuperar-contrasena` | `/login` |
+| Términos / Privacidad | `/terminos`, `/privacidad` | `/consentimientos` |
+
+Sin botón atrás: `/login`, `/consentimientos` y `/registro` (pestañas de acceso), `/hoy` y el flujo inicial obligatorio (`/aviso-medico`, `/salud`, `/cuestionario-rutina`, `/rutina`). Las acciones «Volver a Hoy», «Entendido» e «Ir a Hoy» se mantienen porque no son botones de atrás.
+
+`@ionic/react-router` debe tener **la misma versión** que `@ionic/react`: la primera fija exactamente su versión de `@ionic/react`, y si no coinciden se empaquetan dos copias de Ionic y el router deja de compartir su contexto (el botón atrás recargaría la página en lugar de navegar). Al actualizar Ionic, actualiza ambos paquetes juntos y comprueba con `npm ls @ionic/react` que aparezca `deduped`.
+
+Pendiente de probar en dispositivo: el botón atrás en Android (flecha) y en iOS («‹ Atrás»), el botón físico de Android, el gesto de deslizar en iOS y el área segura con notch.
+
 ### Animaciones y microinteracciones
 
 - **Transición entre páginas:** `src/theme/transiciones.ts` define `transicionPaginaSJ` con `createAnimation` de Ionic y se registra en `setupIonicReact({ navAnimation })`. Al avanzar, la pantalla nueva entra con fundido y 12 px de desplazamiento en 260 ms con `cubic-bezier(0.2, 0, 0, 1)`; al regresar, la actual sale en 200 ms.

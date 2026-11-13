@@ -97,4 +97,12 @@ describe('Hoy', () => {
 
     expect(await findByText('pantalla de sesión')).toBeInTheDocument();
   });
+
+  it('es una pantalla raíz sin botón atrás', async () => {
+    await saludLocal.guardar('usuario-prueba', salud);
+    await rutinaLocal.guardar('usuario-prueba', rutina);
+    const { container, findByRole } = renderizar();
+    await findByRole('heading', { name: rutina.dias[0].nombre });
+    expect(container.querySelector('ion-back-button')).toBeNull();
+  });
 });
