@@ -68,6 +68,15 @@ describe('Hoy', () => {
     expect(getByText('Empezar entrenamiento')).toBeInTheDocument();
   });
 
+  it('saluda por el nombre del perfil', async () => {
+    await perfilLocal.guardar('usuario-prueba', { nombre: 'Nayeli', meta: 'fuerza', unidadPeso: 'kg' });
+    await saludLocal.guardar('usuario-prueba', salud);
+    await rutinaLocal.guardar('usuario-prueba', rutina);
+    const { findByText } = renderizar();
+
+    expect(await findByText('Hola, Nayeli. Esta es tu sesión de hoy.')).toBeInTheDocument();
+  });
+
   it('resume la sesión con ejercicios, series y minutos aproximados', async () => {
     await saludLocal.guardar('usuario-prueba', salud);
     await rutinaLocal.guardar('usuario-prueba', rutina);

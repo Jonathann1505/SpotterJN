@@ -87,6 +87,7 @@ function Hoy() {
         </>
       }
     >
+      {perfil.nombre.trim() !== '' ? <p className="sj-texto">Hola, {perfil.nombre.trim()}. Esta es tu sesión de hoy.</p> : null}
       <p className="sj-texto sj-suave">{describirSesion(proximaSesion)}</p>
       <ul className="sj-lista sj-lista-hoy">
         {proximaSesion.ejercicios.map((ejercicio) => (
