@@ -34,6 +34,36 @@ export const GLOSARIO: readonly TerminoGlosario[] = [
     definicion:
       'El peso con el que haces tus series normales: lo bastante pesado para que cueste, pero que te deja terminar todas las repeticiones con buena técnica.',
   },
+  {
+    id: 'calentamiento',
+    termino: 'Calentamiento',
+    definicion:
+      'Unos minutos de movimiento suave antes de empezar, como caminar o hacer el ejercicio con muy poco peso, para preparar músculos y articulaciones.',
+  },
+  {
+    id: 'descanso',
+    termino: 'Descanso entre series',
+    definicion:
+      'El tiempo que esperas entre una serie y la siguiente para recuperar el aliento y las fuerzas. En SpotterJN el temporizador empieza en 90 segundos.',
+  },
+  {
+    id: 'tecnica',
+    termino: 'Técnica',
+    definicion:
+      'La forma correcta de hacer un ejercicio: postura, recorrido y velocidad. Con buena técnica entrenas el músculo que quieres y cuidas tus articulaciones.',
+  },
+  {
+    id: 'progresion',
+    termino: 'Progresión',
+    definicion:
+      'Aumentar poco a poco el peso o las repeticiones cuando el ejercicio ya te resulta controlable. Avanzar despacio es lo que te hace más fuerte sin lesionarte.',
+  },
+  {
+    id: 'peso-corporal',
+    termino: 'Peso corporal',
+    definicion:
+      'Ejercicios que haces sin pesas ni máquinas, usando solo tu propio cuerpo como resistencia, como las flexiones o las zancadas.',
+  },
 ];
 
 export function buscarTermino(id: string): TerminoGlosario | undefined {

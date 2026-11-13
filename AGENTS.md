@@ -130,3 +130,14 @@
 - APK de depuración regenerada con JDK 21 en `android/app/build/outputs/apk/debug/app-debug.apk`.
 - Pendiente: revisar las animaciones en un emulador o celular real; no había dispositivo conectado durante la implementación.
 - Verificación: `npm test` (229 pruebas/38 archivos), `npm run build`, `npx cap sync android` y `gradlew assembleDebug` aprobados.
+
+### 2026-11-13 — Registro de serie, autoevaluación y Sentí dolor
+
+- Rama `feature/sesion-autoevaluacion` creada desde `develop`; no incluye `feature/microinteracciones`, que sigue sin integrarse.
+- `/sesion` pasó de listar la jornada a recorrerla ejercicio por ejercicio: «Ejercicio N de M», «Serie X de Y», `ContadorNumerico` de repeticiones (0-50) y de peso según la unidad del perfil (oculto en peso corporal), autoevaluación Fácil/Normal/Difícil como `radiogroup` y «Guardar serie» deshabilitado hasta elegir una opción (RF-10).
+- Decisión: al guardar la última serie del último ejercicio se muestra «Sesión completada» con «Volver a Hoy».
+- Añadido «Sentí dolor» (RF-13): botón secundario con ícono en un pie fijo (`pieFijo` de `PantallaSJ`; `BotonSJ` acepta `icono`), `IonAlert` sin cierre por fondo que recomienda detenerse y consultar a un profesional; al confirmar pasa al siguiente ejercicio sin contar la serie. «Volver» pasó a variante texto para distinguirlo del botón de seguridad.
+- Decisión: en el último ejercicio el botón dice «Entendido, terminar la sesión» y se muestra «Sesión finalizada» con la recomendación.
+- Lógica de avance en funciones puras de `src/utils/sesion.ts` con pruebas propias.
+- Pendientes: persistir series y autoevaluaciones, registrar «interrumpido por molestia» en un historial, progresión de carga, conectar el descanso RF-11 entre series y revisar la pantalla en navegador y celular (no se verificó visualmente).
+- Verificación: `npm test` (241 pruebas/37 archivos) y `npm run build` aprobados.
