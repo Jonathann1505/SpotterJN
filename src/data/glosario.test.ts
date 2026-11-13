@@ -7,6 +7,13 @@ describe('glosario', () => {
     expect(ids).toEqual(expect.arrayContaining(['serie', 'repeticion', 'fallo']));
   });
 
+  it('explica calentamiento, descanso, técnica, progresión y peso corporal', () => {
+    const ids = GLOSARIO.map((termino) => termino.id);
+    expect(ids).toEqual(
+      expect.arrayContaining(['calentamiento', 'descanso', 'tecnica', 'progresion', 'peso-corporal']),
+    );
+  });
+
   it('no repite identificadores y todas las definiciones tienen contenido', () => {
     const ids = GLOSARIO.map((termino) => termino.id);
     expect(new Set(ids).size).toBe(ids.length);
