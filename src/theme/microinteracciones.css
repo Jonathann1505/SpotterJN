@@ -1,0 +1,188 @@
+/*
+ * Microinteracciones de SpotterJN.
+ * Solo se animan transform, opacity y colores; todas las duraciones están entre 150 y 300 ms.
+ * Las animaciones usan fill-mode "backwards" para no dejar transformaciones aplicadas
+ * (evita crear contextos de apilamiento que afecten diálogos fijos).
+ */
+:root {
+  --sj-duracion-rapida: 150ms;
+  --sj-duracion-media: 220ms;
+  --sj-duracion-lenta: 260ms;
+  --sj-easing-entrada: cubic-bezier(0.2, 0, 0, 1);
+  --sj-easing-estandar: cubic-bezier(0.2, 0, 0.2, 1);
+  --sj-escala-toque: 0.97;
+}
+
+@keyframes sj-entrada {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes sj-aparecer {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes sj-subir-dialogo {
+  from {
+    transform: translateY(24px);
+  }
+
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* Entrada escalonada del contenido de cada pantalla */
+.sj-main > *,
+.sj-acceso-layout > *,
+.sj-acceso-panel form > * {
+  animation: sj-entrada var(--sj-duracion-media) var(--sj-easing-entrada) backwards;
+}
+
+.sj-main > :nth-child(2),
+.sj-acceso-layout > :nth-child(2),
+.sj-acceso-panel form > :nth-child(2) {
+  animation-delay: 20ms;
+}
+
+.sj-main > :nth-child(3),
+.sj-acceso-layout > :nth-child(3),
+.sj-acceso-panel form > :nth-child(3) {
+  animation-delay: 40ms;
+}
+
+.sj-main > :nth-child(4),
+.sj-acceso-panel form > :nth-child(4) {
+  animation-delay: 60ms;
+}
+
+.sj-main > :nth-child(n + 5),
+.sj-acceso-panel form > :nth-child(n + 5) {
+  animation-delay: 80ms;
+}
+
+.sj-pie {
+  animation: sj-aparecer var(--sj-duracion-media) var(--sj-easing-estandar) 60ms backwards;
+}
+
+/* Mensajes de error y confirmación aparecen sin saltos */
+.sj-error,
+.sj-ok {
+  animation: sj-aparecer var(--sj-duracion-rapida) var(--sj-easing-estandar) backwards;
+}
+
+/* Paneles desplegables de la rutina */
+.sj-fila-titulo + .sj-lista {
+  animation: sj-entrada var(--sj-duracion-media) var(--sj-easing-entrada) backwards;
+}
+
+/* Diálogo de ayuda: el fondo se funde y la hoja sube */
+.sj-dialogo-fondo {
+  animation: sj-aparecer var(--sj-duracion-media) var(--sj-easing-estandar) backwards;
+}
+
+.sj-dialogo {
+  animation: sj-subir-dialogo var(--sj-duracion-lenta) var(--sj-easing-entrada) backwards;
+}
+
+/* Respuesta visual al tocar botones, opciones y tarjetas interactivas */
+.sj ion-button,
+.sj-opcion,
+.sj-enlace-ejercicio,
+.sj-fila-titulo,
+.sj-tabs a,
+.sj-contador button,
+.sj-contador-boton,
+.sj-acceso-enlace a,
+.sj-miniatura {
+  transition:
+    transform var(--sj-duracion-rapida) var(--sj-easing-estandar),
+    background-color var(--sj-duracion-rapida) var(--sj-easing-estandar),
+    color var(--sj-duracion-rapida) var(--sj-easing-estandar),
+    opacity var(--sj-duracion-rapida) var(--sj-easing-estandar);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.sj ion-button:not(.button-disabled):active,
+.sj-opcion:active,
+.sj-fila-titulo:active,
+.sj-tabs a:active,
+.sj-contador button:not(:disabled):active,
+.sj-contador-boton:not(:disabled):active {
+  transform: scale(var(--sj-escala-toque));
+}
+
+.sj-enlace-ejercicio:active,
+.sj-acceso-enlace a:active {
+  opacity: 0.7;
+}
+
+.sj-fila-ejercicio:active .sj-miniatura {
+  transform: scale(0.94);
+}
+
+/* Estados de carga con skeleton */
+.sj-skeleton {
+  display: grid;
+  gap: var(--sj-espacio-3);
+  margin-top: var(--sj-espacio-4);
+  animation: sj-aparecer var(--sj-duracion-media) var(--sj-easing-estandar) backwards;
+}
+
+.sj-skeleton ion-skeleton-text {
+  --background: var(--sj-color-paso-100);
+  --background-rgb: 217, 217, 217;
+  --border-radius: var(--sj-radio);
+  margin: 0;
+}
+
+.sj-skeleton-tarjeta {
+  display: grid;
+  gap: var(--sj-espacio-2);
+  padding: var(--sj-espacio-4);
+  border: var(--sj-borde-ancho) solid var(--sj-color-paso-100);
+}
+
+.sj-skeleton-fila {
+  display: flex;
+  align-items: center;
+  gap: var(--sj-espacio-3);
+}
+
+.sj-skeleton-fila > div {
+  display: grid;
+  flex: 1 1 auto;
+  gap: var(--sj-espacio-1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+  }
+
+  .sj ion-button:active,
+  .sj-opcion:active,
+  .sj-fila-titulo:active,
+  .sj-tabs a:active,
+  .sj-contador button:active,
+  .sj-contador-boton:active,
+  .sj-fila-ejercicio:active .sj-miniatura {
+    transform: none;
+  }
+}

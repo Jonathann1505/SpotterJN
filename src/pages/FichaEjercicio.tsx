@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { IonIcon, IonSpinner } from '@ionic/react';
+import { IonIcon } from '@ionic/react';
 import { locationOutline } from 'ionicons/icons';
 import { Redirect, useHistory, useParams } from 'react-router-dom';
 import { AnimacionEjercicio } from '../components/AnimacionEjercicio';
+import { CargandoSJ } from '../components/CargandoSJ';
 import { BotonSJ, LogoSJ, PantallaSJ } from '../components/PantallaSJ';
 import { useSesion } from '../context/SesionContext';
 import { buscarEjercicio } from '../data/ejercicios';
@@ -58,7 +59,7 @@ function FichaEjercicio() {
   if (cargando) {
     return (
       <PantallaSJ titulo={ejercicio.nombre}>
-        <IonSpinner aria-label="Cargando la ficha" />
+        <CargandoSJ etiqueta="Cargando la ficha" variante="detalle" />
       </PantallaSJ>
     );
   }

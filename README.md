@@ -32,6 +32,7 @@ SpotterJN/
 │   │   ├── AnimacionEjercicio.tsx # animación del ejercicio en iframe aislado
 │   │   ├── MiniaturaEjercicio.tsx # miniatura animada en Hoy y Rutina
 │   │   ├── AyudaTermino.tsx      # ícono de ayuda con la definición de un término
+│   │   ├── CargandoSJ.tsx        # estados de carga con skeletons
 │   │   ├── CerrarSesion.tsx
 │   │   ├── ContadorNumerico.tsx  # stepper controlado de peso y repeticiones (RF-10)
 │   │   ├── PantallaSJ.tsx       # marco de pantalla, botones y acceso compartidos
@@ -80,7 +81,9 @@ SpotterJN/
 │   │   └── validaciones.ts
 │   ├── vite-env.d.ts
 │   ├── theme/
+│   │   ├── microinteracciones.css # entradas, respuesta al tocar y skeletons
 │   │   ├── spotter-ui.css
+│   │   ├── transiciones.ts       # transición de páginas con createAnimation
 │   │   └── variables.css
 │   ├── test/
 │   │   └── setup.ts
@@ -122,7 +125,15 @@ Tokens principales:
 
 Para nuevas pantallas autenticadas o de entrenamiento, usa `PantallaSJ` y `BotonSJ` desde `src/components/PantallaSJ.tsx`. `PantallaSJ` ofrece el encabezado y el marco con áreas seguras; `BotonSJ` expone las variantes `principal`, `secundario` y `texto`. Para acceso, `MarcoAccesoSJ`, `LogoSJ` y `PestanasAccesoSJ` comparten el diseño del logo y las pestañas. Estas navegan por las rutas existentes y mantienen el paso obligatorio de Consentimientos antes del registro.
 
-Los campos Ionic usan la clase `sj-campo` y una etiqueta visible; las casillas de acceso reciben el estilo compartido por `.sj-acceso`. `sj-tarjeta` sirve para superficies con borde, y los estados usan `sj-cargando`, `sj-error` y `sj-ok`. Las alertas, cargas, toast y modales de Ionic reciben colores, tipografía y bordes del tema global. No dupliques valores de color, radios, espacios o tamaños en hojas de estilo de páginas; usa los tokens o las clases compartidas. Las pantallas respetan las áreas seguras con `env(safe-area-inset-*)`.
+Los campos Ionic usan la clase `sj-campo` y una etiqueta visible; las casillas de acceso reciben el estilo compartido por `.sj-acceso`. `sj-tarjeta` sirve para superficies con borde, los estados usan `sj-error` y `sj-ok`, y las cargas de contenido usan `CargandoSJ` (skeletons con la forma de la pantalla); `sj-cargando` queda solo para la verificación inicial de sesión. Las alertas, cargas, toast y modales de Ionic reciben colores, tipografía y bordes del tema global. No dupliques valores de color, radios, espacios o tamaños en hojas de estilo de páginas; usa los tokens o las clases compartidas. Las pantallas respetan las áreas seguras con `env(safe-area-inset-*)`.
+
+### Animaciones y microinteracciones
+
+- **Transición entre páginas:** `src/theme/transiciones.ts` define `transicionPaginaSJ` con `createAnimation` de Ionic y se registra en `setupIonicReact({ navAnimation })`. Al avanzar, la pantalla nueva entra con fundido y 12 px de desplazamiento en 260 ms con `cubic-bezier(0.2, 0, 0, 1)`; al regresar, la actual sale en 200 ms.
+- **Entradas y respuesta al tocar:** `src/theme/microinteracciones.css` escalona la entrada del contenido (220 ms, retrasos de hasta 80 ms), reduce botones, opciones y pestañas a escala 0,97 al tocarlos (150 ms) y anima mensajes, paneles de la rutina y el diálogo de ayuda.
+- **Rendimiento:** solo se animan `transform`, `opacity` y colores, y las animaciones usan `fill-mode: backwards` para no dejar transformaciones aplicadas.
+- **Accesibilidad:** con «Reducir movimiento» activo en el sistema, la transición dura 0 ms y se desactivan entradas y escalas.
+- Para nuevas pantallas, usa `PantallaSJ` o `MarcoAccesoSJ` (heredan la entrada) y `CargandoSJ` con `variante="lista"` o `"detalle"` para cargas.
 
 ## Requisitos
 

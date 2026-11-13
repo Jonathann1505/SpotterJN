@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { IonAlert, IonSpinner } from '@ionic/react';
+import { IonAlert } from '@ionic/react';
 import { alertCircleOutline } from 'ionicons/icons';
 import { Redirect, useHistory } from 'react-router-dom';
+import { CargandoSJ } from '../components/CargandoSJ';
 import ContadorNumerico from '../components/ContadorNumerico';
 import { BotonSJ, PantallaSJ } from '../components/PantallaSJ';
 import { usePerfil } from '../context/PerfilContext';
@@ -76,9 +77,7 @@ function SesionEntrenamiento() {
   if (cargando) {
     return (
       <PantallaSJ etiqueta="Sesión de entrenamiento" titulo="Preparando tu sesión">
-        <div className="sj-cargando">
-          <IonSpinner aria-label="Cargando tu rutina" />
-        </div>
+        <CargandoSJ etiqueta="Cargando tu rutina" />
       </PantallaSJ>
     );
   }

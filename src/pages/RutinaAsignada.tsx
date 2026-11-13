@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
-import { IonIcon, IonSpinner } from '@ionic/react';
+import { IonIcon } from '@ionic/react';
 import { helpCircleOutline } from 'ionicons/icons';
 import { Redirect, useHistory } from 'react-router-dom';
 import { AyudaTermino } from '../components/AyudaTermino';
 import { MiniaturaEjercicio } from '../components/MiniaturaEjercicio';
+import { CargandoSJ } from '../components/CargandoSJ';
 import { BotonSJ, PantallaSJ } from '../components/PantallaSJ';
 import { usePerfil } from '../context/PerfilContext';
 import { rutinaLocal } from '../repositories/local';
@@ -55,9 +56,7 @@ function RutinaAsignada() {
   if (cargando) {
     return (
       <PantallaSJ titulo="Tu rutina">
-        <div className="sj-cargando">
-          <IonSpinner aria-label="Cargando rutina" />
-        </div>
+        <CargandoSJ etiqueta="Cargando rutina" />
       </PantallaSJ>
     );
   }
