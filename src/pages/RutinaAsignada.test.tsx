@@ -52,6 +52,7 @@ describe('RutinaAsignada', () => {
     expect(getAllByRole('button', { name: /Día \d/ })).toHaveLength(3);
     expect(getByText(/Entrenas cuerpo completo/)).toBeInTheDocument();
     expect(getAllByText(/series · ≈ \d+ min/)).toHaveLength(3);
+    expect(getByText(/Cada semana: 3 sesiones/)).toBeInTheDocument();
     expect(getAllByText(/3x12/).length).toBeGreaterThan(0);
   });
 

@@ -9,7 +9,7 @@ import { BotonSJ, PantallaSJ } from '../components/PantallaSJ';
 import { usePerfil } from '../context/PerfilContext';
 import { rutinaLocal } from '../repositories/local';
 import type { RutinaAsignada as Rutina } from '../types/perfil';
-import { describirRutina, describirSesion } from '../utils/rutina';
+import { describirRutina, describirSemana, describirSesion } from '../utils/rutina';
 import { formatearPeso } from '../utils/unidades';
 import { useSesion } from '../context/SesionContext';
 
@@ -77,6 +77,7 @@ function RutinaAsignada() {
       }
     >
       <p className="sj-texto sj-suave">{describirRutina(rutina)} Toca un día para ver sus ejercicios.</p>
+      <p className="sj-texto sj-suave">{describirSemana(rutina)}</p>
       <p className="sj-texto">
         Cada ejercicio indica sus <AyudaTermino termino="serie">series</AyudaTermino> y{' '}
         <AyudaTermino termino="repeticion">repeticiones</AyudaTermino>.
