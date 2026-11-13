@@ -13,6 +13,40 @@ vi.mock('../context/SesionContext', () => ({
   useSesion: () => ({ sesion: { user: { id: 'usuario-prueba' } } }),
 }));
 
+vi.mock('@ionic/react', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@ionic/react')>();
+
+  interface BotonAlerta {
+    text: string;
+    handler?: () => boolean | void;
+  }
+
+  return {
+    ...actual,
+    IonAlert: ({
+      isOpen,
+      header,
+      message,
+      buttons,
+    }: {
+      isOpen: boolean;
+      header: string;
+      message: string;
+      buttons: BotonAlerta[];
+    }) =>
+      isOpen ? (
+        <div role="alertdialog" aria-label={header}>
+          <p>{message}</p>
+          {buttons.map((boton) => (
+            <button key={boton.text} type="button" onClick={() => boton.handler?.()}>
+              {boton.text}
+            </button>
+          ))}
+        </div>
+      ) : null,
+  };
+});
+
 function pulsarBotonVolver(contenedor: HTMLElement): void {
   const boton = within(contenedor).getByText('Volver').closest('ion-button');
   if (!boton) {
@@ -193,6 +227,67 @@ describe('SesionEntrenamiento', () => {
       fireEvent.click(volver);
 
       expect(await screen.findByRole('heading', { name: 'Hoy' })).toBeInTheDocument();
+    });
+
+    describe('Sentí dolor', () => {
+      function pulsarSentiDolor(): void {
+        const boton = screen.getByText('Sentí dolor').closest('ion-button');
+        if (!boton) {
+          throw new Error('No se encontró el botón Sentí dolor.');
+        }
+        fireEvent.click(boton);
+      }
+
+      it('muestra un botón secundario con ícono y abre la recomendación', async () => {
+        await iniciar();
+        const boton = screen.getByText('Sentí dolor').closest('ion-button');
+        expect(boton).toHaveClass('sj-boton-secundario');
+        expect(boton?.querySelector('ion-icon')).toBeInTheDocument();
+        expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+
+        pulsarSentiDolor();
+
+        const dialogo = screen.getByRole('alertdialog', { name: 'Detén este ejercicio' });
+        expect(dialogo).toHaveTextContent('consulta a un profesional de la salud');
+        expect(dialogo).toHaveTextContent('Esta serie no cuenta como fallida');
+      });
+
+      it('pasa al siguiente ejercicio sin contar la serie en curso', async () => {
+        await iniciar();
+        guardarCon('Fácil');
+        fireEvent.click(screen.getByRole('radio', { name: 'Difícil' }));
+        expect(screen.getByText('Serie 2 de 2')).toBeInTheDocument();
+
+        pulsarSentiDolor();
+        fireEvent.click(
+          within(screen.getByRole('alertdialog')).getByRole('button', {
+            name: 'Entendido, continuar con otro ejercicio',
+          }),
+        );
+
+        expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+        expect(screen.getByRole('heading', { name: 'Flexiones' })).toBeInTheDocument();
+        expect(screen.getByText('Ejercicio 2 de 2')).toBeInTheDocument();
+        expect(screen.getByText('Serie 1 de 1')).toBeInTheDocument();
+        expect(screen.getByRole('radio', { name: 'Difícil' })).toHaveAttribute('aria-checked', 'false');
+        expect(screen.queryByRole('heading', { name: 'Sesión completada' })).not.toBeInTheDocument();
+      });
+
+      it('en el último ejercicio termina la sesión con el aviso de molestia', async () => {
+        await iniciar();
+        guardarCon('Normal');
+        guardarCon('Normal');
+        expect(screen.getByRole('heading', { name: 'Flexiones' })).toBeInTheDocument();
+
+        pulsarSentiDolor();
+        fireEvent.click(
+          within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Entendido, terminar la sesión' }),
+        );
+
+        expect(screen.getByRole('heading', { name: 'Sesión finalizada' })).toBeInTheDocument();
+        expect(screen.getByRole('status')).toHaveTextContent('consulta a un profesional de la salud');
+        expect(screen.queryByRole('heading', { name: 'Sesión completada' })).not.toBeInTheDocument();
+      });
     });
   });
 });

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { DiaRutina } from '../types/perfil';
-import { PROGRESO_INICIAL, avanzarSerie, esPesoCorporal } from './sesion';
+import { PROGRESO_INICIAL, avanzarSerie, esPesoCorporal, esUltimoEjercicio, saltarEjercicio } from './sesion';
 
 const dia: DiaRutina = {
   nombre: 'Día 1 – Prueba',
@@ -44,5 +44,31 @@ describe('esPesoCorporal', () => {
 
   it('trata como peso corporal un ejercicio desconocido sin carga inicial', () => {
     expect(esPesoCorporal({ id: 'desconocido', nombre: 'X', series: 1, repeticiones: 1, pesoInicialKg: 0 })).toBe(true);
+  });
+});
+
+describe('saltarEjercicio', () => {
+  it('pasa al siguiente ejercicio sin contar la serie en curso', () => {
+    expect(saltarEjercicio({ indiceEjercicio: 0, serie: 2, completada: false }, dia)).toEqual({
+      indiceEjercicio: 1,
+      serie: 1,
+      completada: false,
+    });
+  });
+
+  it('termina la sesión si se interrumpe el último ejercicio', () => {
+    expect(saltarEjercicio({ indiceEjercicio: 1, serie: 1, completada: false }, dia).completada).toBe(true);
+  });
+
+  it('no modifica una sesión ya terminada', () => {
+    const terminada = { indiceEjercicio: 1, serie: 1, completada: true };
+    expect(saltarEjercicio(terminada, dia)).toBe(terminada);
+  });
+});
+
+describe('esUltimoEjercicio', () => {
+  it('distingue el último ejercicio de la jornada', () => {
+    expect(esUltimoEjercicio(PROGRESO_INICIAL, dia)).toBe(false);
+    expect(esUltimoEjercicio({ indiceEjercicio: 1, serie: 1, completada: false }, dia)).toBe(true);
   });
 });
