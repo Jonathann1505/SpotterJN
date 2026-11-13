@@ -71,4 +71,9 @@ describe('CuestionarioSalud', () => {
       expect((await saludLocal.obtener('usuario-prueba'))?.condiciones).toEqual(['problema-cardiaco']);
     });
   });
+
+  it('forma parte del flujo inicial obligatorio y no tiene botón atrás', async () => {
+    const { container } = renderizar();
+    expect(container.querySelector('ion-back-button')).toBeNull();
+  });
 });

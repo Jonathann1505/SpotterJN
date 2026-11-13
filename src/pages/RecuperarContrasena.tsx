@@ -1,6 +1,5 @@
 import { useState, type FormEvent } from 'react';
 import { IonButton, IonInput } from '@ionic/react';
-import { Link } from 'react-router-dom';
 import { solicitarRecuperacion } from '../services/auth';
 import { esCorreoValido } from '../utils/validaciones';
 import { MarcoAccesoSJ } from '../components/PantallaSJ';
@@ -37,7 +36,7 @@ function RecuperarContrasena() {
   };
 
   return (
-    <MarcoAccesoSJ activa="login">
+    <MarcoAccesoSJ activa="login" atras="/login">
       <header className="sj-cabecera">
         <h1 id="recuperar-title">Olvidé mi contraseña</h1>
         <p>Ingresa tu correo para solicitar un enlace de recuperación.</p>
@@ -81,9 +80,6 @@ function RecuperarContrasena() {
         >
           {cargando ? 'Enviando...' : 'Enviar enlace'}
         </IonButton>
-        <p className="sj-acceso-enlace">
-          <Link to="/login">Volver a iniciar sesión</Link>
-        </p>
       </form>
     </MarcoAccesoSJ>
   );

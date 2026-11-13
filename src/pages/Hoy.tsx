@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { IonIcon, IonSpinner } from '@ionic/react';
+import { IonIcon } from '@ionic/react';
 import { helpCircleOutline } from 'ionicons/icons';
 import { Redirect, useHistory } from 'react-router-dom';
 import { MiniaturaEjercicio } from '../components/MiniaturaEjercicio';
+import { CargandoSJ } from '../components/CargandoSJ';
 import { BotonSJ, PantallaSJ } from '../components/PantallaSJ';
 import { usePerfil } from '../context/PerfilContext';
 import { rutinaLocal, saludLocal } from '../repositories/local';
@@ -55,9 +56,7 @@ function Hoy() {
   if (datos === null || !sesion || datos.usuarioId !== sesion.user.id) {
     return (
       <PantallaSJ titulo="Hoy">
-        <div className="sj-cargando">
-          <IonSpinner aria-label="Cargando tu sesión" />
-        </div>
+        <CargandoSJ etiqueta="Cargando tu sesión" />
       </PantallaSJ>
     );
   }

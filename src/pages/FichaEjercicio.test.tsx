@@ -6,6 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fichasVistasLocal, rutinaLocal } from '../repositories/local';
 import { asignarRutina } from '../utils/rutina';
 import FichaEjercicio from './FichaEjercicio';
+import { botonAtras } from '../test/navegacion';
 
 vi.mock('../context/SesionContext', () => ({
   useSesion: () => ({ sesion: { user: { id: 'usuario-prueba' } } }),
@@ -111,5 +112,16 @@ describe('FichaEjercicio', () => {
   it('redirige a Hoy si el ejercicio no existe', async () => {
     const { findByText } = renderizar('/ejercicio/no-existe');
     expect(await findByText('pantalla hoy')).toBeInTheDocument();
+  });
+
+  it('usa el encabezado con atrás hacia Hoy', async () => {
+    await rutinaLocal.guardar(
+      'usuario-prueba',
+      asignarRutina({ experiencia: 'ninguna', diasPorSemana: 3, equipo: ['barra', 'maquinas'] }),
+    );
+    const { container, findByRole, queryByText } = renderizar('/ejercicio/press-banca');
+    await findByRole('heading', { name: 'Press de banca' });
+    expect(botonAtras(container)).toHaveAttribute('default-href', '/hoy');
+    expect(queryByText('Volver')).not.toBeInTheDocument();
   });
 });

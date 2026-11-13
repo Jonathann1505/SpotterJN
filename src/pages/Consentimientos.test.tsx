@@ -30,4 +30,15 @@ describe('Consentimientos', () => {
     );
     expect(continuar).toHaveAttribute('disabled', 'false');
   });
+
+  it('es una pantalla raíz sin botón atrás', async () => {
+    const { container } = render(
+      <IonApp>
+        <MemoryRouter>
+          <Consentimientos />
+        </MemoryRouter>
+      </IonApp>,
+    );
+    expect(container.querySelector('ion-back-button')).toBeNull();
+  });
 });

@@ -32,6 +32,7 @@ SpotterJN/
 │   │   ├── AnimacionEjercicio.tsx # animación del ejercicio en iframe aislado
 │   │   ├── MiniaturaEjercicio.tsx # miniatura animada en Hoy y Rutina
 │   │   ├── AyudaTermino.tsx      # ícono de ayuda con la definición de un término
+│   │   ├── CargandoSJ.tsx        # estados de carga con skeletons
 │   │   ├── CerrarSesion.tsx
 │   │   ├── ContadorNumerico.tsx  # stepper controlado de peso y repeticiones (RF-10)
 │   │   ├── PantallaSJ.tsx       # marco de pantalla, botones y acceso compartidos
@@ -75,11 +76,14 @@ SpotterJN/
 │   ├── utils/
 │   │   ├── contadorNumerico.ts   # límites, pasos e incrementos numéricos (RF-10)
 │   │   ├── rutina.ts             # asignación de la rutina inicial
+│   │   ├── sesion.ts             # avance de series y ejercicios de la sesión
 │   │   ├── unidades.ts           # conversión kg/lb
 │   │   └── validaciones.ts
 │   ├── vite-env.d.ts
 │   ├── theme/
+│   │   ├── microinteracciones.css # entradas, respuesta al tocar y skeletons
 │   │   ├── spotter-ui.css
+│   │   ├── transiciones.ts       # transición de páginas con createAnimation
 │   │   └── variables.css
 │   ├── test/
 │   │   └── setup.ts
@@ -121,7 +125,47 @@ Tokens principales:
 
 Para nuevas pantallas autenticadas o de entrenamiento, usa `PantallaSJ` y `BotonSJ` desde `src/components/PantallaSJ.tsx`. `PantallaSJ` ofrece el encabezado y el marco con áreas seguras; `BotonSJ` expone las variantes `principal`, `secundario` y `texto`. Para acceso, `MarcoAccesoSJ`, `LogoSJ` y `PestanasAccesoSJ` comparten el diseño del logo y las pestañas. Estas navegan por las rutas existentes y mantienen el paso obligatorio de Consentimientos antes del registro.
 
-Los campos Ionic usan la clase `sj-campo` y una etiqueta visible; las casillas de acceso reciben el estilo compartido por `.sj-acceso`. `sj-tarjeta` sirve para superficies con borde, y los estados usan `sj-cargando`, `sj-error` y `sj-ok`. Las alertas, cargas, toast y modales de Ionic reciben colores, tipografía y bordes del tema global. No dupliques valores de color, radios, espacios o tamaños en hojas de estilo de páginas; usa los tokens o las clases compartidas. Las pantallas respetan las áreas seguras con `env(safe-area-inset-*)`.
+Los campos Ionic usan la clase `sj-campo` y una etiqueta visible; las casillas de acceso reciben el estilo compartido por `.sj-acceso`. `sj-tarjeta` sirve para superficies con borde, los estados usan `sj-error` y `sj-ok`, y las cargas de contenido usan `CargandoSJ` (skeletons con la forma de la pantalla); `sj-cargando` queda solo para la verificación inicial de sesión. Las alertas, cargas, toast y modales de Ionic reciben colores, tipografía y bordes del tema global. No dupliques valores de color, radios, espacios o tamaños en hojas de estilo de páginas; usa los tokens o las clases compartidas. Las pantallas respetan las áreas seguras con `env(safe-area-inset-*)`.
+
+### Navegación hacia atrás
+
+Toda pantalla **secundaria** usa el encabezado con el botón atrás nativo de Ionic indicando su ruta por defecto; las pantallas **raíz** no lo llevan. No se usan botones «Volver» propios.
+
+```tsx
+<PantallaSJ atras="/perfil" titulo="Glosario">…</PantallaSJ>
+<MarcoAccesoSJ activa="login" atras="/login">…</MarcoAccesoSJ>
+```
+
+- `EncabezadoSJ` (`src/components/PantallaSJ.tsx`) usa `IonHeader`, `IonToolbar` e `IonBackButton` en `slot="start"` con `defaultHref` obligatoria. `PantallaSJ` y `MarcoAccesoSJ` lo muestran con la prop `atras`.
+- Ionic adapta el estilo a la plataforma: solo flecha en Android (modo `md`) y «‹ Atrás» en iOS. No se fuerza un modo.
+- Es transparente, sin borde ni sombra, con la flecha en el color de texto del tema. Tiene la etiqueta «Volver» para lectores de pantalla y una zona táctil mínima de 44×44 px.
+- El toolbar reserva el área segura superior; la clase `sj-con-encabezado` reduce el margen del contenido para no duplicarla.
+- El botón físico de Android y el gesto de deslizar en iOS los gestiona `IonRouterOutlet`; no hay manejadores propios.
+- `defaultHref` solo se usa si no hay historial (por ejemplo, al abrir la app en esa pantalla); si lo hay, se vuelve a la pantalla anterior.
+
+| Pantalla | Ruta | `atras` |
+| --- | --- | --- |
+| Perfil | `/perfil` | `/hoy` |
+| Recordatorios | `/ajustes` | `/perfil` |
+| Glosario | `/glosario` | `/perfil` |
+| Sesión | `/sesion` | `/hoy` |
+| Ficha del ejercicio | `/ejercicio/:id` | `/hoy` |
+| Recuperar contraseña | `/recuperar-contrasena` | `/login` |
+| Términos / Privacidad | `/terminos`, `/privacidad` | `/consentimientos` |
+
+Sin botón atrás: `/login`, `/consentimientos` y `/registro` (pestañas de acceso), `/hoy` y el flujo inicial obligatorio (`/aviso-medico`, `/salud`, `/cuestionario-rutina`, `/rutina`). Las acciones «Volver a Hoy», «Entendido» e «Ir a Hoy» se mantienen porque no son botones de atrás.
+
+`@ionic/react-router` debe tener **la misma versión** que `@ionic/react`: la primera fija exactamente su versión de `@ionic/react`, y si no coinciden se empaquetan dos copias de Ionic y el router deja de compartir su contexto (el botón atrás recargaría la página en lugar de navegar). Al actualizar Ionic, actualiza ambos paquetes juntos y comprueba con `npm ls @ionic/react` que aparezca `deduped`.
+
+Pendiente de probar en dispositivo: el botón atrás en Android (flecha) y en iOS («‹ Atrás»), el botón físico de Android, el gesto de deslizar en iOS y el área segura con notch.
+
+### Animaciones y microinteracciones
+
+- **Transición entre páginas:** `src/theme/transiciones.ts` define `transicionPaginaSJ` con `createAnimation` de Ionic y se registra en `setupIonicReact({ navAnimation })`. Al avanzar, la pantalla nueva entra con fundido y 12 px de desplazamiento en 260 ms con `cubic-bezier(0.2, 0, 0, 1)`; al regresar, la actual sale en 200 ms.
+- **Entradas y respuesta al tocar:** `src/theme/microinteracciones.css` escalona la entrada del contenido (220 ms, retrasos de hasta 80 ms), reduce botones, opciones y pestañas a escala 0,97 al tocarlos (150 ms) y anima mensajes, paneles de la rutina y el diálogo de ayuda.
+- **Rendimiento:** solo se animan `transform`, `opacity` y colores, y las animaciones usan `fill-mode: backwards` para no dejar transformaciones aplicadas.
+- **Accesibilidad:** con «Reducir movimiento» activo en el sistema, la transición dura 0 ms y se desactivan entradas y escalas.
+- Para nuevas pantallas, usa `PantallaSJ` o `MarcoAccesoSJ` (heredan la entrada) y `CargandoSJ` con `variante="lista"` o `"detalle"` para cargas.
 
 ## Requisitos
 
@@ -170,7 +214,24 @@ Cada ejercicio tiene una ficha en `/ejercicio/:id` con su animación, cómo ajus
 
 ## Sesión de entrenamiento (M3)
 
-La ruta protegida `/sesion`, accesible desde «Empezar entrenamiento» en Hoy, carga y muestra los ejercicios de la primera jornada de la rutina del usuario. Permite volver a Hoy y no registra ni persiste actividad. El componente de descanso RF-11 es independiente: ofrece una cuenta regresiva inicial de 90 segundos, círculo de tiempo restante y controles para sumar/restar 30 segundos o saltar; no se conecta todavía al flujo de una sesión. La duración inicial es 90 segundos y comienza automáticamente.
+La ruta protegida `/sesion`, accesible desde «Empezar entrenamiento» en Hoy, carga la primera jornada de la rutina del usuario y la recorre ejercicio por ejercicio. Permite volver a Hoy y **no persiste** series, autoevaluaciones ni interrupciones. El componente de descanso RF-11 es independiente: ofrece una cuenta regresiva inicial de 90 segundos, círculo de tiempo restante y controles para sumar/restar 30 segundos o saltar; no se conecta todavía al flujo de una sesión. La duración inicial es 90 segundos y comienza automáticamente.
+
+### Registro de serie y autoevaluación (RF-10)
+
+- Para el ejercicio actual se muestran «Ejercicio N de M» y «Serie X de Y» según la rutina, con el objetivo de repeticiones.
+- `ContadorNumerico` de repeticiones (0 a 50, paso 1) y de peso en la unidad del perfil (paso de 0,5 kg o 1 lb). En ejercicios de peso corporal (equipo `peso-corporal` del catálogo o sin carga inicial) no se muestra el contador de peso.
+- Autoevaluación de selección única Fácil, Normal o Difícil (`role="radiogroup"` con botones `role="radio"` y la clase `sj-segmento`).
+- «Guardar serie» está deshabilitado hasta elegir una autoevaluación. Al guardar avanza a la siguiente serie y reinicia la autoevaluación; tras la última serie pasa al siguiente ejercicio (serie 1), y tras el último ejercicio muestra «Sesión completada» con «Volver a Hoy».
+- Las repeticiones y el peso se conservan entre series del mismo ejercicio y vuelven a los valores de la rutina al cambiar de ejercicio.
+- La lógica de avance está en funciones puras de `src/utils/sesion.ts` (`avanzarSerie`, `saltarEjercicio`, `esPesoCorporal`).
+
+### Sentí dolor (RF-13)
+
+- Botón secundario «Sentí dolor», con ícono de alerta y borde, en el pie fijo de la sesión (`pieFijo` de `PantallaSJ`), visible aunque se desplace la pantalla.
+- Abre un `IonAlert` que recomienda detener el ejercicio y consultar a un profesional de la salud si el dolor continúa, e indica que la serie no cuenta como fallida. No se cierra tocando el fondo.
+- «Entendido, continuar con otro ejercicio» pasa al siguiente ejercicio sin contar la serie en curso. En el último ejercicio el botón dice «Entendido, terminar la sesión» y muestra «Sesión finalizada» con la recomendación y «Volver a Hoy».
+
+Pendientes: persistir series y autoevaluaciones, registrar «interrumpido por molestia» en un historial (aún no existe), calcular la progresión de carga y conectar el descanso RF-11 entre series.
 
 ### Contador numérico (RF-10)
 
@@ -195,7 +256,7 @@ La ruta protegida `/sesion`, accesible desde «Empezar entrenamiento» en Hoy, c
 />
 ```
 
-Los valores editados temporalmente vacíos o fuera de rango se corrigen al salir del campo; los valores válidos se notifican mediante `onChange`. Las flechas arriba/abajo ajustan el valor por teclado; la etiqueta está asociada a la entrada y los botones tienen nombres accesibles. Los estilos usan los tokens del tema, con contraste medido de 4,74:1 incluso en los botones deshabilitados. Las operaciones numéricas y el paso por unidad están en `src/utils/contadorNumerico.ts`. El contador se prueba de forma aislada y todavía no está integrado en `/sesion`; no guarda series ni modifica el peso recomendado del catálogo.
+Los valores editados temporalmente vacíos o fuera de rango se corrigen al salir del campo; los valores válidos se notifican mediante `onChange`. Las flechas arriba/abajo ajustan el valor por teclado; la etiqueta está asociada a la entrada y los botones tienen nombres accesibles. Los estilos usan los tokens del tema, con contraste medido de 4,74:1 incluso en los botones deshabilitados. Las operaciones numéricas y el paso por unidad están en `src/utils/contadorNumerico.ts`. El contador se usa en `/sesion` para repeticiones y peso; no guarda series ni modifica el peso recomendado del catálogo.
 
 ## Supabase y variables de entorno
 

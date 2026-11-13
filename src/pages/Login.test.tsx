@@ -84,4 +84,9 @@ describe('Login', () => {
         .querySelector('[aria-current="page"]'),
     ).toHaveTextContent('Iniciar sesión');
   });
+
+  it('es una pantalla raíz sin botón atrás', async () => {
+    const { container } = renderLogin();
+    expect(container.querySelector('ion-back-button')).toBeNull();
+  });
 });

@@ -6,6 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ProveedorPerfil } from '../context/PerfilContext';
 import { perfilLocal } from '../repositories/local';
 import Perfil from './Perfil';
+import { botonAtras } from '../test/navegacion';
 
 vi.mock('../services/auth', () => ({ cerrarSesion: vi.fn() }));
 
@@ -91,5 +92,11 @@ describe('Perfil', () => {
     fireEvent.click(await findByText('Mi rutina'));
 
     expect(await findByText('pantalla rutina')).toBeInTheDocument();
+  });
+
+  it('usa el encabezado con atrás hacia Hoy en lugar del botón Volver', async () => {
+    const { container, queryByText } = renderizar();
+    expect(botonAtras(container)).toHaveAttribute('default-href', '/hoy');
+    expect(queryByText('Volver')).not.toBeInTheDocument();
   });
 });

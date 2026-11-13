@@ -7,6 +7,7 @@ import { recordatoriosLocal, rutinaLocal } from '../repositories/local';
 import { MENSAJE_PERMISO } from '../services/recordatorios';
 import { asignarRutina } from '../utils/rutina';
 import Ajustes from './Ajustes';
+import { botonAtras } from '../test/navegacion';
 
 const servicio = vi.hoisted(() => ({
   activarRecordatorios: vi.fn(),
@@ -137,5 +138,12 @@ describe('Ajustes de recordatorios', () => {
 
     await waitFor(() => expect(servicio.desactivarRecordatorios).toHaveBeenCalledTimes(1));
     await waitFor(async () => expect(await recordatoriosLocal.obtener('usuario-prueba')).toEqual({ activo: false, hora: '18:00' }));
+  });
+
+  it('usa el encabezado con atrás hacia Perfil en lugar del botón Volver', async () => {
+    const { container, findByText, queryByText } = renderizar();
+    await findByText(/primero necesitas una rutina/i);
+    expect(botonAtras(container)).toHaveAttribute('default-href', '/perfil');
+    expect(queryByText('Volver')).not.toBeInTheDocument();
   });
 });
