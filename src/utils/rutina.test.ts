@@ -81,4 +81,8 @@ describe('resumirSesion', () => {
       '2 ejercicios · 6 series · ≈ 15 min',
     );
   });
+
+  it('usa el singular con un solo ejercicio y una sola serie', () => {
+    expect(describirSesion({ nombre: 'Día 1', ejercicios: [ejercicio(1)] })).toBe('1 ejercicio · 1 serie · ≈ 5 min');
+  });
 });

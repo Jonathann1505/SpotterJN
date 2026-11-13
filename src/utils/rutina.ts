@@ -114,5 +114,8 @@ export function resumirSesion(dia: DiaRutina): ResumenSesion {
 export function describirSesion(dia: DiaRutina): string {
   const { ejercicios, series, minutos } = resumirSesion(dia);
 
-  return `${ejercicios} ejercicios · ${series} series · ≈ ${minutos} min`;
+  const nombreEjercicios = ejercicios === 1 ? 'ejercicio' : 'ejercicios';
+  const nombreSeries = series === 1 ? 'serie' : 'series';
+
+  return `${ejercicios} ${nombreEjercicios} · ${series} ${nombreSeries} · ≈ ${minutos} min`;
 }
