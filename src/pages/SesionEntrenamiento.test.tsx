@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { IonApp } from '@ionic/react';
 import { Preferences } from '@capacitor/preferences';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -14,7 +14,7 @@ vi.mock('../context/SesionContext', () => ({
 }));
 
 function pulsarBotonVolver(contenedor: HTMLElement): void {
-  const boton = contenedor.querySelector('ion-button.sj-boton-secundario');
+  const boton = within(contenedor).getByText('Volver').closest('ion-button');
   if (!boton) {
     throw new Error('No se encontró el botón Volver.');
   }
@@ -61,7 +61,7 @@ describe('SesionEntrenamiento', () => {
     expect(screen.getByRole('heading', { name: primero.nombre })).toBeInTheDocument();
     expect(screen.getByText(`Ejercicio 1 de ${rutina.dias[0].ejercicios.length}`)).toBeInTheDocument();
     expect(screen.getByText(`Serie 1 de ${primero.series}`)).toBeInTheDocument();
-    expect(container.querySelector('ion-button.sj-boton-secundario')).toHaveTextContent('Volver');
+    expect(within(container).getByText('Volver').closest('ion-button')).toBeInTheDocument();
   });
 
   it('vuelve a Hoy sin registrar la sesión', async () => {

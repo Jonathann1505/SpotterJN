@@ -32,6 +32,21 @@ function pasarAlSiguienteEjercicio(progreso: ProgresoSesion, dia: DiaRutina): Pr
   return { indiceEjercicio: siguiente, serie: 1, completada: false };
 }
 
+export function esUltimoEjercicio(progreso: ProgresoSesion, dia: DiaRutina): boolean {
+  return progreso.indiceEjercicio >= dia.ejercicios.length - 1;
+}
+
+/**
+ * Interrumpe el ejercicio actual (por ejemplo, por molestia) sin contar la serie en curso:
+ * pasa al siguiente ejercicio o termina la sesión si era el último.
+ */
+export function saltarEjercicio(progreso: ProgresoSesion, dia: DiaRutina): ProgresoSesion {
+  if (progreso.completada) {
+    return progreso;
+  }
+  return pasarAlSiguienteEjercicio(progreso, dia);
+}
+
 /**
  * Registra la serie actual como realizada: avanza a la siguiente serie, al siguiente
  * ejercicio cuando era la última, o marca la sesión como completada.

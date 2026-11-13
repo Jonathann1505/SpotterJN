@@ -104,6 +104,16 @@ ion-content {
   padding-top: var(--sj-espacio-6);
 }
 
+.sj-pie-fijo {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  margin-inline: calc(-1 * var(--sj-espacio-5));
+  padding: var(--sj-espacio-4) var(--sj-espacio-5);
+  border-top: var(--sj-linea);
+  background: var(--sj-bg);
+}
+
 .sj-logo {
   display: block;
   width: calc(var(--sj-espacio-7) * 2);

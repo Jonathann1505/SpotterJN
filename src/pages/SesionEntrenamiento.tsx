@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { IonSpinner } from '@ionic/react';
+import { IonAlert, IonSpinner } from '@ionic/react';
+import { alertCircleOutline } from 'ionicons/icons';
 import { Redirect, useHistory } from 'react-router-dom';
 import ContadorNumerico from '../components/ContadorNumerico';
 import { BotonSJ, PantallaSJ } from '../components/PantallaSJ';
@@ -13,6 +14,8 @@ import {
   PROGRESO_INICIAL,
   avanzarSerie,
   esPesoCorporal,
+  esUltimoEjercicio,
+  saltarEjercicio,
   type Autoevaluacion,
   type ProgresoSesion,
 } from '../utils/sesion';
@@ -26,6 +29,8 @@ function SesionEntrenamiento() {
   const [autoevaluacion, setAutoevaluacion] = useState<Autoevaluacion | null>(null);
   const [repeticiones, setRepeticiones] = useState<number | null>(null);
   const [peso, setPeso] = useState<number | null>(null);
+  const [alertaDolor, setAlertaDolor] = useState(false);
+  const [terminadaPorMolestia, setTerminadaPorMolestia] = useState(false);
   const { perfil } = usePerfil();
   const { sesion } = useSesion();
   const usuarioId = sesion?.user.id ?? null;
@@ -102,10 +107,19 @@ function SesionEntrenamiento() {
     );
   }
 
-  const volver = (
-    <BotonSJ variante="secundario" onClick={() => history.replace('/hoy')}>Volver</BotonSJ>
-  );
   const ejercicio = dia.ejercicios[progreso.indiceEjercicio];
+
+  if ((progreso.completada || !ejercicio) && terminadaPorMolestia) {
+    return (
+      <PantallaSJ etiqueta="Sesión de entrenamiento" titulo="Sesión finalizada" reglaBajoTitulo>
+        <p className="sj-texto" role="status">
+          Detuviste la sesión por una molestia. Descansa y, si el dolor continúa o es intenso,
+          consulta a un profesional de la salud antes de volver a entrenar.
+        </p>
+        <BotonSJ onClick={() => history.replace('/hoy')}>Volver a Hoy</BotonSJ>
+      </PantallaSJ>
+    );
+  }
 
   if (progreso.completada || !ejercicio) {
     return (
@@ -122,6 +136,27 @@ function SesionEntrenamiento() {
   const repeticionesActuales = repeticiones ?? ejercicio.repeticiones;
   const pesoActual = peso ?? pesoEnUnidad(ejercicio.pesoInicialKg, perfil.unidadPeso);
 
+  const ultimoEjercicio = esUltimoEjercicio(progreso, dia);
+
+  const continuarTrasDolor = (): void => {
+    const siguiente = saltarEjercicio(progreso, dia);
+    setTerminadaPorMolestia(siguiente.completada);
+    setProgreso(siguiente);
+    setAutoevaluacion(null);
+    setRepeticiones(null);
+    setPeso(null);
+    setAlertaDolor(false);
+  };
+
+  const pie = (
+    <>
+      <BotonSJ variante="secundario" icono={alertCircleOutline} onClick={() => setAlertaDolor(true)}>
+        Sentí dolor
+      </BotonSJ>
+      <BotonSJ variante="texto" onClick={() => history.replace('/hoy')}>Volver</BotonSJ>
+    </>
+  );
+
   const guardarSerie = (): void => {
     if (autoevaluacion === null) {
       return;
@@ -136,7 +171,7 @@ function SesionEntrenamiento() {
   };
 
   return (
-    <PantallaSJ etiqueta="Sesión de entrenamiento" titulo={dia.nombre} reglaBajoTitulo pie={volver}>
+    <PantallaSJ etiqueta="Sesión de entrenamiento" titulo={dia.nombre} reglaBajoTitulo pie={pie} pieFijo>
       <section className="sj-tarjeta" aria-labelledby="ejercicio-actual">
         <p className="sj-eyebrow">
           Ejercicio {progreso.indiceEjercicio + 1} de {dia.ejercicios.length}
@@ -188,6 +223,21 @@ function SesionEntrenamiento() {
       <BotonSJ deshabilitado={autoevaluacion === null} onClick={guardarSerie}>
         Guardar serie
       </BotonSJ>
+
+      <IonAlert
+        isOpen={alertaDolor}
+        header="Detén este ejercicio"
+        message="Sentir dolor no es normal durante el entrenamiento. Detén este ejercicio y, si el dolor continúa o es intenso, consulta a un profesional de la salud. Esta serie no cuenta como fallida."
+        backdropDismiss={false}
+        buttons={[
+          {
+            text: ultimoEjercicio ? 'Entendido, terminar la sesión' : 'Entendido, continuar con otro ejercicio',
+            role: 'confirm',
+            handler: continuarTrasDolor,
+          },
+        ]}
+        onDidDismiss={() => setAlertaDolor(false)}
+      />
     </PantallaSJ>
   );
 }
