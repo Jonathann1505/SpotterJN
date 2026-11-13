@@ -42,7 +42,7 @@ SpotterJN/
 │   │   └── SesionContext.tsx
 │   ├── data/
 │   │   ├── ejercicios.ts         # catálogo de ejercicios de las rutinas
-│   │   ├── glosario.ts           # términos básicos y sus definiciones
+│   │   ├── glosario.ts           # términos básicos, sus definiciones y el filtrado del buscador
 │   │   └── guias.ts              # guía de cada ejercicio (ajuste, movimiento, ubicación)
 │   ├── pages/
 │   │   ├── Ajustes.tsx
@@ -75,7 +75,8 @@ SpotterJN/
 │   │   └── perfil.ts
 │   ├── utils/
 │   │   ├── contadorNumerico.ts   # límites, pasos e incrementos numéricos (RF-10)
-│   │   ├── rutina.ts             # asignación de la rutina inicial
+│   │   ├── etiquetasRutina.ts    # textos de experiencia y equipo del cuestionario
+│   │   ├── rutina.ts             # asignación de la rutina y resúmenes de sesión y semana
 │   │   ├── sesion.ts             # avance de series y ejercicios de la sesión
 │   │   ├── unidades.ts           # conversión kg/lb
 │   │   └── validaciones.ts
@@ -194,7 +195,7 @@ La compilación estática se genera en `dist/`.
 
 ## Perfil y rutina (M2)
 
-El flujo de primera vez, tras iniciar sesión, es: `Hoy` redirige a `/aviso-medico` si no hay respuestas de salud (RF-05), después a `/cuestionario-rutina` si no hay rutina (RF-06), que asigna una rutina predefinida y la muestra en `/rutina`. `/perfil` permite editar nombre (1 a 40 caracteres), meta principal y unidad de peso kg/lb (RF-07); la unidad se aplica de inmediato en `Hoy` y en la rutina. `Hoy` saluda por el nombre del perfil y muestra la próxima sesión con sus ejercicios, series y repeticiones (RF-08), más un resumen con el total de series y los minutos aproximados (unos 2,25 min por serie, redondeados a múltiplos de 5; es una estimación). La rutina muestra el mismo resumen en cada día, y desde `Hoy`, la rutina y la ficha se llega a la ayuda de cada ejercicio; el perfil tiene el acceso «Mi rutina».
+El flujo de primera vez, tras iniciar sesión, es: `Hoy` redirige a `/aviso-medico` si no hay respuestas de salud (RF-05), después a `/cuestionario-rutina` si no hay rutina (RF-06), que asigna una rutina predefinida y la muestra en `/rutina`. `/perfil` permite editar nombre (1 a 40 caracteres), meta principal y unidad de peso kg/lb (RF-07); la unidad se aplica de inmediato en `Hoy` y en la rutina. `Hoy` saluda por el nombre del perfil y muestra la próxima sesión con sus ejercicios, series y repeticiones (RF-08), más un resumen con el total de series y los minutos aproximados (unos 2,25 min por serie, redondeados a múltiplos de 5; es una estimación). La rutina muestra el mismo resumen en cada día, y desde `Hoy`, la rutina y la ficha se llega a la ayuda de cada ejercicio; el perfil tiene el acceso «Mi rutina» y un resumen de la rutina actual (días, experiencia y equipo). La rutina incluye un resumen semanal (sesiones, series y tiempo aproximado) y el botón «Cambiar mi rutina», que reabre el cuestionario con las respuestas anteriores ya marcadas.
 
 Limitaciones actuales:
 
