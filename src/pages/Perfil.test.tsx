@@ -24,6 +24,9 @@ function renderizar() {
       <ProveedorPerfil>
         <MemoryRouter initialEntries={['/perfil']}>
           <Route path="/perfil" component={Perfil} />
+          <Route path="/rutina">
+            <p>pantalla rutina</p>
+          </Route>
         </MemoryRouter>
       </ProveedorPerfil>
     </IonApp>,
@@ -80,5 +83,13 @@ describe('Perfil', () => {
     await waitFor(async () => {
       expect((await perfilLocal.obtener('usuario-prueba'))?.unidadPeso).toBe('lb');
     });
+  });
+
+  it('abre la rutina asignada desde el botón «Mi rutina»', async () => {
+    const { findByText } = renderizar();
+
+    fireEvent.click(await findByText('Mi rutina'));
+
+    expect(await findByText('pantalla rutina')).toBeInTheDocument();
   });
 });
