@@ -69,7 +69,12 @@ function RutinaAsignada() {
     <PantallaSJ
       etiqueta="Rutina asignada"
       titulo={`${rutina.dias.length} días por semana`}
-      pie={<BotonSJ onClick={() => history.replace('/hoy')}>Ir a Hoy</BotonSJ>}
+      pie={
+        <>
+          <BotonSJ onClick={() => history.replace('/hoy')}>Ir a Hoy</BotonSJ>
+          <BotonSJ variante="texto" onClick={() => history.push('/cuestionario-rutina')}>Cambiar mi rutina</BotonSJ>
+        </>
+      }
     >
       <p className="sj-texto sj-suave">{describirRutina(rutina)} Toca un día para ver sus ejercicios.</p>
       <p className="sj-texto">

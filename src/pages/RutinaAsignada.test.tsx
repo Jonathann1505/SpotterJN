@@ -108,4 +108,13 @@ describe('RutinaAsignada', () => {
     await findByRole('heading', { name: '3 días por semana' });
     expect(container.querySelector('ion-back-button')).toBeNull();
   });
+
+  it('permite volver al cuestionario para cambiar la rutina', async () => {
+    await rutinaLocal.guardar('usuario-prueba', asignarRutina({ experiencia: 'ninguna', diasPorSemana: 3, equipo: ['maquinas'] }));
+    const { findByText } = renderizar();
+
+    fireEvent.click(await findByText('Cambiar mi rutina'));
+
+    expect(await findByText('cuestionario')).toBeInTheDocument();
+  });
 });
