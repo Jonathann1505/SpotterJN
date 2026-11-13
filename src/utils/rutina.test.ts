@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { EJERCICIOS } from '../data/ejercicios';
 import type { CuestionarioRutina } from '../types/perfil';
-import { asignarRutina, describirRutina, describirSesion, resumirSesion, tipoDeSesion } from './rutina';
+import { asignarRutina, describirRutina, describirSemana, describirSesion, resumirSemana, resumirSesion, tipoDeSesion } from './rutina';
 
 const base: CuestionarioRutina = { experiencia: 'ninguna', diasPorSemana: 3, equipo: ['maquinas', 'mancuernas'] };
 
@@ -84,5 +84,28 @@ describe('resumirSesion', () => {
 
   it('usa el singular con un solo ejercicio y una sola serie', () => {
     expect(describirSesion({ nombre: 'Día 1', ejercicios: [ejercicio(1)] })).toBe('1 ejercicio · 1 serie · ≈ 5 min');
+  });
+});
+
+describe('resumirSemana', () => {
+  const dia = (series: number) => ({
+    nombre: 'Día',
+    ejercicios: [{ id: 'x', nombre: 'X', series, repeticiones: 10, pesoInicialKg: 0 }],
+  });
+  const rutina = (dias: ReturnType<typeof dia>[]) => ({
+    cuestionario: { experiencia: 'ninguna' as const, diasPorSemana: dias.length, equipo: ['maquinas' as const] },
+    dias,
+    asignadaEn: '2026-11-13T10:00:00.000Z',
+  });
+
+  it('suma sesiones, series y minutos de todos los días', () => {
+    expect(resumirSemana(rutina([dia(12), dia(12), dia(12)]))).toEqual({ sesiones: 3, series: 36, minutos: 75 });
+  });
+
+  it('lo describe en minutos o en horas según la duración', () => {
+    expect(describirSemana(rutina([dia(4), dia(4)]))).toBe('Cada semana: 2 sesiones · 8 series · ≈ 20 min en total');
+    expect(describirSemana(rutina([dia(12), dia(12), dia(12)]))).toBe(
+      'Cada semana: 3 sesiones · 36 series · ≈ 1 h 15 min en total',
+    );
   });
 });

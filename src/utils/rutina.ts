@@ -119,3 +119,33 @@ export function describirSesion(dia: DiaRutina): string {
 
   return `${ejercicios} ${nombreEjercicios} · ${series} ${nombreSeries} · ≈ ${minutos} min`;
 }
+
+export interface ResumenSemana {
+  sesiones: number;
+  series: number;
+  minutos: number;
+}
+
+/** Suma las sesiones de la rutina: un día de la rutina equivale a una sesión semanal. */
+export function resumirSemana(rutina: RutinaAsignada): ResumenSemana {
+  return rutina.dias.reduce<ResumenSemana>(
+    (total, dia) => {
+      const resumen = resumirSesion(dia);
+      return {
+        sesiones: total.sesiones + 1,
+        series: total.series + resumen.series,
+        minutos: total.minutos + resumen.minutos,
+      };
+    },
+    { sesiones: 0, series: 0, minutos: 0 },
+  );
+}
+
+export function describirSemana(rutina: RutinaAsignada): string {
+  const { sesiones, series, minutos } = resumirSemana(rutina);
+  const horas = Math.floor(minutos / 60);
+  const resto = minutos % 60;
+  const tiempo = horas > 0 ? `${horas} h${resto > 0 ? ` ${resto} min` : ''}` : `${minutos} min`;
+
+  return `Cada semana: ${sesiones} sesiones · ${series} series · ≈ ${tiempo} en total`;
+}
