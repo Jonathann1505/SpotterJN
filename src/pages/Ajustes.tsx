@@ -61,17 +61,15 @@ function Ajustes() {
 
   if (cargando) {
     return (
-      <PantallaSJ titulo="Recordatorios">
+      <PantallaSJ atras="/perfil" titulo="Recordatorios">
         <CargandoSJ etiqueta="Cargando ajustes" variante="detalle" />
       </PantallaSJ>
     );
   }
 
-  const pie = <BotonSJ variante="texto" onClick={() => history.goBack()}>Volver</BotonSJ>;
-
   if (ajustes === null || rutina === null) {
     return (
-      <PantallaSJ etiqueta="Ajustes" titulo="Recordatorios" reglaBajoTitulo pie={pie}>
+      <PantallaSJ atras="/perfil" etiqueta="Ajustes" titulo="Recordatorios" reglaBajoTitulo>
         <p className="sj-texto">
           {ajustes === null
             ? mensaje
@@ -129,7 +127,7 @@ function Ajustes() {
   };
 
   return (
-    <PantallaSJ etiqueta="Ajustes" titulo="Recordatorios" reglaBajoTitulo pie={pie}>
+    <PantallaSJ atras="/perfil" etiqueta="Ajustes" titulo="Recordatorios" reglaBajoTitulo>
       <p className="sj-texto">
         Te avisamos en tus días de entrenamiento: <strong>{describirDias(dias)}</strong>.
       </p>

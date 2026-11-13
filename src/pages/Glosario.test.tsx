@@ -1,19 +1,24 @@
-import { cleanup, fireEvent, render } from '@testing-library/react';
-import { IonApp } from '@ionic/react';
-import { MemoryRouter, Route } from 'react-router-dom';
+import { cleanup, render } from '@testing-library/react';
+import { IonApp, IonRouterOutlet } from '@ionic/react';
+import { IonReactMemoryRouter } from '@ionic/react-router';
+import { createMemoryHistory } from 'history';
+import { Route } from 'react-router-dom';
 import { afterEach, describe, expect, it } from 'vitest';
 import { GLOSARIO } from '../data/glosario';
+import { botonAtras, pulsarAtras } from '../test/navegacion';
 import Glosario from './Glosario';
 
 function renderizar() {
   return render(
     <IonApp>
-      <MemoryRouter initialEntries={['/perfil', '/glosario']} initialIndex={1}>
-        <Route path="/glosario" component={Glosario} />
-        <Route path="/perfil">
-          <p>pantalla perfil</p>
-        </Route>
-      </MemoryRouter>
+      <IonReactMemoryRouter history={createMemoryHistory({ initialEntries: ['/glosario'] })}>
+        <IonRouterOutlet>
+          <Route exact path="/glosario" component={Glosario} />
+          <Route exact path="/perfil">
+            <p>pantalla perfil</p>
+          </Route>
+        </IonRouterOutlet>
+      </IonReactMemoryRouter>
     </IonApp>,
   );
 }
@@ -21,20 +26,23 @@ function renderizar() {
 describe('Glosario', () => {
   afterEach(cleanup);
 
-  it('lista todos los términos con su definición', () => {
-    const { getByRole, getByText } = renderizar();
+  it('lista todos los términos con su definición', async () => {
+    const { findByRole, getByText } = renderizar();
 
-    expect(getByRole('heading', { name: 'Glosario' })).toBeInTheDocument();
+    expect(await findByRole('heading', { name: 'Glosario' })).toBeInTheDocument();
     for (const entrada of GLOSARIO) {
       expect(getByText(entrada.termino)).toBeInTheDocument();
       expect(getByText(entrada.definicion)).toBeInTheDocument();
     }
   });
 
-  it('vuelve a la pantalla anterior', async () => {
-    const { container, findByText } = renderizar();
+  it('vuelve a Perfil con el botón atrás del encabezado', async () => {
+    const { container, findByRole, findByText, queryByText } = renderizar();
+    await findByRole('heading', { name: 'Glosario' });
 
-    fireEvent.click(container.querySelector('ion-button.sj-boton') as Element);
+    expect(botonAtras(container)).toHaveAttribute('default-href', '/perfil');
+    expect(queryByText('Volver')).not.toBeInTheDocument();
+    pulsarAtras(container);
 
     expect(await findByText('pantalla perfil')).toBeInTheDocument();
   });

@@ -76,7 +76,7 @@ function SesionEntrenamiento() {
 
   if (cargando) {
     return (
-      <PantallaSJ etiqueta="Sesión de entrenamiento" titulo="Preparando tu sesión">
+      <PantallaSJ atras="/hoy" etiqueta="Sesión de entrenamiento" titulo="Preparando tu sesión">
         <CargandoSJ etiqueta="Cargando tu rutina" />
       </PantallaSJ>
     );
@@ -84,7 +84,7 @@ function SesionEntrenamiento() {
 
   if (error) {
     return (
-      <PantallaSJ etiqueta="Sesión de entrenamiento" titulo="No se pudo cargar">
+      <PantallaSJ atras="/hoy" etiqueta="Sesión de entrenamiento" titulo="No se pudo cargar">
         <p className="sj-error" role="alert">{error}</p>
         <BotonSJ variante="secundario" onClick={() => history.replace('/hoy')}>Volver a Hoy</BotonSJ>
       </PantallaSJ>
@@ -99,7 +99,7 @@ function SesionEntrenamiento() {
 
   if (!dia) {
     return (
-      <PantallaSJ etiqueta="Sesión de entrenamiento" titulo="Rutina incompleta">
+      <PantallaSJ atras="/hoy" etiqueta="Sesión de entrenamiento" titulo="Rutina incompleta">
         <p className="sj-error" role="alert">Tu rutina todavía no tiene una jornada asignada.</p>
         <BotonSJ variante="secundario" onClick={() => history.replace('/hoy')}>Volver a Hoy</BotonSJ>
       </PantallaSJ>
@@ -110,7 +110,7 @@ function SesionEntrenamiento() {
 
   if ((progreso.completada || !ejercicio) && terminadaPorMolestia) {
     return (
-      <PantallaSJ etiqueta="Sesión de entrenamiento" titulo="Sesión finalizada" reglaBajoTitulo>
+      <PantallaSJ atras="/hoy" etiqueta="Sesión de entrenamiento" titulo="Sesión finalizada" reglaBajoTitulo>
         <p className="sj-texto" role="status">
           Detuviste la sesión por una molestia. Descansa y, si el dolor continúa o es intenso,
           consulta a un profesional de la salud antes de volver a entrenar.
@@ -122,7 +122,7 @@ function SesionEntrenamiento() {
 
   if (progreso.completada || !ejercicio) {
     return (
-      <PantallaSJ etiqueta="Sesión de entrenamiento" titulo="Sesión completada" reglaBajoTitulo>
+      <PantallaSJ atras="/hoy" etiqueta="Sesión de entrenamiento" titulo="Sesión completada" reglaBajoTitulo>
         <p className="sj-texto" role="status">
           Terminaste todas las series de {dia.nombre}. ¡Buen trabajo!
         </p>
@@ -152,7 +152,6 @@ function SesionEntrenamiento() {
       <BotonSJ variante="secundario" icono={alertCircleOutline} onClick={() => setAlertaDolor(true)}>
         Sentí dolor
       </BotonSJ>
-      <BotonSJ variante="texto" onClick={() => history.replace('/hoy')}>Volver</BotonSJ>
     </>
   );
 
@@ -170,7 +169,7 @@ function SesionEntrenamiento() {
   };
 
   return (
-    <PantallaSJ etiqueta="Sesión de entrenamiento" titulo={dia.nombre} reglaBajoTitulo pie={pie} pieFijo>
+    <PantallaSJ atras="/hoy" etiqueta="Sesión de entrenamiento" titulo={dia.nombre} reglaBajoTitulo pie={pie} pieFijo>
       <section className="sj-tarjeta" aria-labelledby="ejercicio-actual">
         <p className="sj-eyebrow">
           Ejercicio {progreso.indiceEjercicio + 1} de {dia.ejercicios.length}

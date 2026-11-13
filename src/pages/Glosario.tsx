@@ -1,16 +1,13 @@
-import { useHistory } from 'react-router-dom';
-import { BotonSJ, PantallaSJ } from '../components/PantallaSJ';
+import { PantallaSJ } from '../components/PantallaSJ';
 import { GLOSARIO } from '../data/glosario';
 
 function Glosario() {
-  const history = useHistory();
-
   return (
     <PantallaSJ
+      atras="/perfil"
       etiqueta="Ayuda"
       titulo="Glosario"
       reglaBajoTitulo
-      pie={<BotonSJ variante="texto" onClick={() => history.goBack()}>Volver</BotonSJ>}
     >
       <p className="sj-texto sj-suave">Los términos básicos que verás en la app, explicados de forma sencilla.</p>
       <dl className="sj-glosario">
