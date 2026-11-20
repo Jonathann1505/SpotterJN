@@ -9,6 +9,11 @@ describe('obtenerGuia', () => {
     expect(guia.animacion).toBe('ejercicios/press-banca.html');
   });
 
+  it('asocia un video a las máquinas de pecho y al remo invertido', () => {
+    expect(obtenerGuia('press-pecho-maquina').animacion).toBe('ejercicios/press-pecho-maquina.mp4');
+    expect(obtenerGuia('remo-invertido').animacion).toBe('ejercicios/remo-invertido.mp4');
+  });
+
   it('usa una guía provisional para ejercicios sin contenido', () => {
     expect(obtenerGuia('no-existe')).toBe(GUIA_PENDIENTE);
     expect(GUIA_PENDIENTE.animacion).toBeUndefined();
