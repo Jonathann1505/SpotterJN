@@ -220,7 +220,7 @@ Cada ejercicio tiene una ficha en `/ejercicio/:id` con su animación, cómo ajus
 
 ## Sesión de entrenamiento (M3)
 
-La ruta protegida `/sesion`, accesible desde «Empezar entrenamiento» en Hoy, carga la primera jornada de la rutina del usuario y la recorre ejercicio por ejercicio. Permite volver a Hoy y guarda cada serie en el dispositivo (ver «Guardado de series»). El componente de descanso RF-11 es independiente: ofrece una cuenta regresiva inicial de 90 segundos, círculo de tiempo restante y controles para sumar/restar 30 segundos o saltar; no se conecta todavía al flujo de una sesión. La duración inicial es 90 segundos y comienza automáticamente.
+La ruta protegida `/sesion`, accesible desde «Empezar entrenamiento» en Hoy, carga la primera jornada de la rutina del usuario y la recorre ejercicio por ejercicio. Permite volver a Hoy y guarda cada serie en el dispositivo (ver «Guardado de series»). El componente de descanso RF-11 (`TemporizadorDescanso`) ofrece una cuenta regresiva de 90 segundos que comienza automáticamente, círculo de tiempo restante y controles para sumar/restar 30 segundos o saltar; acepta `alTerminar`, que se llama al llegar a cero o al tocar «Saltar descanso». Se usa entre series (ver «Descanso entre series»).
 
 ### Registro de serie y autoevaluación (RF-10)
 
@@ -246,7 +246,15 @@ La ruta protegida `/sesion`, accesible desde «Empezar entrenamiento» en Hoy, c
 - Repositorio `seriesLocal` (`SeriesRepositorio` en `src/repositories/repositorios.ts`) con `guardar`, `listar` y `listarPorEjercicio`. Usa Capacitor Preferences con la clave `spotter.usuario.<id de usuario codificado>.series`, una lista a la que se añade cada serie. Al leer se descartan las series con forma inválida sin perder las válidas, y un valor que no es lista se trata como vacío.
 - Los datos **siguen solo en el dispositivo y sin cifrar**: no se sincronizan con Supabase y se pierden al borrar los datos de la app.
 
-Pendientes: pantalla de historial, gráfica, progresión de carga, recomendaciones con IA, sincronización con Supabase, cifrado (RNF-11), límite de crecimiento de la lista de series y conectar el descanso RF-11 entre series.
+### Descanso entre series (RF-11)
+
+- Después de guardar una serie que **no** es la última del ejercicio, el registro se reemplaza por el bloque «Descanso»: la referencia de la serie anterior («Serie anterior: N repeticiones · peso» o «peso corporal») y el temporizador de 90 segundos. La tarjeta ya indica la serie siguiente.
+- Al llegar a cero o con «Saltar descanso» vuelve el registro de la siguiente serie, con la autoevaluación sin elegir. Las repeticiones y el peso se conservan dentro del mismo ejercicio.
+- No hay descanso tras la última serie de un ejercicio (se pasa al siguiente) ni tras la última de la sesión.
+- «Sentí dolor» sigue visible durante el descanso; al confirmarlo se cierra el descanso y se pasa al siguiente ejercicio.
+- Las notificaciones al terminar el descanso quedan fuera de alcance.
+
+Pendientes: pantalla de historial, gráfica, progresión de carga, recomendaciones con IA, sincronización con Supabase, cifrado (RNF-11), límite de crecimiento de la lista de series y notificaciones al terminar el descanso.
 
 ### Contador numérico (RF-10)
 

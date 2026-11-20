@@ -174,3 +174,12 @@
 - Datos solo en el dispositivo y sin cifrar.
 - Pendientes: historial, gráfica, progresión, IA, Supabase, cifrado (RNF-11), límite de crecimiento de la lista y descanso RF-11 entre series.
 - Verificación: `npm test` (309 pruebas/41 archivos) y `npm run build` aprobados. El push falló varias veces por falta de red (`Could not resolve host: github.com`); los commits quedaron locales hasta recuperar la conexión.
+
+### 2026-11-20 — Descanso entre series y publicación del guardado (RF-10, RF-11, RF-13)
+
+- Continuación en `feature/guardar-series`: los 4 commits que no se habían podido subir por falta de red (pruebas del repositorio, guardado en `/sesion`, pruebas y documentación) se publicaron. El guardado de series y la interrupción por «Sentí dolor» con `estado: 'interrumpida-por-molestia'` ya estaban implementados; `SerieRegistrada` no cambió de forma porque Nayeli la usa para el historial.
+- `TemporizadorDescanso` acepta `alTerminar` (al llegar a cero o al saltar); sin la prop se comporta igual que antes.
+- `/sesion` muestra el descanso solo tras guardar una serie que no es la última del ejercicio, con la serie anterior como referencia; al terminar o saltar vuelve el registro. «Sentí dolor» cierra el descanso.
+- Cambios en `SesionEntrenamiento.tsx` localizados en el guardado y el render del registro; no se tocó cómo se elige el día ni `Hoy.tsx`. Puede haber un conflicto pequeño con `feature/calendario-biblioteca` de Nayeli, que no estaba publicada en GitHub al revisar.
+- Datos solo en el dispositivo y sin cifrar. Pendientes: historial (Nayeli), gráfica, progresión, IA, Supabase, cifrado y notificaciones al terminar el descanso.
+- Verificación: `npm test` (315 pruebas/41 archivos) y `npm run build` aprobados.
