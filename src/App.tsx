@@ -16,6 +16,7 @@ import Biblioteca from './pages/Biblioteca';
 import Consentimientos from './pages/Consentimientos';
 import CuestionarioRutina from './pages/CuestionarioRutina';
 import CuestionarioSalud from './pages/CuestionarioSalud';
+import EditarSalud from './pages/EditarSalud';
 import FichaEjercicio from './pages/FichaEjercicio';
 import Glosario from './pages/Glosario';
 import Hoy from './pages/Hoy';
@@ -108,6 +109,9 @@ function RutasAplicacion() {
         </Route>
         <Route exact path="/salud">
           {sesion ? <CuestionarioSalud /> : <Redirect to="/login" />}
+        </Route>
+        <Route exact path="/editar-salud">
+          {sesion ? <EditarSalud /> : <Redirect to="/login" />}
         </Route>
         <Route exact path="/cuestionario-rutina">
           {sesion ? <CuestionarioRutina /> : <Redirect to="/login" />}

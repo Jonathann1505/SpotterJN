@@ -5,12 +5,7 @@ import { BotonSJ, PantallaSJ } from '../components/PantallaSJ';
 import { saludLocal } from '../repositories/local';
 import { CONDICIONES_SALUD, type CondicionSalud } from '../types/perfil';
 import { useSesion } from '../context/SesionContext';
-
-const ETIQUETAS: Record<CondicionSalud, string> = {
-  'dolor-articular': 'Dolor articular',
-  'problema-cardiaco': 'Problema cardíaco',
-  embarazo: 'Embarazo',
-};
+import { ETIQUETAS_CONDICION } from '../utils/etiquetasSalud';
 
 const RUTA_SIGUIENTE = '/cuestionario-rutina';
 
@@ -84,7 +79,7 @@ function CuestionarioSalud() {
               onClick={() => alternarCondicion(condicion)}
             >
               <span className="sj-opcion-marca" aria-hidden="true">{marcada ? '✓' : ''}</span>
-              {ETIQUETAS[condicion]}
+              {ETIQUETAS_CONDICION[condicion]}
             </button>
           );
         })}
