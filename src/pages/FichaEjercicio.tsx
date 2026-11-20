@@ -78,8 +78,11 @@ function FichaEjercicio() {
     ? `${guia.grupoMuscular} · ${enRutina.series}x${enRutina.repeticiones}`
     : guia.grupoMuscular;
 
+  // Un ejercicio que no está en la rutina (por ejemplo, abierto desde la biblioteca) solo se consulta.
+  const soloConsulta = enRutina === null;
+
   const continuar = async (): Promise<void> => {
-    if (yaVista) {
+    if (yaVista || soloConsulta) {
       history.goBack();
       return;
     }
@@ -102,7 +105,7 @@ function FichaEjercicio() {
       etiqueta={etiqueta}
       titulo={ejercicio.nombre}
       cabecera={
-        yaVista ? null : (
+        yaVista || soloConsulta ? null : (
           <div className="sj-mascota">
             <LogoSJ />
             <p className="sj-burbuja">{textos.avisoPrimeraVez}</p>
@@ -110,7 +113,7 @@ function FichaEjercicio() {
         )
       }
       pie={
-        <BotonSJ onClick={() => void continuar()}>{yaVista ? 'Entendido' : 'Listo, empezar series'}</BotonSJ>
+        <BotonSJ onClick={() => void continuar()}>{yaVista || soloConsulta ? 'Entendido' : 'Listo, empezar series'}</BotonSJ>
       }
     >
       {state?.cambiadoDesde ? (

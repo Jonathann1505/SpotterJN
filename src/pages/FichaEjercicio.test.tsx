@@ -58,6 +58,19 @@ function rutinaManual(equipo: RutinaAsignada['cuestionario']['equipo']): RutinaA
   };
 }
 
+async function guardarRutinaCon(...ids: string[]): Promise<void> {
+  await rutinaLocal.guardar('usuario-prueba', {
+    cuestionario: { experiencia: 'ninguna', diasPorSemana: 2, equipo: ['barra', 'maquinas'] },
+    dias: [
+      {
+        nombre: 'Día 1 – Cuerpo completo',
+        ejercicios: ids.map((id) => ({ id, nombre: id, series: 3, repeticiones: 12, pesoInicialKg: 0 })),
+      },
+    ],
+    asignadaEn: '2026-11-20T10:00:00.000Z',
+  });
+}
+
 describe('FichaEjercicio', () => {
   beforeEach(async () => {
     await Preferences.clear();
@@ -82,6 +95,7 @@ describe('FichaEjercicio', () => {
   });
 
   it('marca la ficha como vista al continuar y lleva a la sesión', async () => {
+    await guardarRutinaCon('press-banca');
     const { container, findByRole, findByText } = renderizar('/ejercicio/press-banca');
     await findByRole('heading', { name: 'Press de banca' });
 
@@ -123,6 +137,7 @@ describe('FichaEjercicio', () => {
   });
 
   it('habla de «máquina» solo en ejercicios de máquina o polea', async () => {
+    await guardarRutinaCon('remo-maquina');
     const { findByRole, getByText } = renderizar('/ejercicio/remo-maquina');
 
     await findByRole('heading', { name: 'Remo en máquina' });
@@ -131,12 +146,24 @@ describe('FichaEjercicio', () => {
   });
 
   it('usa «prepararte» y «este ejercicio» en los ejercicios de peso corporal', async () => {
+    await guardarRutinaCon('zancadas');
     const { findByRole, getByText, queryByText } = renderizar('/ejercicio/zancadas');
 
     await findByRole('heading', { name: 'Zancadas' });
     expect(getByText(/Primera vez con este ejercicio/)).toBeInTheDocument();
     expect(getByText('1. Cómo prepararte')).toBeInTheDocument();
     expect(queryByText(/máquina/i, { selector: 'h2' })).not.toBeInTheDocument();
+  });
+
+  it('si el ejercicio no está en la rutina solo se consulta: sin aviso de primera vez ni inicio de series', async () => {
+    await guardarRutinaCon('press-banca');
+    const { container, findByRole, queryByText } = renderizar('/ejercicio/zancadas');
+
+    await findByRole('heading', { name: 'Zancadas' });
+
+    expect(queryByText(/Primera vez con/)).not.toBeInTheDocument();
+    expect(container.querySelector('ion-button.sj-boton')).toHaveTextContent('Entendido');
+    expect(queryByText('Listo, empezar series')).not.toBeInTheDocument();
   });
 
   it('redirige a Hoy si el ejercicio no existe', async () => {
