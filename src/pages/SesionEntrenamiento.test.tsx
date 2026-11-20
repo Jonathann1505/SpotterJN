@@ -417,5 +417,70 @@ describe('SesionEntrenamiento', () => {
         );
       });
     });
+
+    describe('descanso entre series (RF-11)', () => {
+      async function guardarSinSaltar(opcion: 'Fácil' | 'Normal' | 'Difícil'): Promise<void> {
+        fireEvent.click(screen.getByRole('radio', { name: opcion }));
+        fireEvent.click(botonGuardar());
+        await waitFor(() => expect(screen.queryByText('Guardando…')).not.toBeInTheDocument());
+      }
+
+      it('muestra el descanso con la serie anterior como referencia y oculta el registro', async () => {
+        await iniciar();
+        await guardarSinSaltar('Normal');
+
+        expect(await screen.findByRole('heading', { name: 'Descanso' })).toBeInTheDocument();
+        expect(screen.getByText(/Serie anterior: 12 repeticiones · 15 kg/)).toBeInTheDocument();
+        expect(screen.getByRole('timer')).toBeInTheDocument();
+        expect(screen.getByText('Serie 2 de 2')).toBeInTheDocument();
+        expect(screen.queryByText('Guardar serie')).not.toBeInTheDocument();
+        expect(screen.queryByRole('radiogroup')).not.toBeInTheDocument();
+      });
+
+      it('Saltar descanso vuelve al registro de la siguiente serie', async () => {
+        await iniciar();
+        await guardarSinSaltar('Normal');
+        fireEvent.click(await screen.findByRole('button', { name: 'Saltar descanso' }));
+
+        expect(screen.queryByRole('heading', { name: 'Descanso' })).not.toBeInTheDocument();
+        expect(screen.getByText('Serie 2 de 2')).toBeInTheDocument();
+        expect(screen.getByRole('radio', { name: 'Normal' })).toHaveAttribute('aria-checked', 'false');
+        expect(estaDeshabilitado(botonGuardar())).toBe(true);
+      });
+
+      it('no muestra descanso después de la última serie del ejercicio ni de la sesión', async () => {
+        await iniciar();
+        await guardarCon('Fácil');
+        await guardarSinSaltar('Normal');
+
+        expect(await screen.findByRole('heading', { name: 'Flexiones' })).toBeInTheDocument();
+        expect(screen.queryByRole('heading', { name: 'Descanso' })).not.toBeInTheDocument();
+
+        await guardarSinSaltar('Difícil');
+        expect(await screen.findByRole('heading', { name: 'Sesión completada' })).toBeInTheDocument();
+        expect(screen.queryByRole('timer')).not.toBeInTheDocument();
+      });
+
+      it('Sentí dolor durante el descanso cierra el descanso y pasa al siguiente ejercicio', async () => {
+        await iniciar();
+        await guardarSinSaltar('Normal');
+        await screen.findByRole('heading', { name: 'Descanso' });
+
+        const sentiDolor = screen.getByText('Sentí dolor').closest('ion-button');
+        if (!sentiDolor) {
+          throw new Error('No se encontró el botón Sentí dolor.');
+        }
+        fireEvent.click(sentiDolor);
+        fireEvent.click(
+          within(screen.getByRole('alertdialog')).getByRole('button', {
+            name: 'Entendido, continuar con otro ejercicio',
+          }),
+        );
+
+        expect(await screen.findByRole('heading', { name: 'Flexiones' })).toBeInTheDocument();
+        expect(screen.queryByRole('heading', { name: 'Descanso' })).not.toBeInTheDocument();
+        expect(screen.getByText('Guardar serie')).toBeInTheDocument();
+      });
+    });
   });
 });
