@@ -183,3 +183,12 @@
 - Cambios en `SesionEntrenamiento.tsx` localizados en el guardado y el render del registro; no se tocó cómo se elige el día ni `Hoy.tsx`. Puede haber un conflicto pequeño con `feature/calendario-biblioteca` de Nayeli, que no estaba publicada en GitHub al revisar.
 - Datos solo en el dispositivo y sin cifrar. Pendientes: historial (Nayeli), gráfica, progresión, IA, Supabase, cifrado y notificaciones al terminar el descanso.
 - Verificación: `npm test` (315 pruebas/41 archivos) y `npm run build` aprobados.
+
+### 2026-11-20 — Progresión de peso por reglas (RF-15 a RF-19)
+
+- Rama `feature/progresion` desde `develop` (con el PR #20 de guardado de series).
+- Añadido `src/utils/progresion.ts`: `calcularProgresion` (pura), `agruparEnSesiones`, `explicarProgresion` y `recomendarParaEjercicio`. Sin cambios en `SerieRegistrada`.
+- Decisiones: sesión = mismo día local y número de serie creciente; éxito exige todas las series objetivo, sin Difícil y con las repeticiones; sesión incompleta sin fallos mantiene sin contar como fallo; incremento 2,5 kg / 5 lb y bajada del 10 % redondeada a ese múltiplo; peso corporal sube 2 repeticiones sobre lo logrado y no baja; molestia en la última sesión mantiene.
+- Hoy carga también `seriesLocal.listar` (si falla, usa []) y muestra la recomendación; cambios localizados en la carga y en la fila de cada ejercicio. `/sesion` acumula las series guardadas en la sesión y muestra `ResumenSesion` al terminar; no se tocó cómo se elige el día.
+- Pendientes: ajuste manual del peso, IA real, historial, gráfica y Supabase.
+- Verificación: `npm test` (342 pruebas/42 archivos) y `npm run build` aprobados. La interfaz del resumen no se revisó visualmente en un dispositivo.

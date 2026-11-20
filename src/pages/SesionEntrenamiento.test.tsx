@@ -290,7 +290,9 @@ describe('SesionEntrenamiento', () => {
         );
 
         expect(await screen.findByRole('heading', { name: 'Sesión finalizada' })).toBeInTheDocument();
-        expect(screen.getByRole('status')).toHaveTextContent('consulta a un profesional de la salud');
+        expect(screen.getByText(/Detuviste la sesión por una molestia/)).toHaveTextContent(
+          'consulta a un profesional de la salud',
+        );
         expect(screen.queryByRole('heading', { name: 'Sesión completada' })).not.toBeInTheDocument();
       });
     });
@@ -480,6 +482,64 @@ describe('SesionEntrenamiento', () => {
         expect(await screen.findByRole('heading', { name: 'Flexiones' })).toBeInTheDocument();
         expect(screen.queryByRole('heading', { name: 'Descanso' })).not.toBeInTheDocument();
         expect(screen.getByText('Guardar serie')).toBeInTheDocument();
+      });
+    });
+
+    describe('resumen al terminar (RF-19)', () => {
+      function filaResumen(nombre: string): HTMLElement {
+        return screen.getByRole('listitem', { name: `Resumen de ${nombre}` });
+      }
+
+      it('aparece al terminar el último ejercicio con lo hecho, la acción, la carga y la frase', async () => {
+        await iniciar();
+        await guardarCon('Fácil');
+        await guardarCon('Normal');
+        await guardarCon('Difícil');
+
+        expect(await screen.findByRole('heading', { name: 'Sesión completada' })).toBeInTheDocument();
+        expect(await screen.findByRole('heading', { name: 'Resumen y próxima vez' })).toBeInTheDocument();
+
+        const press = filaResumen('Press de pecho en máquina');
+        expect(press).toHaveTextContent('2 series · 12, 12 repeticiones · 15 kg.');
+        expect(press).toHaveTextContent('Sube 17,5 kg');
+        expect(press).toHaveTextContent('Te sobró fuerza: sube a 17,5 kg.');
+
+        const flexiones = filaResumen('Flexiones');
+        expect(flexiones).toHaveTextContent('1 serie · 10 repeticiones · peso corporal.');
+        expect(flexiones).toHaveTextContent('Mantén 10 repeticiones');
+        expect(flexiones).toHaveTextContent('Te costó un poco: repite 10 repeticiones para afianzarlo.');
+
+        expect(screen.getByText('Volver a Hoy')).toBeInTheDocument();
+      });
+
+      it('no aparece mientras quedan ejercicios', async () => {
+        await iniciar();
+        await guardarCon('Fácil');
+        await guardarCon('Normal');
+
+        expect(await screen.findByRole('heading', { name: 'Flexiones' })).toBeInTheDocument();
+        expect(screen.queryByRole('heading', { name: 'Resumen y próxima vez' })).not.toBeInTheDocument();
+      });
+
+      it('tras Sentí dolor en el último ejercicio recomienda mantener y cuidarse', async () => {
+        await iniciar();
+        await guardarCon('Fácil');
+        await guardarCon('Fácil');
+        const sentiDolor = screen.getByText('Sentí dolor').closest('ion-button');
+        if (!sentiDolor) {
+          throw new Error('No se encontró el botón Sentí dolor.');
+        }
+        fireEvent.click(sentiDolor);
+        fireEvent.click(
+          within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Entendido, terminar la sesión' }),
+        );
+
+        expect(await screen.findByRole('heading', { name: 'Sesión finalizada' })).toBeInTheDocument();
+        await screen.findByRole('heading', { name: 'Resumen y próxima vez' });
+        const flexiones = filaResumen('Flexiones');
+        expect(flexiones).toHaveTextContent('Interrumpido por molestia.');
+        expect(flexiones).toHaveTextContent('Sentiste molestia: mantén 10 repeticiones y cuídate.');
+        expect(filaResumen('Press de pecho en máquina')).toHaveTextContent('Sube 17,5 kg');
       });
     });
   });
