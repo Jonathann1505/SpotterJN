@@ -131,6 +131,20 @@ function FichaEjercicio() {
       <h2 className="sj-subtitulo sj-subtitulo-ficha">2. Cómo hacer el movimiento</h2>
       <p className="sj-texto">{guia.movimiento}</p>
       <hr className="sj-separador" />
+      {guia.erroresComunes ? (
+        <>
+          <h2 className="sj-subtitulo sj-subtitulo-ficha">3. Errores comunes</h2>
+          <p className="sj-texto">{guia.erroresComunes}</p>
+          <hr className="sj-separador" />
+        </>
+      ) : null}
+      {guia.respiracion ? (
+        <>
+          <h2 className="sj-subtitulo sj-subtitulo-ficha">{guia.erroresComunes ? '4. Respiración' : '3. Respiración'}</h2>
+          <p className="sj-texto">{guia.respiracion}</p>
+          <hr className="sj-separador" />
+        </>
+      ) : null}
       <p className="sj-ubicacion">
         <IonIcon icon={locationOutline} aria-hidden="true" />
         <span>

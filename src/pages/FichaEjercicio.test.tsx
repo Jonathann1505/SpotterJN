@@ -166,6 +166,18 @@ describe('FichaEjercicio', () => {
     expect(queryByText('Listo, empezar series')).not.toBeInTheDocument();
   });
 
+  it('muestra los errores comunes y la respiración del ejercicio', async () => {
+    await guardarRutinaCon('press-banca');
+    const { findByRole, getByText } = renderizar('/ejercicio/press-banca');
+
+    await findByRole('heading', { name: 'Press de banca' });
+
+    expect(getByText('3. Errores comunes')).toBeInTheDocument();
+    expect(getByText(/Arquear mucho la espalda/)).toBeInTheDocument();
+    expect(getByText('4. Respiración')).toBeInTheDocument();
+    expect(getByText(/Inhala al bajar la barra/)).toBeInTheDocument();
+  });
+
   it('redirige a Hoy si el ejercicio no existe', async () => {
     const { findByText } = renderizar('/ejercicio/no-existe');
     expect(await findByText('pantalla hoy')).toBeInTheDocument();
