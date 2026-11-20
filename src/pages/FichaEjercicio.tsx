@@ -114,7 +114,7 @@ function FichaEjercicio() {
       }
     >
       {state?.cambiadoDesde ? (
-        <p className="sj-ok" role="status">Cambiamos «{state.cambiadoDesde}» por este ejercicio en tu rutina.</p>
+        <p className="sj-ok sj-ficha-aviso" role="status">Cambiamos «{state.cambiadoDesde}» por este ejercicio en tu rutina.</p>
       ) : null}
       {guia.animacion ? (
         <AnimacionEjercicio archivo={guia.animacion} titulo={ejercicio.nombre} />

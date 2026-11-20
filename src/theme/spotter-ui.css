@@ -392,7 +392,8 @@ ion-content {
   border-left: var(--sj-linea);
 }
 
-.sj-segmento[aria-checked='true'] {
+.sj-segmento[aria-checked='true'],
+.sj-segmento[aria-pressed='true'] {
   background: var(--sj-ink);
   color: var(--sj-color-blanco);
 }
@@ -1195,4 +1196,21 @@ ion-modal {
   color: var(--sj-blue-ink);
   font-size: var(--sj-fuente-lg);
   font-weight: 800;
+}
+
+/* Cambiar un ejercicio desde su ficha */
+.sj-cambiar {
+  margin-bottom: var(--sj-espacio-4);
+}
+
+.sj-cambiar [role='group'] {
+  margin-top: var(--sj-espacio-4);
+}
+
+.sj-cambiar .sj-opcion {
+  text-align: left;
+}
+
+.sj-ficha-aviso {
+  margin: 0 0 var(--sj-espacio-4);
 }
