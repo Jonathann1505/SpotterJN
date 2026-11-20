@@ -84,6 +84,8 @@ La animación recorre **inicial → intermedia → final → intermedia**. La pa
 | Press de banca | Hecha (HTML) |
 | Flexiones | Hecha (video) |
 | Sentadilla con peso corporal | Hecha (video) |
-| Los otros 13 | Pendiente: esperan su video o sus 3 imágenes |
+| Press de pecho en máquina | Hecha (video) |
+| Remo invertido | Hecha (video) |
+| Los otros 11 (incluidas las zancadas) | Pendiente: esperan su video o sus 3 imágenes |
 
 Mientras un ejercicio no tenga animación, su ficha muestra «Animación próximamente» y el resto de la guía.
