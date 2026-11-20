@@ -17,6 +17,9 @@ function renderizar() {
           <Route exact path="/perfil">
             <p>pantalla perfil</p>
           </Route>
+          <Route exact path="/calentamiento">
+            <p>pantalla calentamiento</p>
+          </Route>
           <Route exact path="/ejercicio/:id">
             <p>ficha abierta</p>
           </Route>
@@ -68,6 +71,15 @@ describe('Biblioteca', () => {
     fireEvent.click(grupos.getByRole('button', { name: 'Todos' }));
 
     expect(getByText(`${EJERCICIOS.length} ejercicios`)).toBeInTheDocument();
+  });
+
+  it('ofrece el calentamiento antes de entrenar', async () => {
+    const { findByRole, findByText } = renderizar();
+    await findByRole('heading', { name: 'Ejercicios' });
+
+    fireEvent.click(await findByText('Calentamiento antes de entrenar'));
+
+    expect(await findByText('pantalla calentamiento')).toBeInTheDocument();
   });
 
   it('abre la ficha del ejercicio elegido', async () => {
