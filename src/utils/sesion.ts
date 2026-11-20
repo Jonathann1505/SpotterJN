@@ -1,8 +1,8 @@
 import { buscarEjercicio } from '../data/ejercicios';
-import type { DiaRutina, EjercicioRutina } from '../types/perfil';
+import type { DiaRutina, EjercicioRutina, UnidadPeso } from '../types/perfil';
+import { AUTOEVALUACIONES, type Autoevaluacion, type EstadoSerie, type SerieRegistrada } from '../types/series';
 
-export const AUTOEVALUACIONES = ['facil', 'normal', 'dificil'] as const;
-export type Autoevaluacion = (typeof AUTOEVALUACIONES)[number];
+export { AUTOEVALUACIONES, type Autoevaluacion };
 
 export const ETIQUETAS_AUTOEVALUACION: Readonly<Record<Autoevaluacion, string>> = {
   facil: 'Fácil',
@@ -60,4 +60,44 @@ export function avanzarSerie(progreso: ProgresoSesion, dia: DiaRutina): Progreso
     return { ...progreso, serie: progreso.serie + 1 };
   }
   return pasarAlSiguienteEjercicio(progreso, dia);
+}
+
+/** Identificador único para una serie; usa crypto.randomUUID cuando está disponible. */
+export function generarIdSerie(): string {
+  const cripto = globalThis.crypto;
+  if (cripto && typeof cripto.randomUUID === 'function') {
+    return cripto.randomUUID();
+  }
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+export interface DatosSerie {
+  dia: DiaRutina;
+  ejercicio: EjercicioRutina;
+  numeroSerie: number;
+  repeticiones: number;
+  /** Peso mostrado en el contador; se ignora en ejercicios de peso corporal. */
+  peso: number;
+  unidad: UnidadPeso;
+  autoevaluacion: Autoevaluacion | null;
+  estado: EstadoSerie;
+  ahora?: Date;
+  id?: string;
+}
+
+/** Construye la serie que se guarda en el dispositivo (RF-10, RF-13). */
+export function crearSerieRegistrada(datos: DatosSerie): SerieRegistrada {
+  return {
+    id: datos.id ?? generarIdSerie(),
+    registradaEn: (datos.ahora ?? new Date()).toISOString(),
+    idEjercicio: datos.ejercicio.id,
+    nombreEjercicio: datos.ejercicio.nombre,
+    dia: datos.dia.nombre,
+    numeroSerie: datos.numeroSerie,
+    peso: esPesoCorporal(datos.ejercicio) ? null : datos.peso,
+    unidad: datos.unidad,
+    repeticiones: datos.repeticiones,
+    autoevaluacion: datos.autoevaluacion,
+    estado: datos.estado,
+  };
 }

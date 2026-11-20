@@ -9,6 +9,7 @@ import {
 } from '../types/perfil';
 import { guardarJson, leerJson } from './almacenLocal';
 import type { AjustesRecordatorios } from '../types/recordatorios';
+import { AUTOEVALUACIONES, ESTADOS_SERIE, type Autoevaluacion, type SerieRegistrada } from '../types/series';
 import { HORA_PREDETERMINADA, esHoraValida } from '../utils/recordatorios';
 import type {
   FichasVistasRepositorio,
@@ -16,9 +17,10 @@ import type {
   RecordatoriosRepositorio,
   RutinaRepositorio,
   SaludRepositorio,
+  SeriesRepositorio,
 } from './repositorios';
 
-type TipoDato = 'perfil' | 'salud' | 'rutina' | 'fichasVistas' | 'recordatorios';
+type TipoDato = 'perfil' | 'salud' | 'rutina' | 'fichasVistas' | 'recordatorios' | 'series';
 
 function crearClave(usuarioId: string, tipo: TipoDato): string {
   if (!usuarioId) {
@@ -107,4 +109,49 @@ export const recordatoriosLocal: RecordatoriosRepositorio = {
   obtener: async (usuarioId) =>
     (await leerJson(crearClave(usuarioId, 'recordatorios'), esAjustesRecordatorios)) ?? AJUSTES_RECORDATORIOS_INICIALES,
   guardar: async (usuarioId, ajustes) => guardarJson(crearClave(usuarioId, 'recordatorios'), ajustes),
+};
+
+function esNumeroNoNegativo(valor: unknown): valor is number {
+  return typeof valor === 'number' && Number.isFinite(valor) && valor >= 0;
+}
+
+function esSerie(valor: unknown): valor is SerieRegistrada {
+  return (
+    esObjeto(valor) &&
+    typeof valor.id === 'string' &&
+    typeof valor.registradaEn === 'string' &&
+    !Number.isNaN(Date.parse(valor.registradaEn)) &&
+    typeof valor.idEjercicio === 'string' &&
+    typeof valor.nombreEjercicio === 'string' &&
+    typeof valor.dia === 'string' &&
+    Number.isInteger(valor.numeroSerie) &&
+    (valor.numeroSerie as number) >= 1 &&
+    (valor.peso === null || esNumeroNoNegativo(valor.peso)) &&
+    (valor.unidad === 'kg' || valor.unidad === 'lb') &&
+    Number.isInteger(valor.repeticiones) &&
+    esNumeroNoNegativo(valor.repeticiones) &&
+    (valor.autoevaluacion === null ||
+      AUTOEVALUACIONES.includes(valor.autoevaluacion as Autoevaluacion)) &&
+    ESTADOS_SERIE.includes(valor.estado as SerieRegistrada['estado'])
+  );
+}
+
+function esLista(valor: unknown): valor is unknown[] {
+  return Array.isArray(valor);
+}
+
+/** Lee las series válidas; descarta las corruptas sin perder las demás. */
+async function leerSeries(usuarioId: string): Promise<SerieRegistrada[]> {
+  const guardadas = (await leerJson(crearClave(usuarioId, 'series'), esLista)) ?? [];
+  return guardadas.filter(esSerie);
+}
+
+export const seriesLocal: SeriesRepositorio = {
+  guardar: async (usuarioId, serie) => {
+    const series = await leerSeries(usuarioId);
+    await guardarJson(crearClave(usuarioId, 'series'), [...series, serie]);
+  },
+  listar: (usuarioId) => leerSeries(usuarioId),
+  listarPorEjercicio: async (usuarioId, idEjercicio) =>
+    (await leerSeries(usuarioId)).filter((serie) => serie.idEjercicio === idEjercicio),
 };

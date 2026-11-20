@@ -164,3 +164,22 @@
 - Pruebas: `NavegacionRutina.test.tsx` usa `IonReactMemoryRouter` y `paginaVisible` (nuevo en `src/test/navegacion.tsx`) para navegar de verdad; las pruebas del cuestionario esperan a que termine la comprobación de rutina.
 - Pendiente: probar a mano con una cuenta nueva y con Perfil → Mi rutina → Cambiar mi rutina, con el botón en pantalla, el físico de Android y el gesto de iOS.
 - Verificación: `npm test` (292 pruebas/41 archivos) y `npm run build` aprobados.
+
+### 2026-11-20 — Guardado de series en el dispositivo (RF-10, RF-13)
+
+- Rama `feature/guardar-series` desde `develop` (con el PR #19).
+- Añadidos `src/types/series.ts` (`SerieRegistrada`, `AUTOEVALUACIONES`, `ESTADOS_SERIE`; `src/utils/sesion.ts` reexporta la autoevaluación) y `seriesLocal` en `src/repositories/local.ts` con `guardar`, `listar` y `listarPorEjercicio`. Clave: `spotter.usuario.<id>.series` (lista); se descartan las series corruptas una a una.
+- `/sesion` guarda antes de avanzar, con «Guardando…», bloqueo de doble toque por `useRef` y error en español sin avanzar ni perder datos. Peso `null` en peso corporal; el peso se guarda en la unidad del perfil junto con `unidad`.
+- Decisión: «Sentí dolor» guarda la serie con `estado: 'interrumpida-por-molestia'` y la autoevaluación si existe; si falla, avanza igual y lo informa.
+- Datos solo en el dispositivo y sin cifrar.
+- Pendientes: historial, gráfica, progresión, IA, Supabase, cifrado (RNF-11), límite de crecimiento de la lista y descanso RF-11 entre series.
+- Verificación: `npm test` (309 pruebas/41 archivos) y `npm run build` aprobados. El push falló varias veces por falta de red (`Could not resolve host: github.com`); los commits quedaron locales hasta recuperar la conexión.
+
+### 2026-11-20 — Descanso entre series y publicación del guardado (RF-10, RF-11, RF-13)
+
+- Continuación en `feature/guardar-series`: los 4 commits que no se habían podido subir por falta de red (pruebas del repositorio, guardado en `/sesion`, pruebas y documentación) se publicaron. El guardado de series y la interrupción por «Sentí dolor» con `estado: 'interrumpida-por-molestia'` ya estaban implementados; `SerieRegistrada` no cambió de forma porque Nayeli la usa para el historial.
+- `TemporizadorDescanso` acepta `alTerminar` (al llegar a cero o al saltar); sin la prop se comporta igual que antes.
+- `/sesion` muestra el descanso solo tras guardar una serie que no es la última del ejercicio, con la serie anterior como referencia; al terminar o saltar vuelve el registro. «Sentí dolor» cierra el descanso.
+- Cambios en `SesionEntrenamiento.tsx` localizados en el guardado y el render del registro; no se tocó cómo se elige el día ni `Hoy.tsx`. Puede haber un conflicto pequeño con `feature/calendario-biblioteca` de Nayeli, que no estaba publicada en GitHub al revisar.
+- Datos solo en el dispositivo y sin cifrar. Pendientes: historial (Nayeli), gráfica, progresión, IA, Supabase, cifrado y notificaciones al terminar el descanso.
+- Verificación: `npm test` (315 pruebas/41 archivos) y `npm run build` aprobados.

@@ -61,4 +61,30 @@ describe('TemporizadorDescanso', () => {
 
     expect(screen.getByRole('timer')).toHaveAttribute('aria-label', 'Tiempo restante 00:00');
   });
+
+  it('avisa al terminar cuando se salta el descanso', () => {
+    vi.useFakeTimers();
+    const alTerminar = vi.fn();
+    render(<TemporizadorDescanso alTerminar={alTerminar} />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Saltar descanso' }));
+
+    expect(alTerminar).toHaveBeenCalledTimes(1);
+  });
+
+  it('avisa al terminar cuando el tiempo llega a cero', () => {
+    vi.useFakeTimers();
+    const alTerminar = vi.fn();
+    render(<TemporizadorDescanso alTerminar={alTerminar} />);
+
+    act(() => {
+      vi.advanceTimersByTime(89_000);
+    });
+    expect(alTerminar).not.toHaveBeenCalled();
+
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+    expect(alTerminar).toHaveBeenCalledTimes(1);
+  });
 });

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 const DURACION_INICIAL = 90;
 const RADIO_CIRCULO = 54;
@@ -10,8 +10,16 @@ function formatearTiempo(segundos: number): string {
   return `${minutos}:${resto}`;
 }
 
-function TemporizadorDescanso() {
+interface PropiedadesTemporizador {
+  /** Se llama cuando el tiempo llega a cero o al tocar «Saltar descanso». */
+  alTerminar?: () => void;
+}
+
+function TemporizadorDescanso({ alTerminar }: PropiedadesTemporizador = {}) {
   const [tiempoRestante, setTiempoRestante] = useState(DURACION_INICIAL);
+  // Se guarda la última función recibida para no reiniciar el efecto en cada render.
+  const alTerminarActual = useRef(alTerminar);
+  alTerminarActual.current = alTerminar;
   const [duracionTotal, setDuracionTotal] = useState(DURACION_INICIAL);
   const [activo, setActivo] = useState(true);
 
@@ -30,6 +38,7 @@ function TemporizadorDescanso() {
   useEffect(() => {
     if (tiempoRestante === 0) {
       setActivo(false);
+      alTerminarActual.current?.();
     }
   }, [tiempoRestante]);
 
