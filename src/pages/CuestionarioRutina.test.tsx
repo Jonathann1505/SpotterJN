@@ -15,8 +15,9 @@ vi.mock('../context/SesionContext', () => ({
   useSesion: () => ({ sesion: { user: { id: 'usuario-prueba' } } }),
 }));
 
-function renderizar() {
-  return render(
+/** Renderiza y espera a que termine la comprobación de la rutina guardada. */
+async function renderizar() {
+  const resultado = render(
     <IonApp>
       <MemoryRouter initialEntries={['/cuestionario-rutina']}>
         <Route path="/cuestionario-rutina" component={CuestionarioRutina} />
@@ -26,6 +27,8 @@ function renderizar() {
       </MemoryRouter>
     </IonApp>,
   );
+  await resultado.findByRole('radiogroup', { name: 'Experiencia previa' });
+  return resultado;
 }
 
 describe('CuestionarioRutina', () => {
@@ -37,8 +40,8 @@ describe('CuestionarioRutina', () => {
     vi.clearAllMocks();
   });
 
-  it('habilita "Ver mi rutina" solo con experiencia y equipo respondidos', () => {
-    const { container, getByRole } = renderizar();
+  it('habilita "Ver mi rutina" solo con experiencia y equipo respondidos', async () => {
+    const { container, getByRole } = await renderizar();
     const boton = container.querySelector('ion-button.sj-boton');
 
     expect(boton).toHaveAttribute('disabled');
@@ -53,7 +56,7 @@ describe('CuestionarioRutina', () => {
       'usuario-prueba',
       asignarRutina({ experiencia: 'mas-6-meses', diasPorSemana: 5, equipo: ['barra', 'poleas'] }),
     );
-    const { findByRole, getByRole } = renderizar();
+    const { findByRole, getByRole } = await renderizar();
 
     await waitFor(() => expect(getByRole('radio', { name: 'Más de 6 meses' })).toHaveAttribute('aria-checked', 'true'));
     expect(getByRole('checkbox', { name: /Barra y discos/ })).toHaveAttribute('aria-checked', 'true');
@@ -62,8 +65,8 @@ describe('CuestionarioRutina', () => {
     expect(await findByRole('status')).toHaveTextContent('5');
   });
 
-  it('limita los días entre 2 y 6', () => {
-    const { container, getByLabelText } = renderizar();
+  it('limita los días entre 2 y 6', async () => {
+    const { container, getByLabelText } = await renderizar();
     const valor = container.querySelector('output') as HTMLElement;
 
     for (let i = 0; i < 5; i += 1) {
@@ -79,7 +82,7 @@ describe('CuestionarioRutina', () => {
   });
 
   it('asigna, guarda la rutina y avanza', async () => {
-    const { container, getByRole, findByText } = renderizar();
+    const { container, getByRole, findByText } = await renderizar();
 
     fireEvent.click(getByRole('radio', { name: 'Menos de 6 meses' }));
     fireEvent.click(getByRole('checkbox', { name: 'Máquinas guiadas' }));
@@ -96,7 +99,7 @@ describe('CuestionarioRutina', () => {
   it('reprograma los recordatorios activos con los días de la nueva rutina', async () => {
     sincronizarRecordatorios.mockResolvedValue(undefined);
     await recordatoriosLocal.guardar('usuario-prueba', { activo: true, hora: '07:00' });
-    const { container, getByRole, findByText } = renderizar();
+    const { container, getByRole, findByText } = await renderizar();
 
     fireEvent.click(getByRole('radio', { name: 'Ninguna' }));
     fireEvent.click(getByRole('checkbox', { name: 'Mancuernas' }));
@@ -110,7 +113,7 @@ describe('CuestionarioRutina', () => {
   });
 
   it('forma parte del flujo inicial obligatorio y no tiene botón atrás', async () => {
-    const { container } = renderizar();
+    const { container } = await renderizar();
     expect(container.querySelector('ion-back-button')).toBeNull();
   });
 });

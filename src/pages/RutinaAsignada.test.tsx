@@ -6,6 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ProveedorPerfil } from '../context/PerfilContext';
 import { perfilLocal, rutinaLocal } from '../repositories/local';
 import { asignarRutina } from '../utils/rutina';
+import { botonAtras } from '../test/navegacion';
 import RutinaAsignada from './RutinaAsignada';
 
 vi.mock('../context/SesionContext', () => ({
@@ -100,14 +101,14 @@ describe('RutinaAsignada', () => {
     expect(await findByText('ficha abierta')).toBeInTheDocument();
   });
 
-  it('forma parte del flujo inicial obligatorio y no tiene botón atrás', async () => {
+  it('con una rutina guardada muestra el botón atrás hacia Perfil', async () => {
     await rutinaLocal.guardar(
       'usuario-prueba',
       asignarRutina({ experiencia: 'ninguna', diasPorSemana: 3, equipo: ['maquinas'] }),
     );
     const { container, findByRole } = renderizar();
     await findByRole('heading', { name: '3 días por semana' });
-    expect(container.querySelector('ion-back-button')).toBeNull();
+    expect(botonAtras(container)).toHaveAttribute('default-href', '/perfil');
   });
 
   it('permite volver al cuestionario para cambiar la rutina', async () => {

@@ -67,6 +67,8 @@ function RutinaAsignada() {
 
   return (
     <PantallaSJ
+      // Solo se llega aquí con una rutina guardada: ya no es el flujo inicial y se permite volver.
+      atras="/perfil"
       etiqueta="Rutina asignada"
       titulo={`${rutina.dias.length} días por semana`}
       pie={
