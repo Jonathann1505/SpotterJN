@@ -4,6 +4,7 @@ import { alertCircleOutline } from 'ionicons/icons';
 import { Redirect, useHistory } from 'react-router-dom';
 import { CargandoSJ } from '../components/CargandoSJ';
 import ContadorNumerico from '../components/ContadorNumerico';
+import TemporizadorDescanso from '../components/TemporizadorDescanso';
 import { BotonSJ, PantallaSJ } from '../components/PantallaSJ';
 import { usePerfil } from '../context/PerfilContext';
 import { useSesion } from '../context/SesionContext';
@@ -36,6 +37,8 @@ function SesionEntrenamiento() {
   const [guardando, setGuardando] = useState(false);
   const [errorGuardado, setErrorGuardado] = useState<string | null>(null);
   const [avisoMolestia, setAvisoMolestia] = useState<string | null>(null);
+  // Referencia de la serie anterior mientras se descansa antes de la siguiente (RF-11).
+  const [descanso, setDescanso] = useState<{ repeticiones: number; peso: number | null } | null>(null);
   // Evita guardar dos veces si se toca rápido antes de que React actualice el estado.
   const guardadoEnCurso = useRef(false);
   const { perfil } = usePerfil();
@@ -183,6 +186,7 @@ function SesionEntrenamiento() {
       setGuardando(false);
     }
     const siguiente = saltarEjercicio(progreso, dia);
+    setDescanso(null);
     setTerminadaPorMolestia(siguiente.completada);
     setProgreso(siguiente);
     setAutoevaluacion(null);
@@ -225,6 +229,9 @@ function SesionEntrenamiento() {
     if (siguiente.indiceEjercicio !== progreso.indiceEjercicio) {
       setRepeticiones(null);
       setPeso(null);
+    } else if (!siguiente.completada) {
+      // Quedan series de este ejercicio: se descansa antes de la siguiente.
+      setDescanso({ repeticiones: repeticionesActuales, peso: pesoCorporal ? null : pesoActual });
     }
     setProgreso(siguiente);
     setAutoevaluacion(null);
@@ -246,6 +253,17 @@ function SesionEntrenamiento() {
         </p>
       </section>
 
+      {descanso ? (
+        <section aria-labelledby="descanso-titulo">
+          <h3 className="sj-subtitulo" id="descanso-titulo">Descanso</h3>
+          <p className="sj-texto sj-suave">
+            Serie anterior: {descanso.repeticiones} repeticiones ·{' '}
+            {descanso.peso === null ? 'peso corporal' : `${descanso.peso} ${perfil.unidadPeso}`}
+          </p>
+          <TemporizadorDescanso alTerminar={() => setDescanso(null)} />
+        </section>
+      ) : (
+        <>
       <ContadorNumerico
         etiqueta="Repeticiones logradas"
         valor={repeticionesActuales}
@@ -285,6 +303,8 @@ function SesionEntrenamiento() {
       <BotonSJ deshabilitado={autoevaluacion === null || guardando} onClick={() => void guardarSerie()}>
         {guardando ? 'Guardando…' : 'Guardar serie'}
       </BotonSJ>
+        </>
+      )}
 
       <IonAlert
         isOpen={alertaDolor}

@@ -170,6 +170,11 @@ describe('SesionEntrenamiento', () => {
       fireEvent.click(screen.getByRole('radio', { name: opcion }));
       fireEvent.click(botonGuardar());
       await waitFor(() => expect(screen.queryByText('Guardando…')).not.toBeInTheDocument());
+      // Entre series aparece el descanso (RF-11); estas pruebas lo saltan para seguir registrando.
+      const saltar = screen.queryByText('Saltar descanso');
+      if (saltar) {
+        fireEvent.click(saltar);
+      }
     }
 
     it('deshabilita Guardar serie hasta elegir una autoevaluación', async () => {
