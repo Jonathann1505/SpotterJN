@@ -1247,3 +1247,39 @@ ion-modal {
   outline: 3px solid var(--sj-blue-ink);
   outline-offset: 2px;
 }
+
+/* Historial de progreso */
+.sj-vacio {
+  margin: 0 0 var(--sj-espacio-4);
+  padding: var(--sj-espacio-4);
+  border: var(--sj-linea);
+  background: #cfe2fa;
+  color: var(--sj-ink);
+  font-size: var(--sj-fuente-base);
+  font-weight: 600;
+}
+
+.sj-fila-historial {
+  align-items: center;
+}
+
+.sj-evaluacion {
+  flex: 0 0 auto;
+  padding: 0.25rem var(--sj-espacio-3);
+  border: var(--sj-linea);
+  color: var(--sj-ink);
+  font-size: var(--sj-fuente-sm);
+  font-weight: 800;
+}
+
+.sj-evaluacion-facil {
+  background: #cfeed8;
+}
+
+.sj-evaluacion-normal {
+  background: #cfe2fa;
+}
+
+.sj-evaluacion-dificil {
+  background: #ffc9b8;
+}
