@@ -77,6 +77,7 @@ SpotterJN/
 │   ├── utils/
 │   │   ├── contadorNumerico.ts   # límites, pasos e incrementos numéricos (RF-10)
 │   │   ├── etiquetasRutina.ts    # textos de experiencia y equipo del cuestionario
+│   │   ├── progresion.ts         # progresión de peso por reglas (RF-15 a RF-19)
 │   │   ├── rutina.ts             # asignación de la rutina y resúmenes de sesión y semana
 │   │   ├── sesion.ts             # avance de series y ejercicios de la sesión
 │   │   ├── unidades.ts           # conversión kg/lb
@@ -254,7 +255,22 @@ La ruta protegida `/sesion`, accesible desde «Empezar entrenamiento» en Hoy, c
 - «Sentí dolor» sigue visible durante el descanso; al confirmarlo se cierra el descanso y se pasa al siguiente ejercicio.
 - Las notificaciones al terminar el descanso quedan fuera de alcance.
 
-Pendientes: pantalla de historial, gráfica, progresión de carga, recomendaciones con IA, sincronización con Supabase, cifrado (RNF-11), límite de crecimiento de la lista de series y notificaciones al terminar el descanso.
+### Progresión de peso (RF-15 a RF-19)
+
+`calcularProgresion` (`src/utils/progresion.ts`) es una función pura: recibe las series de un ejercicio, el objetivo de la rutina (series × repeticiones), el peso de partida y la unidad, y devuelve la acción (`sube`, `mantiene` o `baja`), el peso y las repeticiones para la próxima sesión, el motivo y una frase. `recomendarParaEjercicio` la llama desde un ejercicio de la rutina con todas las series del usuario.
+
+- **Sesiones:** las series de un ejercicio se agrupan por fecha local; empieza una sesión nueva si cambia el día o si el número de serie no aumenta. Se evalúa la última sesión con el peso de su última serie completada (convertido si se guardó en otra unidad).
+- **Sube (RF-15):** todas las series completadas fueron Fácil o Normal, alcanzaron las repeticiones objetivo y se completaron todas las series. Sube **2,5 kg o 5 lb** y nunca más por sesión (RF-17). Ej.: 40 kg → 42,5 kg.
+- **Mantiene (RF-15):** alguna serie fue Difícil o no llegó a las repeticiones. Si faltaron series sin fallos, también mantiene sin contarlo como fallo.
+- **Baja (RF-16):** tras 3 sesiones seguidas de fallo con el mismo peso baja un 10 %, redondeado al múltiplo de 2,5 kg o 5 lb más cercano. Ej.: 40 kg → 35 kg; 100 lb → 90 lb.
+- **Molestia (RF-13):** las series `interrumpida-por-molestia` no cuentan como éxito ni como fallo; si la última sesión tuvo molestia, se mantiene el peso.
+- **Sin series:** se usa el peso inicial del catálogo en la unidad del perfil.
+- **Peso corporal:** si todo fue bien, el objetivo sube a las repeticiones máximas logradas + 2; si no, se mantiene el mayor entre el objetivo de la rutina y lo logrado. No baja.
+- **Explicación (RF-19):** frases fijas en `explicarProgresion`, por ejemplo «Te sobró fuerza: sube a 42,5 kg.», «Te costó un poco: repite 40 kg para afianzarlo.», «Llevas 3 sesiones difíciles con este peso: baja a 35 kg y vuelve a subir.» o «Sentiste molestia: mantén 40 kg y cuídate.». `calcularProgresion` acepta otro `Explicador` para sustituirlas por IA más adelante.
+- **Hoy** muestra el peso (o las repeticiones) recomendado y la frase cuando el ejercicio ya tiene series; si no, el peso inicial.
+- **Resumen al terminar:** en «Sesión completada» y «Sesión finalizada», `ResumenSesion` lista cada ejercicio con lo hecho y la recomendación (flecha y texto Sube / Mantén / Baja, carga nueva y frase), junto a «Volver a Hoy».
+
+Pendientes: pantalla de historial, gráfica, ajuste manual del peso recomendado, recomendaciones con IA real, sincronización con Supabase, cifrado (RNF-11), límite de crecimiento de la lista de series y notificaciones al terminar el descanso.
 
 ### Contador numérico (RF-10)
 
