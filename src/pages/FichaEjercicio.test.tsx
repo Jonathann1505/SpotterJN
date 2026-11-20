@@ -4,6 +4,7 @@ import { MemoryRouter, Route } from 'react-router-dom';
 import { Preferences } from '@capacitor/preferences';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fichasVistasLocal, rutinaLocal } from '../repositories/local';
+import type { RutinaAsignada } from '../types/perfil';
 import { asignarRutina } from '../utils/rutina';
 import FichaEjercicio from './FichaEjercicio';
 import { botonAtras } from '../test/navegacion';
@@ -26,6 +27,48 @@ function renderizar(ruta: string) {
       </MemoryRouter>
     </IonApp>,
   );
+}
+
+function rutinaManual(equipo: RutinaAsignada['cuestionario']['equipo']): RutinaAsignada {
+  const ejercicio = (id: string, nombre: string, pesoInicialKg: number) => ({
+    id,
+    nombre,
+    series: 3,
+    repeticiones: 12,
+    pesoInicialKg,
+  });
+
+  return {
+    cuestionario: { experiencia: 'ninguna', diasPorSemana: 2, equipo },
+    dias: [
+      {
+        nombre: 'Día 1 – Cuerpo completo',
+        ejercicios: [
+          ejercicio('press-banca', 'Press de banca', 20),
+          ejercicio('remo-maquina', 'Remo en máquina', 20),
+          ejercicio('flexiones', 'Flexiones', 0),
+        ],
+      },
+      {
+        nombre: 'Día 2 – Cuerpo completo',
+        ejercicios: [ejercicio('press-banca', 'Press de banca', 20), ejercicio('prensa-piernas', 'Prensa de piernas', 40)],
+      },
+    ],
+    asignadaEn: '2026-11-20T10:00:00.000Z',
+  };
+}
+
+async function guardarRutinaCon(...ids: string[]): Promise<void> {
+  await rutinaLocal.guardar('usuario-prueba', {
+    cuestionario: { experiencia: 'ninguna', diasPorSemana: 2, equipo: ['barra', 'maquinas'] },
+    dias: [
+      {
+        nombre: 'Día 1 – Cuerpo completo',
+        ejercicios: ids.map((id) => ({ id, nombre: id, series: 3, repeticiones: 12, pesoInicialKg: 0 })),
+      },
+    ],
+    asignadaEn: '2026-11-20T10:00:00.000Z',
+  });
 }
 
 describe('FichaEjercicio', () => {
@@ -52,6 +95,7 @@ describe('FichaEjercicio', () => {
   });
 
   it('marca la ficha como vista al continuar y lleva a la sesión', async () => {
+    await guardarRutinaCon('press-banca');
     const { container, findByRole, findByText } = renderizar('/ejercicio/press-banca');
     await findByRole('heading', { name: 'Press de banca' });
 
@@ -93,6 +137,7 @@ describe('FichaEjercicio', () => {
   });
 
   it('habla de «máquina» solo en ejercicios de máquina o polea', async () => {
+    await guardarRutinaCon('remo-maquina');
     const { findByRole, getByText } = renderizar('/ejercicio/remo-maquina');
 
     await findByRole('heading', { name: 'Remo en máquina' });
@@ -101,12 +146,24 @@ describe('FichaEjercicio', () => {
   });
 
   it('usa «prepararte» y «este ejercicio» en los ejercicios de peso corporal', async () => {
+    await guardarRutinaCon('zancadas');
     const { findByRole, getByText, queryByText } = renderizar('/ejercicio/zancadas');
 
     await findByRole('heading', { name: 'Zancadas' });
     expect(getByText(/Primera vez con este ejercicio/)).toBeInTheDocument();
     expect(getByText('1. Cómo prepararte')).toBeInTheDocument();
     expect(queryByText(/máquina/i, { selector: 'h2' })).not.toBeInTheDocument();
+  });
+
+  it('si el ejercicio no está en la rutina solo se consulta: sin aviso de primera vez ni inicio de series', async () => {
+    await guardarRutinaCon('press-banca');
+    const { container, findByRole, queryByText } = renderizar('/ejercicio/zancadas');
+
+    await findByRole('heading', { name: 'Zancadas' });
+
+    expect(queryByText(/Primera vez con/)).not.toBeInTheDocument();
+    expect(container.querySelector('ion-button.sj-boton')).toHaveTextContent('Entendido');
+    expect(queryByText('Listo, empezar series')).not.toBeInTheDocument();
   });
 
   it('redirige a Hoy si el ejercicio no existe', async () => {
@@ -123,5 +180,66 @@ describe('FichaEjercicio', () => {
     await findByRole('heading', { name: 'Press de banca' });
     expect(botonAtras(container)).toHaveAttribute('default-href', '/hoy');
     expect(queryByText('Volver')).not.toBeInTheDocument();
+  });
+
+  describe('cambiar el ejercicio (RF-14)', () => {
+    it('reemplaza el ejercicio en la rutina guardada con la alternativa elegida', async () => {
+      await rutinaLocal.guardar('usuario-prueba', rutinaManual(['barra', 'maquinas']));
+      const { findByRole, findByText, getByRole } = renderizar('/ejercicio/press-banca');
+
+      await findByRole('heading', { name: 'Press de banca' });
+      fireEvent.click(getByRole('button', { name: 'No puedo hacer este ejercicio' }));
+      fireEvent.click(await findByText('Press de pecho en máquina'));
+
+      expect(await findByRole('heading', { name: 'Press de pecho en máquina' })).toBeInTheDocument();
+      expect(await findByText(/Cambiamos «Press de banca» por este ejercicio/)).toBeInTheDocument();
+      const guardada = await rutinaLocal.obtener('usuario-prueba');
+      const ids = guardada?.dias.flatMap((dia) => dia.ejercicios.map((e) => e.id));
+      expect(ids).toContain('press-pecho-maquina');
+      expect(ids).not.toContain('press-banca');
+    });
+
+    it('ofrece «No tengo esta máquina» solo si el ejercicio usa equipo', async () => {
+      await rutinaLocal.guardar('usuario-prueba', rutinaManual(['barra', 'maquinas']));
+      const maquina = renderizar('/ejercicio/prensa-piernas');
+      await maquina.findByRole('heading', { name: 'Prensa de piernas' });
+      expect(maquina.getByRole('button', { name: 'No tengo esta máquina' })).toBeInTheDocument();
+      cleanup();
+
+      const corporal = renderizar('/ejercicio/flexiones');
+      await corporal.findByRole('heading', { name: 'Flexiones' });
+      expect(corporal.getByRole('button', { name: 'No puedo hacer este ejercicio' })).toBeInTheDocument();
+      expect(corporal.queryByRole('button', { name: /No tengo/ })).not.toBeInTheDocument();
+    });
+
+    it('con «No tengo esta máquina» no propone otra máquina', async () => {
+      await rutinaLocal.guardar('usuario-prueba', rutinaManual(['barra', 'maquinas', 'mancuernas']));
+      const { findByRole, getByRole, queryByText } = renderizar('/ejercicio/prensa-piernas');
+
+      await findByRole('heading', { name: 'Prensa de piernas' });
+      fireEvent.click(getByRole('button', { name: 'No tengo esta máquina' }));
+
+      expect(await findByRole('group', { name: 'Alternativas sugeridas' })).toBeInTheDocument();
+      expect(queryByText('Curl femoral en máquina')).not.toBeInTheDocument();
+    });
+
+    it('avisa cuando no hay otra opción con el equipo declarado', async () => {
+      await rutinaLocal.guardar('usuario-prueba', rutinaManual([]));
+      const { findByRole, findByText, getByRole } = renderizar('/ejercicio/flexiones');
+
+      await findByRole('heading', { name: 'Flexiones' });
+      fireEvent.click(getByRole('button', { name: 'No puedo hacer este ejercicio' }));
+
+      expect(await findByText(/No encontramos otra opción con tu equipo/)).toBeInTheDocument();
+    });
+
+    it('no ofrece el cambio si el ejercicio no está en la rutina de la persona', async () => {
+      await rutinaLocal.guardar('usuario-prueba', rutinaManual(['barra', 'maquinas']));
+      const { findByRole, queryByText } = renderizar('/ejercicio/zancadas');
+
+      await findByRole('heading', { name: 'Zancadas' });
+
+      expect(queryByText('¿No puedes hacerlo?')).not.toBeInTheDocument();
+    });
   });
 });

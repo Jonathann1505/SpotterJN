@@ -392,7 +392,8 @@ ion-content {
   border-left: var(--sj-linea);
 }
 
-.sj-segmento[aria-checked='true'] {
+.sj-segmento[aria-checked='true'],
+.sj-segmento[aria-pressed='true'] {
   background: var(--sj-ink);
   color: var(--sj-color-blanco);
 }
@@ -1195,4 +1196,54 @@ ion-modal {
   color: var(--sj-blue-ink);
   font-size: var(--sj-fuente-lg);
   font-weight: 800;
+}
+
+/* Cambiar un ejercicio desde su ficha */
+.sj-cambiar {
+  margin-bottom: var(--sj-espacio-4);
+}
+
+.sj-cambiar [role='group'] {
+  margin-top: var(--sj-espacio-4);
+}
+
+.sj-cambiar .sj-opcion {
+  text-align: left;
+}
+
+.sj-ficha-aviso {
+  margin: 0 0 var(--sj-espacio-4);
+}
+
+/* Biblioteca de ejercicios: filtros */
+.sj-filtro {
+  margin-bottom: var(--sj-espacio-3);
+}
+
+.sj-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sj-espacio-2);
+}
+
+.sj-chip {
+  min-height: 2.75rem;
+  padding: var(--sj-espacio-2) var(--sj-espacio-4);
+  border: var(--sj-linea);
+  background: var(--sj-campo);
+  color: var(--sj-ink);
+  font: inherit;
+  font-size: var(--sj-fuente-sm);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.sj-chip[aria-pressed='true'] {
+  background: var(--sj-ink);
+  color: var(--sj-color-blanco);
+}
+
+.sj-chip:focus-visible {
+  outline: 3px solid var(--sj-blue-ink);
+  outline-offset: 2px;
 }

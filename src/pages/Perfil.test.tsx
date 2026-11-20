@@ -29,6 +29,9 @@ function renderizar() {
           <Route path="/rutina">
             <p>pantalla rutina</p>
           </Route>
+          <Route path="/ejercicios">
+            <p>pantalla biblioteca</p>
+          </Route>
         </MemoryRouter>
       </ProveedorPerfil>
     </IonApp>,
@@ -116,5 +119,13 @@ describe('Perfil', () => {
     const { queryByText } = renderizar();
 
     await waitFor(() => expect(queryByText('Tu rutina actual')).not.toBeInTheDocument());
+  });
+
+  it('abre la biblioteca de ejercicios', async () => {
+    const { findByText } = renderizar();
+
+    fireEvent.click(await findByText('Biblioteca de ejercicios'));
+
+    expect(await findByText('pantalla biblioteca')).toBeInTheDocument();
   });
 });

@@ -30,6 +30,7 @@ SpotterJN/
 │   ├── main.tsx
 │   ├── components/
 │   │   ├── AnimacionEjercicio.tsx # animación del ejercicio en iframe aislado
+│   │   ├── CambiarEjercicio.tsx  # motivos y alternativas para cambiar un ejercicio (RF-14)
 │   │   ├── MiniaturaEjercicio.tsx # miniatura animada en Hoy y Rutina
 │   │   ├── AyudaTermino.tsx      # ícono de ayuda con la definición de un término
 │   │   ├── CargandoSJ.tsx        # estados de carga con skeletons
@@ -51,6 +52,7 @@ SpotterJN/
 │   │   ├── CuestionarioRutina.tsx
 │   │   ├── CuestionarioSalud.tsx
 │   │   ├── FichaEjercicio.tsx
+│   │   ├── Biblioteca.tsx
 │   │   ├── Glosario.tsx
 │   │   ├── Hoy.tsx
 │   │   ├── Login.tsx
@@ -76,6 +78,8 @@ SpotterJN/
 │   │   └── series.ts             # serie registrada y autoevaluación (RF-10)
 │   ├── utils/
 │   │   ├── contadorNumerico.ts   # límites, pasos e incrementos numéricos (RF-10)
+│   │   ├── alternativas.ts       # alternativas y reemplazo de un ejercicio de la rutina (RF-14)
+│   │   ├── biblioteca.ts         # filtros de la biblioteca de ejercicios
 │   │   ├── etiquetasRutina.ts    # textos de experiencia y equipo del cuestionario
 │   │   ├── progresion.ts         # progresión de peso por reglas (RF-15 a RF-19)
 │   │   ├── rutina.ts             # asignación de la rutina y resúmenes de sesión y semana
@@ -150,6 +154,7 @@ Toda pantalla **secundaria** usa el encabezado con el botón atrás nativo de Io
 | --- | --- | --- |
 | Perfil | `/perfil` | `/hoy` |
 | Recordatorios | `/ajustes` | `/perfil` |
+| Biblioteca de ejercicios | `/ejercicios` | `/perfil` |
 | Glosario | `/glosario` | `/perfil` |
 | Sesión | `/sesion` | `/hoy` |
 | Ficha del ejercicio | `/ejercicio/:id` | `/hoy` |
@@ -217,7 +222,8 @@ Cada ejercicio tiene una ficha en `/ejercicio/:id` con su animación, cómo ajus
 
 - Las animaciones están en `public/ejercicios/`: archivos HTML autocontenidos (hoy `press-banca.html`, que se muestra en un `iframe` con `sandbox="allow-scripts"`; el comando `npm run animacion:crear` genera más a partir de 3 imágenes) o videos MP4 comprimidos (hoy `flexiones.mp4`, `sentadilla-peso-corporal.mp4`, `press-pecho-maquina.mp4` y `remo-invertido.mp4`, que se reproducen en bucle y silenciados). Ver `docs/animaciones-ejercicios.md`. Los videos están recortados alrededor del personaje y la ficha respeta su proporción. Se pausan al tocarlas y no se inician si el sistema pide menos movimiento.
 - El contenido de cada guía está en `src/data/guias.ts`; los 16 ejercicios del catálogo tienen su texto, pero solo el press de banca, el press de pecho en máquina, las flexiones, el remo invertido y la sentadilla con peso corporal tienen animación. Los demás muestran «Animación próximamente». Las listas de `Hoy` y de la rutina muestran una miniatura animada de cada ejercicio con video (los demás, un recuadro con su inicial). Un ejercicio que no esté en `guias.ts` usa un texto provisional.
-- «Listo, empezar series» guarda la ficha como vista y lleva a la sesión de entrenamiento (`/sesion`). El botón de cambiar ejercicio (RF-14) no está implementado.
+- La **biblioteca de ejercicios** (`/ejercicios`, desde el perfil) lista los 16 ejercicios con filtros por grupo muscular y equipo (`src/utils/biblioteca.ts`) y abre sus fichas. Un ejercicio que no está en la rutina de la persona se abre solo para consulta: sin aviso de primera vez y con el botón «Entendido».
+- «Listo, empezar series» guarda la ficha como vista y lleva a la sesión de entrenamiento (`/sesion`). La ficha permite **cambiar el ejercicio** (RF-14) cuando está en la rutina de la persona: «No puedo hacer este ejercicio» o «No tengo esta máquina / este equipo» (este último no aparece en los de peso corporal). Se ofrecen hasta 3 alternativas del mismo movimiento, primero las del mismo grupo muscular y de equipo más guiado, usando solo el equipo declarado en el cuestionario (el peso corporal siempre está disponible) y sin repetir ejercicios de esos días. Con «No tengo este equipo» no se propone el mismo equipo. Al elegir una, se reemplaza en todos los días de la rutina guardada conservando series y repeticiones, y se abre la ficha del nuevo ejercicio con un aviso. La lógica está en `src/utils/alternativas.ts` y es una regla fija, sin IA ni historial: la adaptación según lo ocurrido en las sesiones depende de M3/M4.
 
 ## Sesión de entrenamiento (M3)
 
