@@ -1,5 +1,6 @@
 import type { PerfilUsuario, RespuestasSalud, RutinaAsignada } from '../types/perfil';
 import type { AjustesRecordatorios } from '../types/recordatorios';
+import type { SerieRegistrada } from '../types/series';
 
 export interface PerfilRepositorio {
   obtener(usuarioId: string): Promise<PerfilUsuario | null>;
@@ -24,4 +25,12 @@ export interface FichasVistasRepositorio {
 export interface RecordatoriosRepositorio {
   obtener(usuarioId: string): Promise<AjustesRecordatorios>;
   guardar(usuarioId: string, ajustes: AjustesRecordatorios): Promise<void>;
+}
+
+export interface SeriesRepositorio {
+  /** Añade una serie al registro del usuario. */
+  guardar(usuarioId: string, serie: SerieRegistrada): Promise<void>;
+  /** Todas las series del usuario, en el orden en que se registraron. */
+  listar(usuarioId: string): Promise<SerieRegistrada[]>;
+  listarPorEjercicio(usuarioId: string, idEjercicio: string): Promise<SerieRegistrada[]>;
 }

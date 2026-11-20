@@ -1,8 +1,8 @@
 import { buscarEjercicio } from '../data/ejercicios';
 import type { DiaRutina, EjercicioRutina } from '../types/perfil';
+import { AUTOEVALUACIONES, type Autoevaluacion } from '../types/series';
 
-export const AUTOEVALUACIONES = ['facil', 'normal', 'dificil'] as const;
-export type Autoevaluacion = (typeof AUTOEVALUACIONES)[number];
+export { AUTOEVALUACIONES, type Autoevaluacion };
 
 export const ETIQUETAS_AUTOEVALUACION: Readonly<Record<Autoevaluacion, string>> = {
   facil: 'Fácil',
