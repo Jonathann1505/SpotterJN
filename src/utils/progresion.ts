@@ -1,6 +1,7 @@
-import type { UnidadPeso } from '../types/perfil';
+import type { EjercicioRutina, UnidadPeso } from '../types/perfil';
 import type { SerieRegistrada } from '../types/series';
-import { kgALb, lbAKg } from './unidades';
+import { esPesoCorporal } from './sesion';
+import { kgALb, lbAKg, pesoEnUnidad } from './unidades';
 
 /** Subida máxima y paso de redondeo de la progresión automática (RF-17). */
 export const INCREMENTO_PESO: Readonly<Record<UnidadPeso, number>> = { kg: 2.5, lb: 5 };
@@ -207,4 +208,25 @@ export function calcularProgresion(
     peso: pesoBase,
     repeticiones: pesoBase === null ? repeticionesBase : objetivo.repeticiones,
   });
+}
+
+/**
+ * Recomendación para un ejercicio de la rutina a partir de todas las series del usuario:
+ * filtra las del ejercicio y parte del peso inicial del catálogo en la unidad del perfil.
+ */
+export function recomendarParaEjercicio(
+  ejercicio: EjercicioRutina,
+  series: readonly SerieRegistrada[],
+  unidad: UnidadPeso,
+  explicar: Explicador = explicarProgresion,
+): ResultadoProgresion {
+  return calcularProgresion(
+    {
+      series: series.filter((serie) => serie.idEjercicio === ejercicio.id),
+      objetivo: { series: ejercicio.series, repeticiones: ejercicio.repeticiones },
+      pesoActual: esPesoCorporal(ejercicio) ? null : pesoEnUnidad(ejercicio.pesoInicialKg, unidad),
+      unidad,
+    },
+    explicar,
+  );
 }

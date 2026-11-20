@@ -6,10 +6,11 @@ import { MiniaturaEjercicio } from '../components/MiniaturaEjercicio';
 import { CargandoSJ } from '../components/CargandoSJ';
 import { BotonSJ, PantallaSJ } from '../components/PantallaSJ';
 import { usePerfil } from '../context/PerfilContext';
-import { rutinaLocal, saludLocal } from '../repositories/local';
+import { rutinaLocal, saludLocal, seriesLocal } from '../repositories/local';
 import type { RespuestasSalud, RutinaAsignada } from '../types/perfil';
+import type { SerieRegistrada } from '../types/series';
+import { recomendarParaEjercicio } from '../utils/progresion';
 import { describirSesion } from '../utils/rutina';
-import { pesoEnUnidad } from '../utils/unidades';
 import { useSesion } from '../context/SesionContext';
 import CerrarSesion from '../components/CerrarSesion';
 
@@ -17,6 +18,7 @@ interface DatosHoy {
   usuarioId: string;
   salud: RespuestasSalud | null;
   rutina: RutinaAsignada | null;
+  series: SerieRegistrada[];
 }
 
 function Hoy() {
@@ -36,15 +38,20 @@ function Hoy() {
     }
 
     setDatos(null);
-    void Promise.all([saludLocal.obtener(usuarioId), rutinaLocal.obtener(usuarioId)])
-      .then(([salud, rutina]) => {
+    void Promise.all([
+      saludLocal.obtener(usuarioId),
+      rutinaLocal.obtener(usuarioId),
+      // Sin series legibles se muestra el peso inicial: no bloquea la pantalla.
+      seriesLocal.listar(usuarioId).catch((): SerieRegistrada[] => []),
+    ])
+      .then(([salud, rutina, series]) => {
         if (activo) {
-          setDatos({ usuarioId, salud, rutina });
+          setDatos({ usuarioId, salud, rutina, series });
         }
       })
       .catch(() => {
         if (activo) {
-          setDatos({ usuarioId, salud: null, rutina: null });
+          setDatos({ usuarioId, salud: null, rutina: null, series: [] });
         }
       });
 
@@ -89,7 +96,10 @@ function Hoy() {
       {perfil.nombre.trim() !== '' ? <p className="sj-texto">Hola, {perfil.nombre.trim()}. Esta es tu sesión de hoy.</p> : null}
       <p className="sj-texto sj-suave">{describirSesion(proximaSesion)}</p>
       <ul className="sj-lista sj-lista-hoy">
-        {proximaSesion.ejercicios.map((ejercicio) => (
+        {proximaSesion.ejercicios.map((ejercicio) => {
+          // Peso recomendado por la progresión (RF-15 a RF-17); sin series es el peso inicial.
+          const recomendacion = recomendarParaEjercicio(ejercicio, datos.series, perfil.unidadPeso);
+          return (
           <li key={ejercicio.id} className="sj-fila-ejercicio">
             <MiniaturaEjercicio idEjercicio={ejercicio.id} nombre={ejercicio.nombre} />
             <span>
@@ -102,18 +112,22 @@ function Hoy() {
                 <strong>{ejercicio.nombre}</strong>
                 <IonIcon icon={helpCircleOutline} aria-hidden="true" />
               </button>
-              <small className="sj-suave sj-bloque">{ejercicio.series}x{ejercicio.repeticiones}</small>
+              <small className="sj-suave sj-bloque">{ejercicio.series}x{recomendacion.repeticiones}</small>
+              {recomendacion.motivo === 'sin-series' ? null : (
+                <small className="sj-suave sj-bloque">{recomendacion.explicacion}</small>
+              )}
             </span>
-            {ejercicio.pesoInicialKg > 0 ? (
+            {recomendacion.peso !== null ? (
               <p className="sj-peso">
-                {pesoEnUnidad(ejercicio.pesoInicialKg, perfil.unidadPeso).toLocaleString('es')}
+                {recomendacion.peso.toLocaleString('es')}
                 <small> {perfil.unidadPeso}</small>
               </p>
             ) : (
               <p className="sj-peso sj-peso-corporal">Peso corporal</p>
             )}
           </li>
-        ))}
+          );
+        })}
       </ul>
     </PantallaSJ>
   );
