@@ -104,6 +104,37 @@ describe('Progreso', () => {
     expect(queryByText(/Con una sesión más/)).not.toBeInTheDocument();
   });
 
+  it('con dos o más sesiones dibuja la gráfica de peso por semana', async () => {
+    await guardar(
+      serie({ registradaEn: hora(16), peso: 20 }),
+      serie({ registradaEn: hora(23), peso: 22.5 }),
+      serie({ registradaEn: hora(30), peso: 25 }),
+    );
+    const { findByRole, getByText } = renderizar();
+
+    expect(await findByRole('img', { name: /Peso de Press de banca por semana: de 20 a 25 kg en 3 semanas/ })).toBeInTheDocument();
+    expect(getByText('Peso por semana')).toBeInTheDocument();
+  });
+
+  it('con una sola sesión no dibuja la gráfica', async () => {
+    await guardar(serie({ registradaEn: hora(16) }));
+    const { findByText, queryByRole } = renderizar();
+
+    await findByText(/Con una sesión más/);
+    expect(queryByRole('img')).not.toBeInTheDocument();
+  });
+
+  it('en un ejercicio de peso corporal explica que no hay peso que graficar', async () => {
+    await guardar(
+      serie({ registradaEn: hora(16), idEjercicio: 'flexiones', nombreEjercicio: 'Flexiones', peso: null }),
+      serie({ registradaEn: hora(18), idEjercicio: 'flexiones', nombreEjercicio: 'Flexiones', peso: null }),
+    );
+    const { findByText, queryByRole } = renderizar();
+
+    expect(await findByText(/no hay peso que graficar/)).toBeInTheDocument();
+    expect(queryByRole('img')).not.toBeInTheDocument();
+  });
+
   it('cambia de ejercicio con los chips', async () => {
     await guardar(
       serie({ registradaEn: hora(16), peso: 20 }),

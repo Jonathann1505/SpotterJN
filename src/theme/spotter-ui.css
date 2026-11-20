@@ -1283,3 +1283,45 @@ ion-modal {
 .sj-evaluacion-dificil {
   background: #ffc9b8;
 }
+
+/* Gráfica de peso por semana */
+.sj-grafica {
+  margin: 0 0 var(--sj-espacio-4);
+}
+
+.sj-grafica svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: var(--sj-linea);
+  background: var(--sj-color-blanco);
+}
+
+.sj-grafica figcaption {
+  margin-top: var(--sj-espacio-2);
+  font-size: var(--sj-fuente-sm);
+}
+
+.sj-grafica-eje {
+  stroke: var(--sj-ink);
+  stroke-width: 2;
+}
+
+.sj-grafica-linea {
+  fill: none;
+  stroke: var(--sj-color-primario);
+  stroke-linejoin: round;
+  stroke-width: 3;
+}
+
+.sj-grafica-punto {
+  fill: var(--sj-color-primario);
+  stroke: var(--sj-color-blanco);
+  stroke-width: 2;
+}
+
+.sj-grafica-texto {
+  fill: var(--sj-ink);
+  font-size: 14px;
+  font-weight: 700;
+}

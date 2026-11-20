@@ -7,7 +7,8 @@ import { useSesion } from '../context/SesionContext';
 import { seriesLocal } from '../repositories/local';
 import type { UnidadPeso } from '../types/perfil';
 import type { SerieRegistrada } from '../types/series';
-import { ejerciciosConHistorial, sesionesDeEjercicio, type SesionHistorial } from '../utils/historial';
+import { GraficaPeso } from '../components/GraficaPeso';
+import { ejerciciosConHistorial, pesoPorSemana, sesionesDeEjercicio, type SesionHistorial } from '../utils/historial';
 import { ETIQUETAS_AUTOEVALUACION } from '../utils/sesion';
 
 const SESIONES_RECIENTES = 8;
@@ -94,6 +95,7 @@ function Progreso() {
 
   const ejercicioActual = ejercicios.find((e) => e.id === elegido) ?? ejercicios[0];
   const sesiones = sesionesDeEjercicio(series, ejercicioActual.id, perfil.unidadPeso);
+  const puntosSemanales = pesoPorSemana(sesiones);
 
   return (
     <PantallaSJ atras="/perfil" etiqueta="Tu avance" titulo="Mi progreso" reglaBajoTitulo>
@@ -118,7 +120,14 @@ function Progreso() {
         <p className="sj-vacio" role="status">
           Con una sesión más de {ejercicioActual.nombre} podremos mostrarte tu progreso. ¡Vas por buen camino!
         </p>
-      ) : null}
+      ) : puntosSemanales.length > 0 ? (
+        <>
+          <h2 className="sj-subtitulo">Peso por semana</h2>
+          <GraficaPeso puntos={puntosSemanales} unidad={perfil.unidadPeso} ejercicio={ejercicioActual.nombre} />
+        </>
+      ) : (
+        <p className="sj-texto sj-suave">Este ejercicio se hace con tu peso corporal, así que no hay peso que graficar.</p>
+      )}
 
       <h2 className="sj-subtitulo">Últimas sesiones</h2>
       <ul className="sj-lista">
