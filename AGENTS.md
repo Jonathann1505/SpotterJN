@@ -164,3 +164,13 @@
 - Pruebas: `NavegacionRutina.test.tsx` usa `IonReactMemoryRouter` y `paginaVisible` (nuevo en `src/test/navegacion.tsx`) para navegar de verdad; las pruebas del cuestionario esperan a que termine la comprobación de rutina.
 - Pendiente: probar a mano con una cuenta nueva y con Perfil → Mi rutina → Cambiar mi rutina, con el botón en pantalla, el físico de Android y el gesto de iOS.
 - Verificación: `npm test` (292 pruebas/41 archivos) y `npm run build` aprobados.
+
+### 2026-11-20 — Guardado de series en el dispositivo (RF-10, RF-13)
+
+- Rama `feature/guardar-series` desde `develop` (con el PR #19).
+- Añadidos `src/types/series.ts` (`SerieRegistrada`, `AUTOEVALUACIONES`, `ESTADOS_SERIE`; `src/utils/sesion.ts` reexporta la autoevaluación) y `seriesLocal` en `src/repositories/local.ts` con `guardar`, `listar` y `listarPorEjercicio`. Clave: `spotter.usuario.<id>.series` (lista); se descartan las series corruptas una a una.
+- `/sesion` guarda antes de avanzar, con «Guardando…», bloqueo de doble toque por `useRef` y error en español sin avanzar ni perder datos. Peso `null` en peso corporal; el peso se guarda en la unidad del perfil junto con `unidad`.
+- Decisión: «Sentí dolor» guarda la serie con `estado: 'interrumpida-por-molestia'` y la autoevaluación si existe; si falla, avanza igual y lo informa.
+- Datos solo en el dispositivo y sin cifrar.
+- Pendientes: historial, gráfica, progresión, IA, Supabase, cifrado (RNF-11), límite de crecimiento de la lista y descanso RF-11 entre series.
+- Verificación: `npm test` (309 pruebas/41 archivos) y `npm run build` aprobados. El push falló varias veces por falta de red (`Could not resolve host: github.com`); los commits quedaron locales hasta recuperar la conexión.
