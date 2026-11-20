@@ -1214,3 +1214,36 @@ ion-modal {
 .sj-ficha-aviso {
   margin: 0 0 var(--sj-espacio-4);
 }
+
+/* Biblioteca de ejercicios: filtros */
+.sj-filtro {
+  margin-bottom: var(--sj-espacio-3);
+}
+
+.sj-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sj-espacio-2);
+}
+
+.sj-chip {
+  min-height: 2.75rem;
+  padding: var(--sj-espacio-2) var(--sj-espacio-4);
+  border: var(--sj-linea);
+  background: var(--sj-campo);
+  color: var(--sj-ink);
+  font: inherit;
+  font-size: var(--sj-fuente-sm);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.sj-chip[aria-pressed='true'] {
+  background: var(--sj-ink);
+  color: var(--sj-color-blanco);
+}
+
+.sj-chip:focus-visible {
+  outline: 3px solid var(--sj-blue-ink);
+  outline-offset: 2px;
+}
