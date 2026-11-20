@@ -4,12 +4,14 @@ import { alertCircleOutline } from 'ionicons/icons';
 import { Redirect, useHistory } from 'react-router-dom';
 import { CargandoSJ } from '../components/CargandoSJ';
 import ContadorNumerico from '../components/ContadorNumerico';
+import { ResumenSesion } from '../components/ResumenSesion';
 import TemporizadorDescanso from '../components/TemporizadorDescanso';
 import { BotonSJ, PantallaSJ } from '../components/PantallaSJ';
 import { usePerfil } from '../context/PerfilContext';
 import { useSesion } from '../context/SesionContext';
 import { rutinaLocal, seriesLocal } from '../repositories/local';
 import type { DiaRutina, RutinaAsignada } from '../types/perfil';
+import type { SerieRegistrada } from '../types/series';
 import {
   AUTOEVALUACIONES,
   ETIQUETAS_AUTOEVALUACION,
@@ -38,6 +40,8 @@ function SesionEntrenamiento() {
   const [errorGuardado, setErrorGuardado] = useState<string | null>(null);
   const [avisoMolestia, setAvisoMolestia] = useState<string | null>(null);
   // Referencia de la serie anterior mientras se descansa antes de la siguiente (RF-11).
+  // Series guardadas en esta sesión, para el resumen final (RF-19).
+  const [seriesDeLaSesion, setSeriesDeLaSesion] = useState<SerieRegistrada[]>([]);
   const [descanso, setDescanso] = useState<{ repeticiones: number; peso: number | null } | null>(null);
   // Evita guardar dos veces si se toca rápido antes de que React actualice el estado.
   const guardadoEnCurso = useRef(false);
@@ -125,6 +129,7 @@ function SesionEntrenamiento() {
           consulta a un profesional de la salud antes de volver a entrenar.
         </p>
         {avisoMolestia ? <p className="sj-error" role="alert">{avisoMolestia}</p> : null}
+        <ResumenSesion dia={dia} usuarioId={usuarioId} unidad={perfil.unidadPeso} seriesDeLaSesion={seriesDeLaSesion} />
         <BotonSJ onClick={() => history.replace('/hoy')}>Volver a Hoy</BotonSJ>
       </PantallaSJ>
     );
@@ -136,6 +141,7 @@ function SesionEntrenamiento() {
         <p className="sj-texto" role="status">
           Terminaste todas las series de {dia.nombre}. ¡Buen trabajo!
         </p>
+        <ResumenSesion dia={dia} usuarioId={usuarioId} unidad={perfil.unidadPeso} seriesDeLaSesion={seriesDeLaSesion} />
         <BotonSJ onClick={() => history.replace('/hoy')}>Volver a Hoy</BotonSJ>
       </PantallaSJ>
     );
@@ -147,23 +153,22 @@ function SesionEntrenamiento() {
 
   const ultimoEjercicio = esUltimoEjercicio(progreso, dia);
 
-  const registrarSerie = (estado: 'completada' | 'interrumpida-por-molestia'): Promise<void> => {
+  const registrarSerie = async (estado: 'completada' | 'interrumpida-por-molestia'): Promise<void> => {
     if (usuarioId === null) {
-      return Promise.reject(new Error('Sin sesión activa.'));
+      throw new Error('Sin sesión activa.');
     }
-    return seriesLocal.guardar(
-      usuarioId,
-      crearSerieRegistrada({
-        dia,
-        ejercicio,
-        numeroSerie: progreso.serie,
-        repeticiones: repeticionesActuales,
-        peso: pesoActual,
-        unidad: perfil.unidadPeso,
-        autoevaluacion,
-        estado,
-      }),
-    );
+    const serie = crearSerieRegistrada({
+      dia,
+      ejercicio,
+      numeroSerie: progreso.serie,
+      repeticiones: repeticionesActuales,
+      peso: pesoActual,
+      unidad: perfil.unidadPeso,
+      autoevaluacion,
+      estado,
+    });
+    await seriesLocal.guardar(usuarioId, serie);
+    setSeriesDeLaSesion((anteriores) => [...anteriores, serie]);
   };
 
   const continuarTrasDolor = async (): Promise<void> => {
