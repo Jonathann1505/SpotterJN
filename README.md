@@ -30,6 +30,7 @@ SpotterJN/
 │   ├── main.tsx
 │   ├── components/
 │   │   ├── AnimacionEjercicio.tsx # animación del ejercicio en iframe aislado
+│   │   ├── BorrarDatos.tsx       # borrado confirmado de los datos locales
 │   │   ├── CambiarEjercicio.tsx  # motivos y alternativas para cambiar un ejercicio (RF-14)
 │   │   ├── GraficaPeso.tsx       # gráfica SVG del peso por semana (RF-23)
 │   │   ├── MiniaturaEjercicio.tsx # miniatura animada en Hoy y Rutina
@@ -54,6 +55,8 @@ SpotterJN/
 │   │   ├── CuestionarioSalud.tsx
 │   │   ├── FichaEjercicio.tsx
 │   │   ├── Biblioteca.tsx
+│   │   ├── Calentamiento.tsx
+│   │   ├── EditarSalud.tsx
 │   │   ├── Glosario.tsx
 │   │   ├── Hoy.tsx
 │   │   ├── Login.tsx
@@ -159,6 +162,8 @@ Toda pantalla **secundaria** usa el encabezado con el botón atrás nativo de Io
 | Recordatorios | `/ajustes` | `/perfil` |
 | Biblioteca de ejercicios | `/ejercicios` | `/perfil` |
 | Historial de progreso | `/progreso` | `/perfil` |
+| Mis respuestas de salud | `/editar-salud` | `/perfil` |
+| Calentamiento | `/calentamiento` | `/ejercicios` |
 | Glosario | `/glosario` | `/perfil` |
 | Sesión | `/sesion` | `/hoy` |
 | Ficha del ejercicio | `/ejercicio/:id` | `/hoy` |
@@ -212,6 +217,8 @@ La compilación estática se genera en `dist/`.
 
 El flujo de primera vez, tras iniciar sesión, es: `Hoy` redirige a `/aviso-medico` si no hay respuestas de salud (RF-05), después a `/cuestionario-rutina` si no hay rutina (RF-06), que asigna una rutina predefinida y la muestra en `/rutina`. `/perfil` permite editar nombre (1 a 40 caracteres), meta principal y unidad de peso kg/lb (RF-07); la unidad se aplica de inmediato en `Hoy` y en la rutina. `Hoy` saluda por el nombre del perfil y muestra la próxima sesión con sus ejercicios, series y repeticiones (RF-08), más un resumen con el total de series y los minutos aproximados (unos 2,25 min por serie, redondeados a múltiplos de 5; es una estimación). La rutina muestra el mismo resumen en cada día, y desde `Hoy`, la rutina y la ficha se llega a la ayuda de cada ejercicio; el perfil tiene el acceso «Mi rutina» y un resumen de la rutina actual (días, experiencia y equipo). La rutina incluye un resumen semanal (sesiones, series y tiempo aproximado) y el botón «Cambiar mi rutina», que reabre el cuestionario con las respuestas anteriores ya marcadas.
 
+Desde el perfil se pueden **editar las respuestas de salud** (`/editar-salud`, RF-05), que reutiliza las mismas condiciones del cuestionario inicial y actualiza la fecha de respuesta, y **borrar los datos de este dispositivo** con confirmación: elimina perfil, salud, rutina, fichas vistas, recordatorios e historial de series (`borrarDatosLocales`), cancela los recordatorios programados y reinicia el flujo desde el aviso médico. No elimina la cuenta ni cierra la sesión (RF-04 sigue pendiente).
+
 Limitaciones actuales:
 
 - Los datos de M2 se guardan en el dispositivo con Capacitor Preferences, detrás de las interfaces de `src/repositories/repositorios.ts` y bajo claves asociadas al ID del usuario autenticado. No están cifrados ni se sincronizan con Supabase; RNF-11 (cifrado en reposo y separación en backend) queda pendiente.
@@ -226,6 +233,8 @@ Cada ejercicio tiene una ficha en `/ejercicio/:id` con su animación, cómo ajus
 
 - Las animaciones están en `public/ejercicios/`: archivos HTML autocontenidos (hoy `press-banca.html`, que se muestra en un `iframe` con `sandbox="allow-scripts"`; el comando `npm run animacion:crear` genera más a partir de 3 imágenes) o videos MP4 comprimidos (hoy `flexiones.mp4`, `sentadilla-peso-corporal.mp4`, `press-pecho-maquina.mp4` y `remo-invertido.mp4`, que se reproducen en bucle y silenciados). Ver `docs/animaciones-ejercicios.md`. Los videos están recortados alrededor del personaje y la ficha respeta su proporción. Se pausan al tocarlas y no se inician si el sistema pide menos movimiento.
 - El contenido de cada guía está en `src/data/guias.ts`; los 16 ejercicios del catálogo tienen su texto, pero solo el press de banca, el press de pecho en máquina, las flexiones, el remo invertido y la sentadilla con peso corporal tienen animación. Los demás muestran «Animación próximamente». Las listas de `Hoy` y de la rutina muestran una miniatura animada de cada ejercicio con video (los demás, un recuadro con su inicial). Un ejercicio que no esté en `guias.ts` usa un texto provisional.
+- **Calentamiento** (`/calentamiento`, desde la biblioteca): 6 pasos de 5 a 8 minutos (`src/data/calentamiento.ts`) que se marcan uno a uno, con contador y un mensaje al completarlos. Es contenido fijo.
+- Las fichas incluyen **errores comunes** y **respiración** de los 16 ejercicios (campos opcionales `erroresComunes` y `respiracion` de `src/data/guias.ts`); una guía provisional no los muestra.
 - El **historial de progreso** (`/progreso`, desde el perfil, RF-23) lee las series guardadas (`seriesLocal`). Un selector por chips elige el ejercicio (primero el entrenado más recientemente) y muestra una gráfica SVG del peso más alto de cada semana (`GraficaPeso`, sin librerías; semanas desde el lunes, con la unidad del perfil) y las últimas 8 sesiones con fecha, peso, repeticiones y la autoevaluación (Fácil, Normal o Difícil, con color y texto). Con menos de 2 sesiones del ejercicio no se dibuja la gráfica y se muestra un mensaje motivador; sin series registradas hay un estado vacío, y en los ejercicios de peso corporal se explica que no hay peso que graficar. La lógica está en `src/utils/historial.ts` y agrupa las sesiones con `agruparEnSesiones` de la progresión.
 - La **biblioteca de ejercicios** (`/ejercicios`, desde el perfil) lista los 16 ejercicios con filtros por grupo muscular y equipo (`src/utils/biblioteca.ts`) y abre sus fichas. Un ejercicio que no está en la rutina de la persona se abre solo para consulta: sin aviso de primera vez y con el botón «Entendido».
 - «Listo, empezar series» guarda la ficha como vista y lleva a la sesión de entrenamiento (`/sesion`). La ficha permite **cambiar el ejercicio** (RF-14) cuando está en la rutina de la persona: «No puedo hacer este ejercicio» o «No tengo esta máquina / este equipo» (este último no aparece en los de peso corporal). Se ofrecen hasta 3 alternativas del mismo movimiento, primero las del mismo grupo muscular y de equipo más guiado, usando solo el equipo declarado en el cuestionario (el peso corporal siempre está disponible) y sin repetir ejercicios de esos días. Con «No tengo este equipo» no se propone el mismo equipo. Al elegir una, se reemplaza en todos los días de la rutina guardada conservando series y repeticiones, y se abre la ficha del nuevo ejercicio con un aviso. La lógica está en `src/utils/alternativas.ts` y es una regla fija, sin IA ni historial: la adaptación según lo ocurrido en las sesiones depende de M3/M4.
