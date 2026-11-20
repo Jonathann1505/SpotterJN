@@ -50,11 +50,11 @@ vi.mock('@ionic/react', async (importOriginal) => {
   };
 });
 
-function renderizar() {
+function renderizar(estado?: { indiceDia: number }) {
   return render(
     <IonApp>
       <ProveedorPerfil>
-        <MemoryRouter initialEntries={['/sesion']}>
+        <MemoryRouter initialEntries={[{ pathname: '/sesion', state: estado }]}>
           <Route exact path="/sesion" component={SesionEntrenamiento} />
           <Route exact path="/hoy">
             <h1>Hoy</h1>
@@ -122,6 +122,15 @@ describe('SesionEntrenamiento', () => {
 
     expect(await screen.findByRole('heading', { name: 'Hoy' })).toBeInTheDocument();
     expect(await rutinaLocal.obtener('usuario-prueba')).toEqual(rutina);
+  });
+
+  it('arranca con la sesión indicada al navegar y con la primera si no se indica', async () => {
+    const rutina = asignarRutina({ experiencia: 'ninguna', diasPorSemana: 3, equipo: ['maquinas'] });
+    await rutinaLocal.guardar('usuario-prueba', rutina);
+    renderizar({ indiceDia: 1 });
+
+    expect(await screen.findByRole('heading', { name: new RegExp(rutina.dias[1].ejercicios[0].nombre) })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: new RegExp(rutina.dias[0].ejercicios[0].nombre) })).not.toBeInTheDocument();
   });
 
   it('redirige al cuestionario si no existe rutina', async () => {
