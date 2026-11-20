@@ -7,6 +7,7 @@
 - Sigue los patrones existentes de Ionic React y Capacitor; no mezcles Expo ni React Native.
 - Mantén README y demás documentación alineados con las dependencias, scripts y configuración reales.
 - Limita cada cambio al alcance acordado y conserva los cambios preexistentes de otras personas.
+- Navegación: toda pantalla secundaria usa `atras` en `PantallaSJ` o `MarcoAccesoSJ`; las raíz no. Pantallas del flujo inicial: atrás solo si ya hay rutina (`/rutina` → `/perfil`, `/cuestionario-rutina` → `/rutina`); `/aviso-medico` y `/salud` nunca lo llevan.
 
 ## Convención de commits
 
@@ -152,3 +153,14 @@
 - No hay manejadores propios del botón físico de Android ni del gesto de iOS: los gestiona `IonRouterOutlet`.
 - Pendiente: probar en navegador (vista Android e iPhone), emulador con botón físico y, si es posible, iPhone con gesto de deslizar y notch; revisar que las transiciones de página se vean bien ahora que la pila de Ionic funciona.
 - Verificación: `npm test` (270 pruebas/40 archivos) y `npm run build` aprobados.
+
+### 2026-11-20 — Botón atrás en la rutina con rutina guardada
+
+- Rama `fix/atras-rutina` desde `develop` (incluye los PR #17 y #18 de Nayeli: resumen de rutina, «Mi rutina», «Cambiar mi rutina» y buscador del glosario).
+- Problema: `/rutina` y `/cuestionario-rutina` quedaron sin botón atrás por ser flujo inicial, pero ahora también se abren desde Perfil («Mi rutina») y desde Rutina («Cambiar mi rutina»).
+- `RutinaAsignada` muestra `atras="/perfil"` en su vista de contenido, que solo existe con rutina guardada; durante la carga no hay encabezado.
+- `CuestionarioRutina` añade `tieneRutina` (null mientras se comprueba) en la misma lectura que la precarga de respuestas: muestra `CargandoSJ` sin encabezado mientras es null y `atras="/rutina"` solo si hay rutina. La precarga de Nayeli no cambia.
+- Decisión: sin caso especial para «Crear mi rutina» en Recordatorios sin rutina; no es alcanzable por la interfaz porque Hoy redirige antes al cuestionario. Por URL directa queda sin botón atrás, como el flujo inicial.
+- Pruebas: `NavegacionRutina.test.tsx` usa `IonReactMemoryRouter` y `paginaVisible` (nuevo en `src/test/navegacion.tsx`) para navegar de verdad; las pruebas del cuestionario esperan a que termine la comprobación de rutina.
+- Pendiente: probar a mano con una cuenta nueva y con Perfil → Mi rutina → Cambiar mi rutina, con el botón en pantalla, el físico de Android y el gesto de iOS.
+- Verificación: `npm test` (292 pruebas/41 archivos) y `npm run build` aprobados.

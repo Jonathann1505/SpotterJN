@@ -153,8 +153,12 @@ Toda pantalla **secundaria** usa el encabezado con el botón atrás nativo de Io
 | Ficha del ejercicio | `/ejercicio/:id` | `/hoy` |
 | Recuperar contraseña | `/recuperar-contrasena` | `/login` |
 | Términos / Privacidad | `/terminos`, `/privacidad` | `/consentimientos` |
+| Rutina asignada (con rutina guardada) | `/rutina` | `/perfil` |
+| Cuestionario de rutina (con rutina guardada) | `/cuestionario-rutina` | `/rutina` |
 
-Sin botón atrás: `/login`, `/consentimientos` y `/registro` (pestañas de acceso), `/hoy` y el flujo inicial obligatorio (`/aviso-medico`, `/salud`, `/cuestionario-rutina`, `/rutina`). Las acciones «Volver a Hoy», «Entendido» e «Ir a Hoy» se mantienen porque no son botones de atrás.
+Sin botón atrás: `/login`, `/consentimientos` y `/registro` (pestañas de acceso), `/hoy` y el flujo inicial obligatorio (`/aviso-medico`, `/salud`, y `/cuestionario-rutina` mientras el usuario no tenga rutina guardada).
+
+**Pantallas del flujo inicial: atrás solo si ya hay rutina.** `/rutina` y `/cuestionario-rutina` leen `rutinaLocal` por id de usuario: sin rutina forman parte del flujo inicial y no muestran atrás; con rutina (al entrar desde Perfil con «Mi rutina» o desde Rutina con «Cambiar mi rutina») muestran atrás hacia `/perfil` y `/rutina`. Mientras se comprueba la rutina se muestra un skeleton sin encabezado, para que el botón no aparezca y desaparezca. Al terminar el flujo inicial, `/rutina` ya muestra atrás porque la rutina queda guardada. Las acciones «Volver a Hoy», «Entendido» e «Ir a Hoy» se mantienen porque no son botones de atrás.
 
 `@ionic/react-router` debe tener **la misma versión** que `@ionic/react`: la primera fija exactamente su versión de `@ionic/react`, y si no coinciden se empaquetan dos copias de Ionic y el router deja de compartir su contexto (el botón atrás recargaría la página en lugar de navegar). Al actualizar Ionic, actualiza ambos paquetes juntos y comprueba con `npm ls @ionic/react` que aparezca `deduped`.
 
