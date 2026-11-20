@@ -1247,3 +1247,81 @@ ion-modal {
   outline: 3px solid var(--sj-blue-ink);
   outline-offset: 2px;
 }
+
+/* Historial de progreso */
+.sj-vacio {
+  margin: 0 0 var(--sj-espacio-4);
+  padding: var(--sj-espacio-4);
+  border: var(--sj-linea);
+  background: #cfe2fa;
+  color: var(--sj-ink);
+  font-size: var(--sj-fuente-base);
+  font-weight: 600;
+}
+
+.sj-fila-historial {
+  align-items: center;
+}
+
+.sj-evaluacion {
+  flex: 0 0 auto;
+  padding: 0.25rem var(--sj-espacio-3);
+  border: var(--sj-linea);
+  color: var(--sj-ink);
+  font-size: var(--sj-fuente-sm);
+  font-weight: 800;
+}
+
+.sj-evaluacion-facil {
+  background: #cfeed8;
+}
+
+.sj-evaluacion-normal {
+  background: #cfe2fa;
+}
+
+.sj-evaluacion-dificil {
+  background: #ffc9b8;
+}
+
+/* Gráfica de peso por semana */
+.sj-grafica {
+  margin: 0 0 var(--sj-espacio-4);
+}
+
+.sj-grafica svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: var(--sj-linea);
+  background: var(--sj-color-blanco);
+}
+
+.sj-grafica figcaption {
+  margin-top: var(--sj-espacio-2);
+  font-size: var(--sj-fuente-sm);
+}
+
+.sj-grafica-eje {
+  stroke: var(--sj-ink);
+  stroke-width: 2;
+}
+
+.sj-grafica-linea {
+  fill: none;
+  stroke: var(--sj-color-primario);
+  stroke-linejoin: round;
+  stroke-width: 3;
+}
+
+.sj-grafica-punto {
+  fill: var(--sj-color-primario);
+  stroke: var(--sj-color-blanco);
+  stroke-width: 2;
+}
+
+.sj-grafica-texto {
+  fill: var(--sj-ink);
+  font-size: 14px;
+  font-weight: 700;
+}

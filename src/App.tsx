@@ -21,6 +21,7 @@ import Glosario from './pages/Glosario';
 import Hoy from './pages/Hoy';
 import Login from './pages/Login';
 import Perfil from './pages/Perfil';
+import Progreso from './pages/Progreso';
 import RecuperarContrasena from './pages/RecuperarContrasena';
 import Registro from './pages/Registro';
 import RutinaAsignada from './pages/RutinaAsignada';
@@ -119,6 +120,9 @@ function RutasAplicacion() {
         </Route>
         <Route exact path="/ejercicios">
           {sesion ? <Biblioteca /> : <Redirect to="/login" />}
+        </Route>
+        <Route exact path="/progreso">
+          {sesion ? <Progreso /> : <Redirect to="/login" />}
         </Route>
         <Route exact path="/glosario">
           {sesion ? <Glosario /> : <Redirect to="/login" />}
