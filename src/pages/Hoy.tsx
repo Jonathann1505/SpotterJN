@@ -10,7 +10,9 @@ import { rutinaLocal, saludLocal, seriesLocal } from '../repositories/local';
 import type { RespuestasSalud, RutinaAsignada } from '../types/perfil';
 import type { SerieRegistrada } from '../types/series';
 import { recomendarParaEjercicio } from '../utils/progresion';
+import { describirDias } from '../utils/recordatorios';
 import { describirSesion } from '../utils/rutina';
+import { sesionParaFecha } from '../utils/semana';
 import { useSesion } from '../context/SesionContext';
 import CerrarSesion from '../components/CerrarSesion';
 
@@ -76,24 +78,34 @@ function Hoy() {
     return <Redirect to="/cuestionario-rutina" />;
   }
 
-  // Hasta que exista el historial de sesiones (M3), la próxima sesión es el primer día de la rutina.
-  const proximaSesion = datos.rutina.dias[0];
+  // Sin historial de sesiones (M3), la sesión que toca se calcula con el día de la semana.
+  const sesionDelDia = sesionParaFecha(datos.rutina, new Date());
+  if (sesionDelDia === null) {
+    return <Redirect to="/cuestionario-rutina" />;
+  }
+
+  const proximaSesion = sesionDelDia.dia;
+  const nombreDia = describirDias([sesionDelDia.diaSemana]);
+  const nombrePerfil = perfil.nombre.trim();
+  const saludo = sesionDelDia.esHoy
+    ? 'Esta es tu sesión de hoy.'
+    : `Hoy descansas. Tu próxima sesión es el ${nombreDia}.`;
 
   return (
     <PantallaSJ
       mostrarLogo
-      etiqueta="Próxima sesión"
+      etiqueta={sesionDelDia.esHoy ? 'Hoy toca' : `Próxima sesión · ${nombreDia}`}
       titulo={proximaSesion.nombre}
       reglaBajoTitulo
       pie={
         <>
-          <BotonSJ onClick={() => history.push('/sesion')}>Empezar entrenamiento</BotonSJ>
+          <BotonSJ onClick={() => history.push('/sesion', { indiceDia: sesionDelDia.indice })}>Empezar entrenamiento</BotonSJ>
           <BotonSJ variante="secundario" onClick={() => history.push('/perfil')}>Perfil</BotonSJ>
           <CerrarSesion />
         </>
       }
     >
-      {perfil.nombre.trim() !== '' ? <p className="sj-texto">Hola, {perfil.nombre.trim()}. Esta es tu sesión de hoy.</p> : null}
+      <p className="sj-texto">{nombrePerfil !== '' ? `Hola, ${nombrePerfil}. ${saludo}` : saludo}</p>
       <p className="sj-texto sj-suave">{describirSesion(proximaSesion)}</p>
       <ul className="sj-lista sj-lista-hoy">
         {proximaSesion.ejercicios.map((ejercicio) => {
