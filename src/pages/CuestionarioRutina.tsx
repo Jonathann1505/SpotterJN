@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useHistory } from 'react-router-dom';
+import { CargandoSJ } from '../components/CargandoSJ';
 import { BotonSJ, PantallaSJ } from '../components/PantallaSJ';
 import { recordatoriosLocal, rutinaLocal } from '../repositories/local';
 import { sincronizarRecordatorios } from '../services/recordatorios';
@@ -16,6 +17,8 @@ function CuestionarioRutina() {
   const [equipo, setEquipo] = useState<EquipoGimnasio[]>([]);
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // null mientras se comprueba; con rutina guardada es un cambio de rutina y se muestra el botón atrás.
+  const [tieneRutina, setTieneRutina] = useState<boolean | null>(null);
   const history = useHistory();
   const { sesion } = useSesion();
   const completo = experiencia !== null && equipo.length > 0;
@@ -24,6 +27,7 @@ function CuestionarioRutina() {
   // Al cambiar de rutina se parte de las respuestas anteriores, sin pisar lo que ya se haya tocado.
   useEffect(() => {
     if (usuarioId === null) {
+      setTieneRutina(false);
       return undefined;
     }
 
@@ -31,14 +35,22 @@ function CuestionarioRutina() {
     void rutinaLocal
       .obtener(usuarioId)
       .then((rutina) => {
-        if (!activo || rutina === null) {
+        if (!activo) {
+          return;
+        }
+        setTieneRutina(rutina !== null);
+        if (rutina === null) {
           return;
         }
         setExperiencia((actual) => actual ?? rutina.cuestionario.experiencia);
         setDias((actual) => (actual === DIAS_PREDETERMINADOS ? rutina.cuestionario.diasPorSemana : actual));
         setEquipo((actual) => (actual.length === 0 ? rutina.cuestionario.equipo : actual));
       })
-      .catch(() => undefined);
+      .catch(() => {
+        if (activo) {
+          setTieneRutina(false);
+        }
+      });
 
     return () => {
       activo = false;
@@ -76,8 +88,17 @@ function CuestionarioRutina() {
     }
   };
 
+  if (tieneRutina === null) {
+    return (
+      <PantallaSJ etiqueta="Tu rutina inicial" titulo="Cuéntanos de ti" reglaBajoTitulo>
+        <CargandoSJ etiqueta="Cargando tus respuestas" variante="detalle" />
+      </PantallaSJ>
+    );
+  }
+
   return (
     <PantallaSJ
+      atras={tieneRutina ? '/rutina' : undefined}
       etiqueta="Tu rutina inicial"
       titulo="Cuéntanos de ti"
       reglaBajoTitulo
