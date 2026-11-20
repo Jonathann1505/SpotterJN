@@ -45,6 +45,21 @@ describe('obtenerGuia', () => {
   });
 });
 
+describe('contenido de las fichas', () => {
+  it('cada ejercicio del catálogo explica sus errores comunes y su respiración', () => {
+    for (const ejercicio of EJERCICIOS) {
+      const guia = obtenerGuia(ejercicio.id);
+      expect(guia.erroresComunes?.trim().length ?? 0, `faltan errores comunes de ${ejercicio.id}`).toBeGreaterThan(30);
+      expect(guia.respiracion?.trim().length ?? 0, `falta la respiración de ${ejercicio.id}`).toBeGreaterThan(15);
+    }
+  });
+
+  it('la guía provisional no inventa errores ni respiración', () => {
+    expect(GUIA_PENDIENTE.erroresComunes).toBeUndefined();
+    expect(GUIA_PENDIENTE.respiracion).toBeUndefined();
+  });
+});
+
 describe('textosFicha', () => {
   it('habla de máquina solo para máquinas y poleas', () => {
     expect(textosFicha('maquinas').tituloAjuste).toBe('1. Cómo ajustar la máquina');

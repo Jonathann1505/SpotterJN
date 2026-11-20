@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { MiniaturaEjercicio } from '../components/MiniaturaEjercicio';
-import { PantallaSJ } from '../components/PantallaSJ';
+import { BotonSJ, PantallaSJ } from '../components/PantallaSJ';
 import type { EquipoGimnasio } from '../types/perfil';
 import {
   SIN_FILTROS,
@@ -57,6 +57,7 @@ function Biblioteca() {
   return (
     <PantallaSJ atras="/perfil" etiqueta="Ayuda" titulo="Ejercicios" reglaBajoTitulo>
       <p className="sj-texto sj-suave">Consulta cómo se hace cada ejercicio, aunque no esté en tu rutina.</p>
+      <BotonSJ variante="secundario" onClick={() => history.push('/calentamiento')}>Calentamiento antes de entrenar</BotonSJ>
       <Filtro<string>
         titulo="Grupo muscular"
         opciones={GRUPOS}

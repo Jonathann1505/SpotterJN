@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { IonInput } from '@ionic/react';
 import { useHistory } from 'react-router-dom';
 import { BotonSJ, PantallaSJ } from '../components/PantallaSJ';
+import BorrarDatos from '../components/BorrarDatos';
 import CerrarSesion from '../components/CerrarSesion';
 import { usePerfil } from '../context/PerfilContext';
 import { useSesion } from '../context/SesionContext';
@@ -94,8 +95,10 @@ function Perfil() {
           <BotonSJ variante="secundario" onClick={() => history.push('/rutina')}>Mi rutina</BotonSJ>
           <BotonSJ variante="secundario" onClick={() => history.push('/ajustes')}>Recordatorios</BotonSJ>
           <BotonSJ variante="secundario" onClick={() => history.push('/progreso')}>Mi progreso</BotonSJ>
+          <BotonSJ variante="secundario" onClick={() => history.push('/editar-salud')}>Mis respuestas de salud</BotonSJ>
           <BotonSJ variante="secundario" onClick={() => history.push('/ejercicios')}>Biblioteca de ejercicios</BotonSJ>
           <BotonSJ variante="secundario" onClick={() => history.push('/glosario')}>Glosario</BotonSJ>
+          <BorrarDatos />
           <CerrarSesion />
         </>
       }

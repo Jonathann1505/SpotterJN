@@ -1,6 +1,14 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { Preferences } from '@capacitor/preferences';
-import { fichasVistasLocal, perfilLocal, recordatoriosLocal, rutinaLocal, saludLocal, seriesLocal } from './local';
+import {
+  borrarDatosLocales,
+  fichasVistasLocal,
+  perfilLocal,
+  recordatoriosLocal,
+  rutinaLocal,
+  saludLocal,
+  seriesLocal,
+} from './local';
 import type { PerfilUsuario, RespuestasSalud, RutinaAsignada } from '../types/perfil';
 import type { SerieRegistrada } from '../types/series';
 
@@ -212,5 +220,32 @@ describe('repositorio local de series', () => {
   it('exige un usuario para leer o guardar series', async () => {
     await expect(seriesLocal.listar('')).rejects.toThrow(/sesión/i);
     await expect(seriesLocal.guardar('', crearSerie())).rejects.toThrow(/sesión/i);
+  });
+});
+
+describe('borrarDatosLocales', () => {
+  it('borra todo lo guardado de una persona sin tocar a las demás', async () => {
+    for (const usuario of [USUARIO_A, USUARIO_B]) {
+      await perfilLocal.guardar(usuario, { nombre: 'Ana', meta: 'fuerza', unidadPeso: 'kg' });
+      await saludLocal.guardar(usuario, { condiciones: [], respondidoEn: '2026-10-09T10:00:00.000Z' });
+      await fichasVistasLocal.marcarVista(usuario, 'press-banca');
+      await recordatoriosLocal.guardar(usuario, { activo: true, hora: '18:00' });
+      await seriesLocal.guardar(usuario, crearSerie());
+    }
+
+    await borrarDatosLocales(USUARIO_A);
+
+    expect(await perfilLocal.obtener(USUARIO_A)).toBeNull();
+    expect(await saludLocal.obtener(USUARIO_A)).toBeNull();
+    expect(await fichasVistasLocal.obtener(USUARIO_A)).toEqual([]);
+    expect(await recordatoriosLocal.obtener(USUARIO_A)).toEqual({ activo: false, hora: '18:00' });
+    expect(await seriesLocal.listar(USUARIO_A)).toEqual([]);
+    expect(await perfilLocal.obtener(USUARIO_B)).not.toBeNull();
+    expect(await seriesLocal.listar(USUARIO_B)).toHaveLength(1);
+  });
+
+  it('no falla si no había nada guardado y exige un usuario', async () => {
+    await expect(borrarDatosLocales(USUARIO_A)).resolves.toBeUndefined();
+    await expect(borrarDatosLocales('')).rejects.toThrow(/sesión/i);
   });
 });

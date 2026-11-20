@@ -18,6 +18,8 @@ interface EstadoPerfil {
   perfil: PerfilUsuario;
   cargando: boolean;
   guardarPerfil: (perfil: PerfilUsuario) => Promise<void>;
+  /** Vuelve al perfil inicial en memoria, por ejemplo después de borrar los datos del dispositivo. */
+  reiniciarPerfil: () => void;
 }
 
 const ContextoPerfil = createContext<EstadoPerfil | null>(null);
@@ -79,13 +81,18 @@ export function ProveedorPerfil({ children, repositorio = perfilLocal }: Propied
     [repositorio, usuarioId],
   );
 
+  const reiniciarPerfil = useCallback((): void => {
+    setEstado({ usuarioId, perfil: PERFIL_INICIAL, cargando: false });
+  }, [usuarioId]);
+
   const valor = useMemo(
     () => ({
       perfil: estado.usuarioId === usuarioId ? estado.perfil : PERFIL_INICIAL,
       cargando: estado.cargando || estado.usuarioId !== usuarioId,
       guardarPerfil,
+      reiniciarPerfil,
     }),
-    [estado, guardarPerfil, usuarioId],
+    [estado, guardarPerfil, reiniciarPerfil, usuarioId],
   );
 
   return <ContextoPerfil.Provider value={valor}>{children}</ContextoPerfil.Provider>;

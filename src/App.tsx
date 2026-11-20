@@ -13,9 +13,11 @@ import { BotonSJ, PantallaSJ } from './components/PantallaSJ';
 import Ajustes from './pages/Ajustes';
 import AvisoMedico from './pages/AvisoMedico';
 import Biblioteca from './pages/Biblioteca';
+import Calentamiento from './pages/Calentamiento';
 import Consentimientos from './pages/Consentimientos';
 import CuestionarioRutina from './pages/CuestionarioRutina';
 import CuestionarioSalud from './pages/CuestionarioSalud';
+import EditarSalud from './pages/EditarSalud';
 import FichaEjercicio from './pages/FichaEjercicio';
 import Glosario from './pages/Glosario';
 import Hoy from './pages/Hoy';
@@ -109,6 +111,9 @@ function RutasAplicacion() {
         <Route exact path="/salud">
           {sesion ? <CuestionarioSalud /> : <Redirect to="/login" />}
         </Route>
+        <Route exact path="/editar-salud">
+          {sesion ? <EditarSalud /> : <Redirect to="/login" />}
+        </Route>
         <Route exact path="/cuestionario-rutina">
           {sesion ? <CuestionarioRutina /> : <Redirect to="/login" />}
         </Route>
@@ -117,6 +122,9 @@ function RutasAplicacion() {
         </Route>
         <Route exact path="/ejercicio/:id">
           {sesion ? <FichaEjercicio /> : <Redirect to="/login" />}
+        </Route>
+        <Route exact path="/calentamiento">
+          {sesion ? <Calentamiento /> : <Redirect to="/login" />}
         </Route>
         <Route exact path="/ejercicios">
           {sesion ? <Biblioteca /> : <Redirect to="/login" />}
