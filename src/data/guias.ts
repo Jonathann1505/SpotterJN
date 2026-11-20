@@ -21,6 +21,7 @@ export const GUIAS: Readonly<Record<string, GuiaEjercicio>> = {
   },
   'press-pecho-maquina': {
     grupoMuscular: 'Pecho',
+    animacion: 'ejercicios/press-pecho-maquina.mp4',
     ajusteMaquina:
       'Ajusta el asiento para que las asas queden a la altura de la mitad de tu pecho. Espalda pegada al respaldo y pies firmes en el piso.',
     movimiento:
@@ -86,6 +87,7 @@ export const GUIAS: Readonly<Record<string, GuiaEjercicio>> = {
   },
   'remo-invertido': {
     grupoMuscular: 'Espalda',
+    animacion: 'ejercicios/remo-invertido.mp4',
     ajusteMaquina:
       'Coloca una barra baja en un rack, a la altura de tu cadera, y acuéstate debajo agarrándola con las manos al ancho de los hombros. Cuerpo recto y talones en el piso.',
     movimiento:
