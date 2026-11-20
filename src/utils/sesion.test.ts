@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import type { DiaRutina } from '../types/perfil';
-import { PROGRESO_INICIAL, avanzarSerie, esPesoCorporal, esUltimoEjercicio, saltarEjercicio } from './sesion';
+import {
+  PROGRESO_INICIAL,
+  avanzarSerie,
+  crearSerieRegistrada,
+  esPesoCorporal,
+  esUltimoEjercicio,
+  generarIdSerie,
+  saltarEjercicio,
+} from './sesion';
 
 const dia: DiaRutina = {
   nombre: 'Día 1 – Prueba',
@@ -70,5 +78,58 @@ describe('esUltimoEjercicio', () => {
   it('distingue el último ejercicio de la jornada', () => {
     expect(esUltimoEjercicio(PROGRESO_INICIAL, dia)).toBe(false);
     expect(esUltimoEjercicio({ indiceEjercicio: 1, serie: 1, completada: false }, dia)).toBe(true);
+  });
+});
+
+describe('crearSerieRegistrada', () => {
+  const ahora = new Date('2026-11-20T18:30:00.000Z');
+
+  it('construye la serie con la fecha en ISO, el día y la unidad del perfil', () => {
+    expect(
+      crearSerieRegistrada({
+        dia,
+        ejercicio: dia.ejercicios[0],
+        numeroSerie: 2,
+        repeticiones: 11,
+        peso: 33,
+        unidad: 'lb',
+        autoevaluacion: 'normal',
+        estado: 'completada',
+        ahora,
+        id: 'serie-fija',
+      }),
+    ).toEqual({
+      id: 'serie-fija',
+      registradaEn: '2026-11-20T18:30:00.000Z',
+      idEjercicio: 'press-pecho-maquina',
+      nombreEjercicio: 'Press de pecho en máquina',
+      dia: 'Día 1 – Prueba',
+      numeroSerie: 2,
+      peso: 33,
+      unidad: 'lb',
+      repeticiones: 11,
+      autoevaluacion: 'normal',
+      estado: 'completada',
+    });
+  });
+
+  it('guarda peso null en los ejercicios de peso corporal', () => {
+    const serie = crearSerieRegistrada({
+      dia,
+      ejercicio: dia.ejercicios[1],
+      numeroSerie: 1,
+      repeticiones: 10,
+      peso: 0,
+      unidad: 'kg',
+      autoevaluacion: null,
+      estado: 'interrumpida-por-molestia',
+      ahora,
+    });
+    expect(serie.peso).toBeNull();
+    expect(serie.estado).toBe('interrumpida-por-molestia');
+  });
+
+  it('genera identificadores distintos', () => {
+    expect(generarIdSerie()).not.toBe(generarIdSerie());
   });
 });

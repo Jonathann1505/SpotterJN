@@ -6,7 +6,7 @@ import { Preferences } from '@capacitor/preferences';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { MemoryRouter, Route } from 'react-router-dom';
 import { ProveedorPerfil } from '../context/PerfilContext';
-import { rutinaLocal } from '../repositories/local';
+import { rutinaLocal, seriesLocal } from '../repositories/local';
 import type { RutinaAsignada } from '../types/perfil';
 import { asignarRutina } from '../utils/rutina';
 import { botonAtras, pulsarAtras } from '../test/navegacion';
@@ -287,6 +287,129 @@ describe('SesionEntrenamiento', () => {
         expect(await screen.findByRole('heading', { name: 'Sesión finalizada' })).toBeInTheDocument();
         expect(screen.getByRole('status')).toHaveTextContent('consulta a un profesional de la salud');
         expect(screen.queryByRole('heading', { name: 'Sesión completada' })).not.toBeInTheDocument();
+      });
+    });
+
+    describe('guardado de series en el dispositivo', () => {
+      afterEach(() => {
+        vi.restoreAllMocks();
+      });
+
+      it('guarda la serie con sus datos y después avanza', async () => {
+        await iniciar();
+        fireEvent.click(screen.getByRole('radio', { name: 'Difícil' }));
+        fireEvent.click(botonGuardar());
+
+        expect(await screen.findByText('Serie 2 de 2')).toBeInTheDocument();
+        const [serie] = await seriesLocal.listar('usuario-prueba');
+        expect(serie).toMatchObject({
+          idEjercicio: 'press-pecho-maquina',
+          nombreEjercicio: 'Press de pecho en máquina',
+          dia: 'Día 1 – Prueba',
+          numeroSerie: 1,
+          peso: 15,
+          unidad: 'kg',
+          repeticiones: 12,
+          autoevaluacion: 'dificil',
+          estado: 'completada',
+        });
+        expect(serie.id).not.toBe('');
+        expect(Number.isNaN(Date.parse(serie.registradaEn))).toBe(false);
+      });
+
+      it('guarda peso null en los ejercicios de peso corporal', async () => {
+        await iniciar();
+        await guardarCon('Fácil');
+        await guardarCon('Normal');
+        await guardarCon('Difícil');
+
+        const flexiones = await seriesLocal.listarPorEjercicio('usuario-prueba', 'flexiones');
+        expect(flexiones).toHaveLength(1);
+        expect(flexiones[0]).toMatchObject({ peso: null, repeticiones: 10, numeroSerie: 1 });
+        expect(await seriesLocal.listar('usuario-prueba')).toHaveLength(3);
+      });
+
+      it('si falla, muestra el error, no avanza y conserva lo elegido', async () => {
+        vi.spyOn(seriesLocal, 'guardar').mockRejectedValueOnce(new Error('sin espacio'));
+        await iniciar();
+        fireEvent.click(screen.getByRole('radio', { name: 'Normal' }));
+        fireEvent.click(botonGuardar());
+
+        expect(await screen.findByRole('alert')).toHaveTextContent('No se pudo guardar la serie. Inténtalo de nuevo.');
+        expect(screen.getByText('Serie 1 de 2')).toBeInTheDocument();
+        expect(screen.getByRole('radio', { name: 'Normal' })).toHaveAttribute('aria-checked', 'true');
+        expect(estaDeshabilitado(botonGuardar())).toBe(false);
+
+        fireEvent.click(botonGuardar());
+        expect(await screen.findByText('Serie 2 de 2')).toBeInTheDocument();
+        expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+      });
+
+      it('no guarda dos veces con un doble toque', async () => {
+        let terminar: () => void = () => undefined;
+        const guardar = vi.spyOn(seriesLocal, 'guardar').mockImplementation(
+          () =>
+            new Promise<void>((resolver) => {
+              terminar = resolver;
+            }),
+        );
+        await iniciar();
+        fireEvent.click(screen.getByRole('radio', { name: 'Fácil' }));
+        const boton = botonGuardar();
+        fireEvent.click(boton);
+        fireEvent.click(boton);
+
+        expect(await screen.findByText('Guardando…')).toBeInTheDocument();
+        expect(guardar).toHaveBeenCalledTimes(1);
+
+        terminar();
+        expect(await screen.findByText('Serie 2 de 2')).toBeInTheDocument();
+        expect(guardar).toHaveBeenCalledTimes(1);
+      });
+
+      it('Sentí dolor guarda la serie marcada como interrumpida por molestia', async () => {
+        await iniciar();
+        fireEvent.click(screen.getByRole('radio', { name: 'Difícil' }));
+        const sentiDolor = screen.getByText('Sentí dolor').closest('ion-button');
+        if (!sentiDolor) {
+          throw new Error('No se encontró el botón Sentí dolor.');
+        }
+        fireEvent.click(sentiDolor);
+        fireEvent.click(
+          within(screen.getByRole('alertdialog')).getByRole('button', {
+            name: 'Entendido, continuar con otro ejercicio',
+          }),
+        );
+
+        expect(await screen.findByRole('heading', { name: 'Flexiones' })).toBeInTheDocument();
+        expect(await seriesLocal.listar('usuario-prueba')).toEqual([
+          expect.objectContaining({
+            idEjercicio: 'press-pecho-maquina',
+            numeroSerie: 1,
+            autoevaluacion: 'dificil',
+            estado: 'interrumpida-por-molestia',
+          }),
+        ]);
+      });
+
+      it('si falla el registro de la molestia, avanza igual y lo informa', async () => {
+        vi.spyOn(seriesLocal, 'guardar').mockRejectedValueOnce(new Error('sin espacio'));
+        await iniciar();
+        const sentiDolor = screen.getByText('Sentí dolor').closest('ion-button');
+        if (!sentiDolor) {
+          throw new Error('No se encontró el botón Sentí dolor.');
+        }
+        fireEvent.click(sentiDolor);
+        fireEvent.click(
+          within(screen.getByRole('alertdialog')).getByRole('button', {
+            name: 'Entendido, continuar con otro ejercicio',
+          }),
+        );
+
+        expect(await screen.findByRole('heading', { name: 'Flexiones' })).toBeInTheDocument();
+        expect(screen.getByRole('alert')).toHaveTextContent(
+          'No se pudo guardar el registro de la molestia en este dispositivo.',
+        );
       });
     });
   });
