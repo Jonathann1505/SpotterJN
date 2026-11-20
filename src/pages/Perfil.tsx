@@ -94,6 +94,7 @@ function Perfil() {
           <BotonSJ variante="secundario" onClick={() => history.push('/rutina')}>Mi rutina</BotonSJ>
           <BotonSJ variante="secundario" onClick={() => history.push('/ajustes')}>Recordatorios</BotonSJ>
           <BotonSJ variante="secundario" onClick={() => history.push('/progreso')}>Mi progreso</BotonSJ>
+          <BotonSJ variante="secundario" onClick={() => history.push('/editar-salud')}>Mis respuestas de salud</BotonSJ>
           <BotonSJ variante="secundario" onClick={() => history.push('/ejercicios')}>Biblioteca de ejercicios</BotonSJ>
           <BotonSJ variante="secundario" onClick={() => history.push('/glosario')}>Glosario</BotonSJ>
           <CerrarSesion />

@@ -29,6 +29,9 @@ function renderizar() {
           <Route path="/rutina">
             <p>pantalla rutina</p>
           </Route>
+          <Route path="/editar-salud">
+            <p>pantalla salud</p>
+          </Route>
           <Route path="/progreso">
             <p>pantalla progreso</p>
           </Route>
@@ -138,5 +141,13 @@ describe('Perfil', () => {
     fireEvent.click(await findByText('Mi progreso'));
 
     expect(await findByText('pantalla progreso')).toBeInTheDocument();
+  });
+
+  it('abre las respuestas de salud para editarlas', async () => {
+    const { findByText } = renderizar();
+
+    fireEvent.click(await findByText('Mis respuestas de salud'));
+
+    expect(await findByText('pantalla salud')).toBeInTheDocument();
   });
 });
