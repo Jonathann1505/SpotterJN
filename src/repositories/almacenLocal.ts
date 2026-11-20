@@ -20,3 +20,7 @@ export async function leerJson<T>(
 export async function guardarJson<T>(clave: string, valor: T): Promise<void> {
   await Preferences.set({ key: clave, value: JSON.stringify(valor) });
 }
+
+export async function borrarClave(clave: string): Promise<void> {
+  await Preferences.remove({ key: clave });
+}

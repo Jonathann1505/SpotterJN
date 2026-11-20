@@ -7,7 +7,7 @@ import {
   type RespuestasSalud,
   type RutinaAsignada,
 } from '../types/perfil';
-import { guardarJson, leerJson } from './almacenLocal';
+import { borrarClave, guardarJson, leerJson } from './almacenLocal';
 import type { AjustesRecordatorios } from '../types/recordatorios';
 import { AUTOEVALUACIONES, ESTADOS_SERIE, type Autoevaluacion, type SerieRegistrada } from '../types/series';
 import { HORA_PREDETERMINADA, esHoraValida } from '../utils/recordatorios';
@@ -20,7 +20,9 @@ import type {
   SeriesRepositorio,
 } from './repositorios';
 
-type TipoDato = 'perfil' | 'salud' | 'rutina' | 'fichasVistas' | 'recordatorios' | 'series';
+const TIPOS_DE_DATO = ['perfil', 'salud', 'rutina', 'fichasVistas', 'recordatorios', 'series'] as const;
+
+type TipoDato = (typeof TIPOS_DE_DATO)[number];
 
 function crearClave(usuarioId: string, tipo: TipoDato): string {
   if (!usuarioId) {
@@ -155,3 +157,8 @@ export const seriesLocal: SeriesRepositorio = {
   listarPorEjercicio: async (usuarioId, idEjercicio) =>
     (await leerSeries(usuarioId)).filter((serie) => serie.idEjercicio === idEjercicio),
 };
+
+/** Borra de este dispositivo todo lo guardado de una persona (perfil, salud, rutina, fichas vistas, recordatorios y series). */
+export async function borrarDatosLocales(usuarioId: string): Promise<void> {
+  await Promise.all(TIPOS_DE_DATO.map((tipo) => borrarClave(crearClave(usuarioId, tipo))));
+}
