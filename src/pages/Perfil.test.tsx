@@ -143,6 +143,12 @@ describe('Perfil', () => {
     expect(await findByText('pantalla progreso')).toBeInTheDocument();
   });
 
+  it('ofrece borrar los datos de este dispositivo', async () => {
+    const { findByText } = renderizar();
+
+    expect(await findByText('Borrar mis datos de este dispositivo')).toBeInTheDocument();
+  });
+
   it('abre las respuestas de salud para editarlas', async () => {
     const { findByText } = renderizar();
 
