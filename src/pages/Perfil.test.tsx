@@ -29,6 +29,9 @@ function renderizar() {
           <Route path="/rutina">
             <p>pantalla rutina</p>
           </Route>
+          <Route path="/progreso">
+            <p>pantalla progreso</p>
+          </Route>
           <Route path="/ejercicios">
             <p>pantalla biblioteca</p>
           </Route>
@@ -127,5 +130,13 @@ describe('Perfil', () => {
     fireEvent.click(await findByText('Biblioteca de ejercicios'));
 
     expect(await findByText('pantalla biblioteca')).toBeInTheDocument();
+  });
+
+  it('abre el historial de progreso', async () => {
+    const { findByText } = renderizar();
+
+    fireEvent.click(await findByText('Mi progreso'));
+
+    expect(await findByText('pantalla progreso')).toBeInTheDocument();
   });
 });
