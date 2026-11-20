@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { IonApp, IonRouterOutlet } from '@ionic/react';
 import { IonReactMemoryRouter } from '@ionic/react-router';
 import { createMemoryHistory } from 'history';
@@ -165,9 +165,11 @@ describe('SesionEntrenamiento', () => {
       await screen.findByRole('heading', { name: 'Press de pecho en máquina' });
     }
 
-    function guardarCon(opcion: 'Fácil' | 'Normal' | 'Difícil'): void {
+    /** Elige la autoevaluación, guarda y espera a que termine el guardado en el dispositivo. */
+    async function guardarCon(opcion: 'Fácil' | 'Normal' | 'Difícil'): Promise<void> {
       fireEvent.click(screen.getByRole('radio', { name: opcion }));
       fireEvent.click(botonGuardar());
+      await waitFor(() => expect(screen.queryByText('Guardando…')).not.toBeInTheDocument());
     }
 
     it('deshabilita Guardar serie hasta elegir una autoevaluación', async () => {
@@ -187,7 +189,7 @@ describe('SesionEntrenamiento', () => {
       await iniciar();
       expect(screen.getByText('Serie 1 de 2')).toBeInTheDocument();
 
-      guardarCon('Difícil');
+      await guardarCon('Difícil');
 
       expect(screen.getByText('Serie 2 de 2')).toBeInTheDocument();
       for (const opcion of ['Fácil', 'Normal', 'Difícil']) {
@@ -201,8 +203,8 @@ describe('SesionEntrenamiento', () => {
       expect(screen.getByLabelText('Repeticiones logradas')).toBeInTheDocument();
       expect(screen.getByLabelText('Peso')).toBeInTheDocument();
 
-      guardarCon('Fácil');
-      guardarCon('Normal');
+      await guardarCon('Fácil');
+      await guardarCon('Normal');
 
       expect(screen.getByRole('heading', { name: 'Flexiones' })).toBeInTheDocument();
       expect(screen.getByText('Ejercicio 2 de 2')).toBeInTheDocument();
@@ -213,9 +215,9 @@ describe('SesionEntrenamiento', () => {
 
     it('muestra Sesión completada al terminar la última serie y vuelve a Hoy', async () => {
       await iniciar();
-      guardarCon('Fácil');
-      guardarCon('Normal');
-      guardarCon('Difícil');
+      await guardarCon('Fácil');
+      await guardarCon('Normal');
+      await guardarCon('Difícil');
 
       expect(screen.getByRole('heading', { name: 'Sesión completada' })).toBeInTheDocument();
       const volver = screen.getByText('Volver a Hoy').closest('ion-button');
@@ -252,7 +254,7 @@ describe('SesionEntrenamiento', () => {
 
       it('pasa al siguiente ejercicio sin contar la serie en curso', async () => {
         await iniciar();
-        guardarCon('Fácil');
+        await guardarCon('Fácil');
         fireEvent.click(screen.getByRole('radio', { name: 'Difícil' }));
         expect(screen.getByText('Serie 2 de 2')).toBeInTheDocument();
 
@@ -264,7 +266,7 @@ describe('SesionEntrenamiento', () => {
         );
 
         expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
-        expect(screen.getByRole('heading', { name: 'Flexiones' })).toBeInTheDocument();
+        expect(await screen.findByRole('heading', { name: 'Flexiones' })).toBeInTheDocument();
         expect(screen.getByText('Ejercicio 2 de 2')).toBeInTheDocument();
         expect(screen.getByText('Serie 1 de 1')).toBeInTheDocument();
         expect(screen.getByRole('radio', { name: 'Difícil' })).toHaveAttribute('aria-checked', 'false');
@@ -273,8 +275,8 @@ describe('SesionEntrenamiento', () => {
 
       it('en el último ejercicio termina la sesión con el aviso de molestia', async () => {
         await iniciar();
-        guardarCon('Normal');
-        guardarCon('Normal');
+        await guardarCon('Normal');
+        await guardarCon('Normal');
         expect(screen.getByRole('heading', { name: 'Flexiones' })).toBeInTheDocument();
 
         pulsarSentiDolor();
@@ -282,7 +284,7 @@ describe('SesionEntrenamiento', () => {
           within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Entendido, terminar la sesión' }),
         );
 
-        expect(screen.getByRole('heading', { name: 'Sesión finalizada' })).toBeInTheDocument();
+        expect(await screen.findByRole('heading', { name: 'Sesión finalizada' })).toBeInTheDocument();
         expect(screen.getByRole('status')).toHaveTextContent('consulta a un profesional de la salud');
         expect(screen.queryByRole('heading', { name: 'Sesión completada' })).not.toBeInTheDocument();
       });

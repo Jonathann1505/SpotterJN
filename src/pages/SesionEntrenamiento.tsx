@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { IonAlert } from '@ionic/react';
 import { alertCircleOutline } from 'ionicons/icons';
 import { Redirect, useHistory } from 'react-router-dom';
@@ -7,13 +7,14 @@ import ContadorNumerico from '../components/ContadorNumerico';
 import { BotonSJ, PantallaSJ } from '../components/PantallaSJ';
 import { usePerfil } from '../context/PerfilContext';
 import { useSesion } from '../context/SesionContext';
-import { rutinaLocal } from '../repositories/local';
+import { rutinaLocal, seriesLocal } from '../repositories/local';
 import type { DiaRutina, RutinaAsignada } from '../types/perfil';
 import {
   AUTOEVALUACIONES,
   ETIQUETAS_AUTOEVALUACION,
   PROGRESO_INICIAL,
   avanzarSerie,
+  crearSerieRegistrada,
   esPesoCorporal,
   esUltimoEjercicio,
   saltarEjercicio,
@@ -32,6 +33,11 @@ function SesionEntrenamiento() {
   const [peso, setPeso] = useState<number | null>(null);
   const [alertaDolor, setAlertaDolor] = useState(false);
   const [terminadaPorMolestia, setTerminadaPorMolestia] = useState(false);
+  const [guardando, setGuardando] = useState(false);
+  const [errorGuardado, setErrorGuardado] = useState<string | null>(null);
+  const [avisoMolestia, setAvisoMolestia] = useState<string | null>(null);
+  // Evita guardar dos veces si se toca rápido antes de que React actualice el estado.
+  const guardadoEnCurso = useRef(false);
   const { perfil } = usePerfil();
   const { sesion } = useSesion();
   const usuarioId = sesion?.user.id ?? null;
@@ -115,6 +121,7 @@ function SesionEntrenamiento() {
           Detuviste la sesión por una molestia. Descansa y, si el dolor continúa o es intenso,
           consulta a un profesional de la salud antes de volver a entrenar.
         </p>
+        {avisoMolestia ? <p className="sj-error" role="alert">{avisoMolestia}</p> : null}
         <BotonSJ onClick={() => history.replace('/hoy')}>Volver a Hoy</BotonSJ>
       </PantallaSJ>
     );
@@ -137,27 +144,82 @@ function SesionEntrenamiento() {
 
   const ultimoEjercicio = esUltimoEjercicio(progreso, dia);
 
-  const continuarTrasDolor = (): void => {
+  const registrarSerie = (estado: 'completada' | 'interrumpida-por-molestia'): Promise<void> => {
+    if (usuarioId === null) {
+      return Promise.reject(new Error('Sin sesión activa.'));
+    }
+    return seriesLocal.guardar(
+      usuarioId,
+      crearSerieRegistrada({
+        dia,
+        ejercicio,
+        numeroSerie: progreso.serie,
+        repeticiones: repeticionesActuales,
+        peso: pesoActual,
+        unidad: perfil.unidadPeso,
+        autoevaluacion,
+        estado,
+      }),
+    );
+  };
+
+  const continuarTrasDolor = async (): Promise<void> => {
+    if (guardadoEnCurso.current) {
+      return;
+    }
+    guardadoEnCurso.current = true;
+    setAlertaDolor(false);
+    setGuardando(true);
+    setErrorGuardado(null);
+    setAvisoMolestia(null);
+    try {
+      // La serie queda marcada como interrumpida y no cuenta como fallida (RF-13).
+      await registrarSerie('interrumpida-por-molestia');
+    } catch {
+      // La prioridad es que la persona se detenga: se avanza igual y se informa.
+      setAvisoMolestia('No se pudo guardar el registro de la molestia en este dispositivo.');
+    } finally {
+      guardadoEnCurso.current = false;
+      setGuardando(false);
+    }
     const siguiente = saltarEjercicio(progreso, dia);
     setTerminadaPorMolestia(siguiente.completada);
     setProgreso(siguiente);
     setAutoevaluacion(null);
     setRepeticiones(null);
     setPeso(null);
-    setAlertaDolor(false);
   };
 
   const pie = (
     <>
-      <BotonSJ variante="secundario" icono={alertCircleOutline} onClick={() => setAlertaDolor(true)}>
+      <BotonSJ
+        variante="secundario"
+        icono={alertCircleOutline}
+        deshabilitado={guardando}
+        onClick={() => setAlertaDolor(true)}
+      >
         Sentí dolor
       </BotonSJ>
     </>
   );
 
-  const guardarSerie = (): void => {
-    if (autoevaluacion === null) {
+  const guardarSerie = async (): Promise<void> => {
+    if (autoevaluacion === null || guardadoEnCurso.current) {
       return;
+    }
+    guardadoEnCurso.current = true;
+    setGuardando(true);
+    setErrorGuardado(null);
+    setAvisoMolestia(null);
+    try {
+      await registrarSerie('completada');
+    } catch {
+      // Sin avanzar ni perder lo escrito: el usuario puede reintentar.
+      setErrorGuardado('No se pudo guardar la serie. Inténtalo de nuevo.');
+      return;
+    } finally {
+      guardadoEnCurso.current = false;
+      setGuardando(false);
     }
     const siguiente = avanzarSerie(progreso, dia);
     if (siguiente.indiceEjercicio !== progreso.indiceEjercicio) {
@@ -218,8 +280,10 @@ function SesionEntrenamiento() {
         ))}
       </div>
 
-      <BotonSJ deshabilitado={autoevaluacion === null} onClick={guardarSerie}>
-        Guardar serie
+      {avisoMolestia ? <p className="sj-error" role="alert">{avisoMolestia}</p> : null}
+      {errorGuardado ? <p className="sj-error" role="alert">{errorGuardado}</p> : null}
+      <BotonSJ deshabilitado={autoevaluacion === null || guardando} onClick={() => void guardarSerie()}>
+        {guardando ? 'Guardando…' : 'Guardar serie'}
       </BotonSJ>
 
       <IonAlert
@@ -231,7 +295,9 @@ function SesionEntrenamiento() {
           {
             text: ultimoEjercicio ? 'Entendido, terminar la sesión' : 'Entendido, continuar con otro ejercicio',
             role: 'confirm',
-            handler: continuarTrasDolor,
+            handler: () => {
+              void continuarTrasDolor();
+            },
           },
         ]}
         onDidDismiss={() => setAlertaDolor(false)}
