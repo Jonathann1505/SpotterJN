@@ -26,9 +26,10 @@ function renderizar() {
           <Route path="/cuestionario-rutina">
             <p>cuestionario de rutina</p>
           </Route>
-          <Route path="/sesion">
-            <p>pantalla de sesión</p>
-          </Route>
+          <Route
+            path="/sesion"
+            render={({ location }) => <p>pantalla de sesión {JSON.stringify(location.state)}</p>}
+          />
           <Route path="/ejercicio/:id">
             <p>ficha de ejercicio</p>
           </Route>
@@ -41,11 +42,21 @@ function renderizar() {
 const salud = { condiciones: [], respondidoEn: '2026-10-09T10:00:00.000Z' };
 const rutina = asignarRutina({ experiencia: 'ninguna', diasPorSemana: 3, equipo: ['maquinas'] });
 
+// Noviembre de 2026: 16 es lunes, 17 martes y 18 miércoles; con 3 días se entrena lunes, miércoles y viernes.
+function simularFecha(dia: number): void {
+  vi.useFakeTimers({ toFake: ['Date'] });
+  vi.setSystemTime(new Date(2026, 10, dia, 9, 0));
+}
+
 describe('Hoy', () => {
   beforeEach(async () => {
+    simularFecha(16);
     await Preferences.clear();
   });
-  afterEach(cleanup);
+  afterEach(() => {
+    vi.useRealTimers();
+    cleanup();
+  });
 
   it('envía al aviso médico si no hay respuestas de salud', async () => {
     const { findByText } = renderizar();
@@ -112,7 +123,39 @@ describe('Hoy', () => {
 
     fireEvent.click(await findByText('Empezar entrenamiento'));
 
-    expect(await findByText('pantalla de sesión')).toBeInTheDocument();
+    expect(await findByText(/pantalla de sesión/)).toBeInTheDocument();
+  });
+
+  it('muestra la sesión que toca según el día de la semana', async () => {
+    simularFecha(18);
+    await saludLocal.guardar('usuario-prueba', salud);
+    await rutinaLocal.guardar('usuario-prueba', rutina);
+    const { findByRole, findByText } = renderizar();
+
+    expect(await findByRole('heading', { name: rutina.dias[1].nombre })).toBeInTheDocument();
+    expect(await findByText('Hoy toca')).toBeInTheDocument();
+  });
+
+  it('en un día de descanso muestra la próxima sesión y cuándo es', async () => {
+    simularFecha(17);
+    await saludLocal.guardar('usuario-prueba', salud);
+    await rutinaLocal.guardar('usuario-prueba', rutina);
+    const { findByRole, findByText } = renderizar();
+
+    expect(await findByRole('heading', { name: rutina.dias[1].nombre })).toBeInTheDocument();
+    expect(await findByText('Próxima sesión · miércoles')).toBeInTheDocument();
+    expect(await findByText('Hoy descansas. Tu próxima sesión es el miércoles.')).toBeInTheDocument();
+  });
+
+  it('empieza el entrenamiento con la sesión que toca', async () => {
+    simularFecha(18);
+    await saludLocal.guardar('usuario-prueba', salud);
+    await rutinaLocal.guardar('usuario-prueba', rutina);
+    const { findByText } = renderizar();
+
+    fireEvent.click(await findByText('Empezar entrenamiento'));
+
+    expect(await findByText('pantalla de sesión {"indiceDia":1}')).toBeInTheDocument();
   });
 
   it('es una pantalla raíz sin botón atrás', async () => {

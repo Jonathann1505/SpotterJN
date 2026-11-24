@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { IonAlert } from '@ionic/react';
 import { alertCircleOutline } from 'ionicons/icons';
-import { Redirect, useHistory } from 'react-router-dom';
+import { Redirect, useHistory, useLocation } from 'react-router-dom';
 import { CargandoSJ } from '../components/CargandoSJ';
 import ContadorNumerico from '../components/ContadorNumerico';
 import { ResumenSesion } from '../components/ResumenSesion';
@@ -26,6 +26,11 @@ import {
 } from '../utils/sesion';
 import { pesoEnUnidad } from '../utils/unidades';
 
+interface EstadoSesion {
+  /** Posición en `rutina.dias` de la sesión que se quiere hacer; sin indicarla se usa la primera. */
+  indiceDia?: number;
+}
+
 function SesionEntrenamiento() {
   const [rutina, setRutina] = useState<RutinaAsignada | null>(null);
   const [cargando, setCargando] = useState(true);
@@ -49,6 +54,7 @@ function SesionEntrenamiento() {
   const { sesion } = useSesion();
   const usuarioId = sesion?.user.id ?? null;
   const history = useHistory();
+  const { state: estadoNavegacion } = useLocation<EstadoSesion | undefined>();
 
   useEffect(() => {
     let activo = true;
@@ -108,7 +114,8 @@ function SesionEntrenamiento() {
     return <Redirect to="/cuestionario-rutina" />;
   }
 
-  const dia: DiaRutina | undefined = rutina.dias[0];
+  const indiceDia = Number.isInteger(estadoNavegacion?.indiceDia) ? (estadoNavegacion?.indiceDia ?? 0) : 0;
+  const dia: DiaRutina | undefined = rutina.dias[indiceDia] ?? rutina.dias[0];
 
   if (!dia) {
     return (

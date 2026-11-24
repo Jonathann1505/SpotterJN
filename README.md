@@ -89,6 +89,7 @@ SpotterJN/
 │   │   ├── etiquetasRutina.ts    # textos de experiencia y equipo del cuestionario
 │   │   ├── progresion.ts         # progresión de peso por reglas (RF-15 a RF-19)
 │   │   ├── rutina.ts             # asignación de la rutina y resúmenes de sesión y semana
+│   │   ├── semana.ts             # qué sesión toca según el día de la semana
 │   │   ├── sesion.ts             # avance de series y ejercicios de la sesión
 │   │   ├── unidades.ts           # conversión kg/lb
 │   │   └── validaciones.ts
@@ -223,8 +224,8 @@ Limitaciones actuales:
 
 - Los datos de M2 se guardan en el dispositivo con Capacitor Preferences, detrás de las interfaces de `src/repositories/repositorios.ts` y bajo claves asociadas al ID del usuario autenticado. No están cifrados ni se sincronizan con Supabase; RNF-11 (cifrado en reposo y separación en backend) queda pendiente.
 - Los datos guardados por versiones anteriores en claves locales sin usuario no se migran automáticamente ni se borran: la app actual no los muestra. Tras actualizar, cada usuario deberá volver a completar el flujo M2 para generar sus datos asociados a su cuenta.
-- Los pesos que muestra `Hoy` son los iniciales del catálogo (`src/data/ejercicios.ts`), no cálculos de progresión: dependen de M3 y M4. Hasta que exista el historial de sesiones, la "próxima sesión" es siempre el primer día de la rutina.
-- `/sesion` muestra los ejercicios de la primera jornada y permite volver a Hoy. Es un esqueleto visual: todavía no registra series, pesos ni historial (M3).
+- Los pesos que muestra `Hoy` son los iniciales del catálogo (`src/data/ejercicios.ts`), no cálculos de progresión: dependen de M3 y M4. `Hoy` calcula qué sesión toca con el día de la semana (`src/utils/semana.ts`), sin usar todavía el historial: las sesiones se reparten en los mismos días que los recordatorios (por ejemplo lunes, miércoles y viernes con 3 días). Si hoy se entrena, muestra «Hoy toca»; si no, «Próxima sesión · día» y avisa de que hoy se descansa. «Empezar entrenamiento» abre esa misma sesión: `/sesion` recibe `indiceDia` por el estado de navegación y, sin él, usa la primera. Cuando haya historial de sesiones conviene reemplazar este cálculo por «la siguiente sesión sin hacer».
+- `/sesion` muestra los ejercicios de la jornada indicada (por defecto la primera) y permite volver a Hoy. Es un esqueleto visual: todavía no registra series, pesos ni historial (M3).
 - El cuestionario de rutina se asigna con plantillas fijas según días y equipo, sin IA.
 
 ## Ficha de ejercicio (M5)
@@ -241,7 +242,7 @@ Cada ejercicio tiene una ficha en `/ejercicio/:id` con su animación, cómo ajus
 
 ## Sesión de entrenamiento (M3)
 
-La ruta protegida `/sesion`, accesible desde «Empezar entrenamiento» en Hoy, carga la primera jornada de la rutina del usuario y la recorre ejercicio por ejercicio. Permite volver a Hoy y guarda cada serie en el dispositivo (ver «Guardado de series»). El componente de descanso RF-11 (`TemporizadorDescanso`) ofrece una cuenta regresiva de 90 segundos que comienza automáticamente, círculo de tiempo restante y controles para sumar/restar 30 segundos o saltar; acepta `alTerminar`, que se llama al llegar a cero o al tocar «Saltar descanso». Se usa entre series (ver «Descanso entre series»).
+La ruta protegida `/sesion`, accesible desde «Empezar entrenamiento» en Hoy, carga la jornada indicada de la rutina del usuario (por defecto la primera) y la recorre ejercicio por ejercicio. Permite volver a Hoy y guarda cada serie en el dispositivo (ver «Guardado de series»). El componente de descanso RF-11 (`TemporizadorDescanso`) ofrece una cuenta regresiva de 90 segundos que comienza automáticamente, círculo de tiempo restante y controles para sumar/restar 30 segundos o saltar; acepta `alTerminar`, que se llama al llegar a cero o al tocar «Saltar descanso». Se usa entre series (ver «Descanso entre series»).
 
 ### Registro de serie y autoevaluación (RF-10)
 
