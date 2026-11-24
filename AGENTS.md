@@ -207,3 +207,12 @@
 - Revisión sin cambios de código ni de configuración: no se encontró ningún error real.
 - `createClient` usa `persistSession: true` y `autoRefreshToken: true`; la sesión vive en `localStorage` del WebView. `getSession()` renueva el token caducado al abrir la app y la renovación automática se pausa y reanuda con `visibilitychange` (comprobado en `@supabase/auth-js` 2.117.3).
 - Pendiente (panel de Supabase): confirmar en Authentication → Sessions que no hay límite de duración ni de inactividad menor a 30 días, y revisar la caducidad del JWT. Hasta entonces no se afirma el cumplimiento de RF-01.
+
+### 2026-11-24 — Ajuste manual del peso (RF-17)
+
+- Rama `feature/ajuste-manual-peso` desde `develop` (con el PR #26 del límite de series). No se tocaron el servicio de autenticación ni Perfil (Nayeli trabaja en eliminar cuenta).
+- Añadidos `src/types/ajustesPeso.ts`, `ajustesPesoLocal` (clave `spotter.usuario.<id>.ajustesPeso`, incluida en `borrarDatosLocales`) y en `progresion.ts` `PESO_MAXIMO_MANUAL` (300 kg / 660 lb), `esPesoManualValido`, el motivo `ajuste-manual` y el parámetro opcional `ajuste` (`recomendarParaEjercicio` lo recibe como quinto argumento, sin cambiar las llamadas existentes).
+- Decisiones: el ajuste manda mientras sea más reciente que la última serie del ejercicio y no tiene tope de subida; al cambiar de unidad se convierte y redondea; el diálogo reutiliza el patrón `sj-dialogo` de `AyudaTermino` en lugar de `IonModal`.
+- `/sesion` ahora parte del peso recomendado o ajustado en vez del peso del catálogo (antes la recomendación solo se veía en Hoy); cambio localizado en la carga inicial y en `pesoActual`, sin tocar la elección del día.
+- Pendientes: IA real, Supabase y revisar el diálogo en un celular (no se verificó visualmente).
+- Verificación: `npm test` (464 pruebas/53 archivos) y `npm run build` aprobados.
