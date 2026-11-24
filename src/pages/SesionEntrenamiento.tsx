@@ -9,7 +9,9 @@ import TemporizadorDescanso from '../components/TemporizadorDescanso';
 import { BotonSJ, PantallaSJ } from '../components/PantallaSJ';
 import { usePerfil } from '../context/PerfilContext';
 import { useSesion } from '../context/SesionContext';
-import { rutinaLocal, seriesLocal } from '../repositories/local';
+import { ajustesPesoLocal, rutinaLocal, seriesLocal } from '../repositories/local';
+import type { AjustesPeso } from '../types/ajustesPeso';
+import { recomendarParaEjercicio } from '../utils/progresion';
 import type { DiaRutina, RutinaAsignada } from '../types/perfil';
 import type { SerieRegistrada } from '../types/series';
 import {
@@ -47,6 +49,8 @@ function SesionEntrenamiento() {
   // Referencia de la serie anterior mientras se descansa antes de la siguiente (RF-11).
   // Series guardadas en esta sesión, para el resumen final (RF-19).
   const [seriesDeLaSesion, setSeriesDeLaSesion] = useState<SerieRegistrada[]>([]);
+  // Series y ajustes anteriores a esta sesión: dan el peso de partida de cada ejercicio (RF-15, RF-17).
+  const [previas, setPrevias] = useState<{ series: SerieRegistrada[]; ajustes: AjustesPeso }>({ series: [], ajustes: {} });
   const [descanso, setDescanso] = useState<{ repeticiones: number; peso: number | null } | null>(null);
   // Evita guardar dos veces si se toca rápido antes de que React actualice el estado.
   const guardadoEnCurso = useRef(false);
@@ -70,11 +74,16 @@ function SesionEntrenamiento() {
     setRutina(null);
     setError(null);
     setCargando(true);
-    void rutinaLocal
-      .obtener(usuarioId)
-      .then((guardada) => {
+    void Promise.all([
+      rutinaLocal.obtener(usuarioId),
+      // Si no se pueden leer, se parte del peso inicial del catálogo.
+      seriesLocal.listar(usuarioId).catch((): SerieRegistrada[] => []),
+      ajustesPesoLocal.obtener(usuarioId).catch((): AjustesPeso => ({})),
+    ])
+      .then(([guardada, series, ajustes]) => {
         if (activo) {
           setRutina(guardada);
+          setPrevias({ series, ajustes });
         }
       })
       .catch(() => {
@@ -156,7 +165,10 @@ function SesionEntrenamiento() {
 
   const pesoCorporal = esPesoCorporal(ejercicio);
   const repeticionesActuales = repeticiones ?? ejercicio.repeticiones;
-  const pesoActual = peso ?? pesoEnUnidad(ejercicio.pesoInicialKg, perfil.unidadPeso);
+  const pesoDePartida =
+    recomendarParaEjercicio(ejercicio, previas.series, perfil.unidadPeso, undefined, previas.ajustes[ejercicio.id] ?? null)
+      .peso ?? pesoEnUnidad(ejercicio.pesoInicialKg, perfil.unidadPeso);
+  const pesoActual = peso ?? pesoDePartida;
 
   const ultimoEjercicio = esUltimoEjercicio(progreso, dia);
 
