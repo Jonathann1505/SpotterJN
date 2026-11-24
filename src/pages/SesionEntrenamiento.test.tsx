@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { IonApp, IonRouterOutlet } from '@ionic/react';
 import { IonReactMemoryRouter } from '@ionic/react-router';
 import { createMemoryHistory } from 'history';
@@ -15,6 +15,15 @@ import SesionEntrenamiento from './SesionEntrenamiento';
 vi.mock('../context/SesionContext', () => ({
   useSesion: () => ({ sesion: { user: { id: 'usuario-prueba' } } }),
 }));
+
+const avisos = vi.hoisted(() => ({
+  estadoAvisoDescanso: vi.fn(async (): Promise<'preguntar' | 'concedido' | 'no-disponible'> => 'no-disponible'),
+  pedirPermisoAvisoDescanso: vi.fn(async () => false),
+  programarAvisoDescanso: vi.fn(async (_finEn: Date, _mensaje: string): Promise<void> => undefined),
+  cancelarAvisoDescanso: vi.fn(async () => undefined),
+}));
+
+vi.mock('../services/notificaciones', () => avisos);
 
 vi.mock('@ionic/react', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@ionic/react')>();
@@ -598,6 +607,153 @@ describe('SesionEntrenamiento', () => {
         await guardarCon('Normal');
         const guardadas = await seriesLocal.listar('usuario-prueba');
         expect(guardadas[guardadas.length - 1]).toMatchObject({ peso: 25, numeroSerie: 1 });
+      });
+    });
+
+    describe('aviso de fin de descanso (RF-11)', () => {
+      let visibilidad: DocumentVisibilityState = 'visible';
+
+      function cambiarVisibilidad(estado: DocumentVisibilityState): void {
+        visibilidad = estado;
+        act(() => {
+          document.dispatchEvent(new Event('visibilitychange'));
+        });
+      }
+
+      beforeEach(() => {
+        visibilidad = 'visible';
+        Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => visibilidad });
+        avisos.estadoAvisoDescanso.mockResolvedValue('no-disponible');
+      });
+
+      afterEach(() => {
+        Reflect.deleteProperty(document, 'visibilityState');
+        vi.clearAllMocks();
+      });
+
+      async function empezarDescanso(): Promise<void> {
+        await iniciar();
+        fireEvent.click(screen.getByRole('radio', { name: 'Normal' }));
+        fireEvent.click(botonGuardar());
+        await screen.findByRole('heading', { name: 'Descanso' });
+      }
+
+      function ultimoFinProgramado(): number {
+        const llamadas = avisos.programarAvisoDescanso.mock.calls;
+        const llamada = llamadas[llamadas.length - 1];
+        if (!llamada) {
+          throw new Error('No se programó ningún aviso.');
+        }
+        return llamada[0].getTime();
+      }
+
+      it('con la app abierta no programa el aviso: avisa solo el temporizador', async () => {
+        await empezarDescanso();
+
+        expect(avisos.programarAvisoDescanso).not.toHaveBeenCalled();
+      });
+
+      it('al pasar a segundo plano programa el aviso para el fin del descanso y lo cancela al volver', async () => {
+        const antes = Date.now();
+        await empezarDescanso();
+        cambiarVisibilidad('hidden');
+
+        expect(avisos.programarAvisoDescanso).toHaveBeenCalledWith(
+          expect.any(Date),
+          'Descanso terminado. Vamos con la serie 2 de 2.',
+        );
+        const fin = ultimoFinProgramado();
+        expect(fin).toBeGreaterThanOrEqual(antes + 90_000);
+        expect(fin).toBeLessThanOrEqual(Date.now() + 90_000);
+
+        avisos.cancelarAvisoDescanso.mockClear();
+        cambiarVisibilidad('visible');
+        expect(avisos.cancelarAvisoDescanso).toHaveBeenCalled();
+      });
+
+      it('+30 s y -30 s reprograman el aviso con la nueva hora de fin', async () => {
+        await empezarDescanso();
+        cambiarVisibilidad('hidden');
+        const finInicial = ultimoFinProgramado();
+        cambiarVisibilidad('visible');
+
+        fireEvent.click(screen.getByRole('button', { name: 'Sumar 30 segundos' }));
+        cambiarVisibilidad('hidden');
+        expect(ultimoFinProgramado() - finInicial).toBeGreaterThanOrEqual(29_000);
+        cambiarVisibilidad('visible');
+
+        fireEvent.click(screen.getByRole('button', { name: 'Restar 30 segundos' }));
+        fireEvent.click(screen.getByRole('button', { name: 'Restar 30 segundos' }));
+        cambiarVisibilidad('hidden');
+        expect(ultimoFinProgramado()).toBeLessThan(finInicial);
+      });
+
+      it('Saltar descanso cancela el aviso y no vuelve a programarlo', async () => {
+        await empezarDescanso();
+        avisos.cancelarAvisoDescanso.mockClear();
+
+        fireEvent.click(screen.getByRole('button', { name: 'Saltar descanso' }));
+        expect(avisos.cancelarAvisoDescanso).toHaveBeenCalled();
+
+        cambiarVisibilidad('hidden');
+        expect(avisos.programarAvisoDescanso).not.toHaveBeenCalled();
+      });
+
+      it('Sentí dolor durante el descanso cancela el aviso', async () => {
+        await empezarDescanso();
+        avisos.cancelarAvisoDescanso.mockClear();
+
+        const sentiDolor = screen.getByText('Sentí dolor').closest('ion-button');
+        if (!sentiDolor) {
+          throw new Error('No se encontró el botón Sentí dolor.');
+        }
+        fireEvent.click(sentiDolor);
+        fireEvent.click(
+          within(screen.getByRole('alertdialog')).getByRole('button', {
+            name: 'Entendido, continuar con otro ejercicio',
+          }),
+        );
+
+        await screen.findByRole('heading', { name: 'Flexiones' });
+        expect(avisos.cancelarAvisoDescanso).toHaveBeenCalled();
+      });
+
+      it('salir de la sesión durante el descanso cancela el aviso', async () => {
+        await empezarDescanso();
+        avisos.cancelarAvisoDescanso.mockClear();
+
+        cleanup();
+
+        expect(avisos.cancelarAvisoDescanso).toHaveBeenCalled();
+      });
+
+      it('la primera vez que empieza un descanso ofrece el aviso y respeta «Ahora no»', async () => {
+        avisos.estadoAvisoDescanso.mockResolvedValue('preguntar');
+        await empezarDescanso();
+
+        const dialogo = await screen.findByRole('alertdialog', { name: 'Aviso de fin de descanso' });
+        fireEvent.click(within(dialogo).getByRole('button', { name: 'Ahora no' }));
+
+        expect(avisos.pedirPermisoAvisoDescanso).toHaveBeenCalledWith(false);
+        expect(screen.getByRole('timer')).toBeInTheDocument();
+      });
+
+      it('si se acepta pide el permiso del sistema', async () => {
+        avisos.estadoAvisoDescanso.mockResolvedValue('preguntar');
+        await empezarDescanso();
+
+        const dialogo = await screen.findByRole('alertdialog', { name: 'Aviso de fin de descanso' });
+        fireEvent.click(within(dialogo).getByRole('button', { name: 'Activar' }));
+
+        expect(avisos.pedirPermisoAvisoDescanso).toHaveBeenCalledWith(true);
+      });
+
+      it('sin aviso disponible no pregunta y el descanso funciona igual', async () => {
+        await empezarDescanso();
+
+        expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+        fireEvent.click(screen.getByRole('button', { name: 'Saltar descanso' }));
+        expect(screen.getByText('Guardar serie')).toBeInTheDocument();
       });
     });
   });
