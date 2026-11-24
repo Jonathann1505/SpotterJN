@@ -10,6 +10,7 @@ import { rutinaLocal, saludLocal, seriesLocal } from '../repositories/local';
 import { asignarRutina } from '../utils/rutina';
 import { sesionParaFecha } from '../utils/semana';
 import Hoy from './Hoy';
+import RutinaAsignada from './RutinaAsignada';
 
 vi.mock('../services/auth', () => ({ cerrarSesion: vi.fn() }));
 
@@ -49,6 +50,7 @@ function renderizar(inicial: string, cambiar: () => Promise<void>): MemoryHistor
         <IonReactMemoryRouter history={historial}>
           <IonRouterOutlet>
             <Route exact path="/hoy" component={Hoy} />
+            <Route exact path="/rutina" component={RutinaAsignada} />
             <Route exact path="/otra">
               <CambiarDatosYVolver cambiar={cambiar} destino={inicial} />
             </Route>
@@ -115,4 +117,14 @@ describe('las pantallas recargan sus datos al volver a mostrarse', () => {
     ).toBeInTheDocument();
   });
 
+  it('Mi rutina muestra la rutina nueva al volver de cambiarla', async () => {
+    const historial = renderizar('/rutina', () =>
+      rutinaLocal.guardar(USUARIO, asignarRutina({ experiencia: 'ninguna', diasPorSemana: 4, equipo: ['maquinas'] })),
+    );
+    expect(await screen.findByRole('heading', { name: '3 días por semana' })).toBeInTheDocument();
+
+    await irYVolver(historial, '/rutina');
+
+    expect(await screen.findByRole('heading', { name: '4 días por semana', hidden: true })).toBeInTheDocument();
+  });
 });
