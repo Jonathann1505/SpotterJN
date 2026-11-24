@@ -185,6 +185,10 @@ Sin botón atrás: `/login`, `/consentimientos` y `/registro` (pestañas de acce
 
 Pendiente de probar en dispositivo: el botón atrás en Android (flecha) y en iOS («‹ Atrás»), el botón físico de Android, el gesto de deslizar en iOS y el área segura con notch.
 
+#### Recarga al volver a una pantalla
+
+Ionic conserva en la pila las pantallas anteriores: al volver a ellas (con el botón atrás o con `history.replace`) no se montan de nuevo y sus efectos de carga no se repiten. `useRecargaAlVolver(ruta)` (`src/hooks/useRecargaAlVolver.ts`) devuelve un número que aumenta cada vez que se vuelve a esa ruta; se usa como dependencia del efecto de carga. Lo usan **Hoy** (tras terminar una sesión, cambiar un ejercicio o borrar los datos) y **Mi rutina** (tras cambiar la rutina). Durante la recarga se mantienen los datos visibles, sin volver al skeleton. Cualquier pantalla nueva que lea datos y pueda quedar debajo en la pila debe usarlo.
+
 ### Animaciones y microinteracciones
 
 - **Transición entre páginas:** `src/theme/transiciones.ts` define `transicionPaginaSJ` con `createAnimation` de Ionic y se registra en `setupIonicReact({ navAnimation })`. Al avanzar, la pantalla nueva entra con fundido y 12 px de desplazamiento en 260 ms con `cubic-bezier(0.2, 0, 0, 1)`; al regresar, la actual sale en 200 ms.

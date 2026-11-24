@@ -225,3 +225,11 @@
 - Decisiones: sin `SCHEDULE_EXACT_ALARM` (el aviso puede retrasarse unos segundos); aviso solo en segundo plano para evitar dobles avisos; permiso pedido en el primer descanso con explicación y sin insistir; al cerrarse el descanso se cancela solo si la app está visible o la hora de fin aún no llegó, para no borrar un aviso recién mostrado.
 - Pendiente: probar en un celular real (permiso, segundo plano, saltar, ±30 s y avisos viejos).
 - Verificación: `npm test` (484 pruebas/54 archivos), `npm run build`, `npx cap sync android` y `gradlew assembleDebug` aprobados.
+
+### 2026-11-24 — Revisión de errores antes de la entrega
+
+- Rama `fix/revision-errores` desde `develop` (con el PR #28 del aviso del descanso). Comprobaciones: `npm test`, `npm run build` y `tsc --noEmit` sin errores ni avisos de consola; sin linter; `npm audit` con 7 avisos solo en dependencias de desarrollo (sin cambios).
+- Error corregido (Alta): Ionic reutiliza las páginas que quedan en la pila, así que Hoy y Mi rutina no recargaban al volver. Hoy mostraba el peso anterior tras una sesión, el ejercicio viejo tras cambiarlo y los datos borrados tras «Borrar datos»; Mi rutina mostraba la rutina anterior tras cambiarla. Se añadió `useRecargaAlVolver` (basado en la ubicación del router, porque `useIonViewWillEnter` no se dispara al volver en jsdom) y se usa en `Hoy.tsx` y `RutinaAsignada.tsx`. Pruebas en `RecargaAlVolver.test.tsx`, verificadas fallando sin el arreglo.
+- Pendientes no corregidos por decisión: Perfil («Tu rutina actual» desactualizado tras cambiar la rutina; `Perfil.tsx` es de Nayeli), contadores que guardan el último valor válido si el campo queda vacío o fuera de rango (sospecha), pesos en kg durante un instante antes de cargar un perfil en lb, y «Reintentar» en Mi progreso.
+- Sospechas a verificar en el celular: teclado tapando campos (no hay `windowSoftInputMode`) y el disparo de `visibilitychange` al pasar a segundo plano para el aviso del descanso.
+- Verificación: `npm test` (488 pruebas/55 archivos), `npm run build` y `tsc --noEmit` aprobados.
