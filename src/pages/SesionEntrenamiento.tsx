@@ -62,6 +62,10 @@ function SesionEntrenamiento() {
   const [finDescanso, setFinDescanso] = useState<number | null>(null);
   const [preguntarAviso, setPreguntarAviso] = useState(false);
   const avisoRevisado = useRef(false);
+  // Aumenta al conceder el permiso, para programar el aviso del descanso que ya está en curso.
+  const [permisoConcedido, setPermisoConcedido] = useState(0);
+  // Fin del descanso con aviso pendiente: si se sale de la sesión antes, se cancela.
+  const finConAvisoPendiente = useRef<number | null>(null);
   // Evita guardar dos veces si se toca rápido antes de que React actualice el estado.
   const guardadoEnCurso = useRef(false);
   const { perfil } = usePerfil();
@@ -125,32 +129,27 @@ function SesionEntrenamiento() {
     });
   }, [descanso]);
 
-  // El aviso solo se programa con la app en segundo plano: con la app abierta avisa el temporizador
-  // y nunca salen dos avisos. Se cancela al volver, al saltar, al cambiar el tiempo o al cerrar el descanso.
+  // El aviso se programa al empezar el descanso (con la app abierta o en segundo plano) y se reprograma
+  // con ±30 s. Al terminar el tiempo NO se cancela, para que la notificación salga; solo se cancela al
+  // saltar el descanso, con «Sentí dolor» o al salir de la sesión antes de tiempo.
   const textoAviso = descanso?.aviso ?? null;
   useEffect(() => {
+    finConAvisoPendiente.current = finDescanso;
     if (finDescanso === null || textoAviso === null) {
-      return undefined;
+      return;
     }
-    const alCambiarVisibilidad = (): void => {
-      if (document.visibilityState === 'hidden') {
-        void programarAvisoDescanso(new Date(finDescanso), textoAviso);
-      } else {
+    void programarAvisoDescanso(new Date(finDescanso), textoAviso);
+  }, [finDescanso, textoAviso, permisoConcedido]);
+
+  useEffect(
+    () => () => {
+      const fin = finConAvisoPendiente.current;
+      if (fin !== null && Date.now() < fin) {
         void cancelarAvisoDescanso();
       }
-    };
-    if (document.visibilityState === 'hidden') {
-      alCambiarVisibilidad();
-    }
-    document.addEventListener('visibilitychange', alCambiarVisibilidad);
-    return () => {
-      document.removeEventListener('visibilitychange', alCambiarVisibilidad);
-      // Si el aviso ya sonó con la app en segundo plano, se deja visible para que la persona lo vea.
-      if (document.visibilityState !== 'hidden' || Date.now() < finDescanso) {
-        void cancelarAvisoDescanso();
-      }
-    };
-  }, [finDescanso, textoAviso]);
+    },
+    [],
+  );
 
   if (cargando) {
     return (
@@ -260,6 +259,9 @@ function SesionEntrenamiento() {
       setGuardando(false);
     }
     const siguiente = saltarEjercicio(progreso, dia);
+    if (finDescanso !== null) {
+      void cancelarAvisoDescanso();
+    }
     setDescanso(null);
     setFinDescanso(null);
     setTerminadaPorMolestia(siguiente.completada);
@@ -340,7 +342,10 @@ function SesionEntrenamiento() {
             {descanso.peso === null ? 'peso corporal' : `${descanso.peso} ${perfil.unidadPeso}`}
           </p>
           <TemporizadorDescanso
-            alTerminar={() => {
+            alTerminar={(motivo) => {
+              if (motivo === 'saltado') {
+                void cancelarAvisoDescanso();
+              }
               setDescanso(null);
               setFinDescanso(null);
             }}
@@ -425,7 +430,11 @@ function SesionEntrenamiento() {
             text: 'Activar',
             role: 'confirm',
             handler: () => {
-              void pedirPermisoAvisoDescanso(true);
+              void pedirPermisoAvisoDescanso(true).then((concedido) => {
+                if (concedido) {
+                  setPermisoConcedido((actual) => actual + 1);
+                }
+              });
             },
           },
         ]}
