@@ -40,6 +40,7 @@ export const GUIAS: Readonly<Record<string, GuiaEjercicio>> = {
   },
   'press-mancuernas': {
     grupoMuscular: 'Pecho',
+    animacion: 'ejercicios/press-mancuernas.mp4',
     ajusteMaquina:
       'Siéntate en un banco con una mancuerna en cada mano apoyada en los muslos y acuéstate llevándolas al pecho. Pies firmes en el piso y espalda pegada al banco.',
     movimiento:

@@ -18,6 +18,10 @@ describe('obtenerGuia', () => {
     expect(obtenerGuia('zancadas').animacion).toBe('ejercicios/zancadas.mp4');
   });
 
+  it('asocia el video de press-mancuernas', () => {
+    expect(obtenerGuia('press-mancuernas').animacion).toBe('ejercicios/press-mancuernas.mp4');
+  });
+
   it('usa una guía provisional para ejercicios sin contenido', () => {
     expect(obtenerGuia('no-existe')).toBe(GUIA_PENDIENTE);
     expect(GUIA_PENDIENTE.animacion).toBeUndefined();
