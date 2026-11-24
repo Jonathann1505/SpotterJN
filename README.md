@@ -72,6 +72,7 @@ SpotterJN/
 │   ├── repositories/
 │   │   ├── repositorios.ts       # interfaces de perfil, salud y rutina
 │   │   ├── local.ts              # implementación local (Capacitor Preferences)
+│   │   ├── recorteSeries.ts      # límite de series guardadas por usuario
 │   │   └── almacenLocal.ts
 │   ├── services/
 │   │   ├── auth.ts
@@ -266,6 +267,10 @@ La ruta protegida `/sesion`, accesible desde «Empezar entrenamiento» en Hoy, c
 - «Sentí dolor» guarda la serie en curso con `estado: 'interrumpida-por-molestia'` (no cuenta como fallida) y con la autoevaluación si se eligió, o `null`. Si ese guardado falla, se avanza igual y se informa, porque la prioridad es que la persona se detenga.
 - Cada serie (`SerieRegistrada`, `src/types/series.ts`) incluye: `id`, `registradaEn` (ISO 8601), `idEjercicio`, `nombreEjercicio`, `dia` (nombre del día de la rutina), `numeroSerie`, `peso` (en la unidad del perfil; `null` en peso corporal), `unidad` (`kg`/`lb`), `repeticiones`, `autoevaluacion` y `estado` (`completada` o `interrumpida-por-molestia`). La construye `crearSerieRegistrada` en `src/utils/sesion.ts`.
 - Repositorio `seriesLocal` (`SeriesRepositorio` en `src/repositories/repositorios.ts`) con `guardar`, `listar` y `listarPorEjercicio`. Usa Capacitor Preferences con la clave `spotter.usuario.<id de usuario codificado>.series`, una lista a la que se añade cada serie. Al leer se descartan las series con forma inválida sin perder las válidas, y un valor que no es lista se trata como vacío.
+- **Límite de series:** al guardar, `recortarSeries` (`src/repositories/recorteSeries.ts`, función pura) conserva como máximo `LIMITE_SERIES_POR_USUARIO = 2000` series por usuario y descarta las más antiguas. 2000 series son unas 110-130 sesiones (9-12 meses entrenando 3 veces por semana) y unos 650 KB en una sola clave, para que la lista no crezca sin tope ni haga lenta cada escritura.
+  - Nunca se descartan la serie recién guardada ni las series de las **3 sesiones más recientes de cada ejercicio** (`SESIONES_PROTEGIDAS_POR_EJERCICIO`), que son las que necesita la progresión (RF-15, RF-16). Si esas series protegidas superan el límite, se conservan igual.
+  - El historial y la gráfica (RF-23) solo pierden las semanas más antiguas.
+  - El recorte se calcula en memoria antes de escribir: si el guardado falla, la lista anterior queda intacta. Solo afecta a la clave del usuario que guarda.
 - Los datos **siguen solo en el dispositivo y sin cifrar**: no se sincronizan con Supabase y se pierden al borrar los datos de la app.
 
 ### Descanso entre series (RF-11)
@@ -343,7 +348,16 @@ El componente reutilizable **Cerrar sesión** está disponible en Hoy y Perfil. 
 
 El cierre local no invalida las sesiones de otros dispositivos. Los datos de perfil, salud y rutina no se eliminan al salir: permanecen asociados al ID de su usuario para que otra cuenta en el mismo dispositivo no los reciba.
 
-La sesión persiste mediante los tokens que administra Supabase en el almacenamiento de la aplicación. **No se afirma que cumpla la persistencia de 30 días indicada por RF-01**: la duración efectiva depende de la configuración y renovación de sesiones de Supabase y queda pendiente verificarla en el proyecto.
+#### Duración de la sesión (RF-01)
+
+Verificado en el código (`src/services/supabase.ts`, `src/context/SesionContext.tsx` y `@supabase/auth-js` 2.117.3):
+
+- El cliente se crea con `persistSession: true` y `autoRefreshToken: true`. Sin almacenamiento propio, Supabase guarda la sesión (token de acceso y token de renovación) en `localStorage` del WebView, que en Android se conserva al cerrar y reabrir la app hasta que se borran sus datos.
+- Al abrir la app, `SesionContext` llama a `getSession()`: si el token de acceso caducó, Supabase lo renueva con el token de renovación antes de devolver la sesión; si falla, la app muestra el error con «Reintentar».
+- Con la app abierta, el token se renueva solo; la renovación se pausa en segundo plano y se reanuda al volver (evento `visibilitychange`).
+- Cerrar sesión usa alcance local y borra la sesión de este dispositivo.
+
+**Pendiente de verificar en el panel de Supabase**, porque no depende del código: que la duración de las sesiones no corte antes de 30 días (Authentication → Sessions: límite de duración de la sesión e inactividad; y la caducidad del token de acceso en la configuración de JWT). **No se afirma todavía que se cumplan los 30 días de RF-01.**
 
 ### Probar el flujo en web
 

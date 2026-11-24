@@ -8,6 +8,7 @@ import {
   type RutinaAsignada,
 } from '../types/perfil';
 import { borrarClave, guardarJson, leerJson } from './almacenLocal';
+import { recortarSeries } from './recorteSeries';
 import type { AjustesRecordatorios } from '../types/recordatorios';
 import { AUTOEVALUACIONES, ESTADOS_SERIE, type Autoevaluacion, type SerieRegistrada } from '../types/series';
 import { HORA_PREDETERMINADA, esHoraValida } from '../utils/recordatorios';
@@ -151,7 +152,8 @@ async function leerSeries(usuarioId: string): Promise<SerieRegistrada[]> {
 export const seriesLocal: SeriesRepositorio = {
   guardar: async (usuarioId, serie) => {
     const series = await leerSeries(usuarioId);
-    await guardarJson(crearClave(usuarioId, 'series'), [...series, serie]);
+    // El recorte se calcula en memoria: si la escritura falla, la lista anterior queda intacta.
+    await guardarJson(crearClave(usuarioId, 'series'), recortarSeries([...series, serie], serie.id));
   },
   listar: (usuarioId) => leerSeries(usuarioId),
   listarPorEjercicio: async (usuarioId, idEjercicio) =>
