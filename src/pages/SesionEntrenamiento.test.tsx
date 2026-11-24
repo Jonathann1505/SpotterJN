@@ -6,7 +6,7 @@ import { Preferences } from '@capacitor/preferences';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { MemoryRouter, Route } from 'react-router-dom';
 import { ProveedorPerfil } from '../context/PerfilContext';
-import { rutinaLocal, seriesLocal } from '../repositories/local';
+import { ajustesPesoLocal, rutinaLocal, seriesLocal } from '../repositories/local';
 import type { RutinaAsignada } from '../types/perfil';
 import { asignarRutina } from '../utils/rutina';
 import { botonAtras, pulsarAtras } from '../test/navegacion';
@@ -549,6 +549,55 @@ describe('SesionEntrenamiento', () => {
         expect(flexiones).toHaveTextContent('Interrumpido por molestia.');
         expect(flexiones).toHaveTextContent('Sentiste molestia: mantén 10 repeticiones y cuídate.');
         expect(filaResumen('Press de pecho en máquina')).toHaveTextContent('Sube 17,5 kg');
+      });
+    });
+
+    describe('peso de partida (RF-15, RF-17)', () => {
+      async function sesionAnteriorFacil(): Promise<void> {
+        for (const numero of [1, 2]) {
+          await seriesLocal.guardar('usuario-prueba', {
+            id: `previa-${numero}`,
+            registradaEn: `2026-01-10T18:0${numero}:00.000Z`,
+            idEjercicio: 'press-pecho-maquina',
+            nombreEjercicio: 'Press de pecho en máquina',
+            dia: 'Día 1 – Prueba',
+            numeroSerie: numero,
+            peso: 15,
+            unidad: 'kg',
+            repeticiones: 12,
+            autoevaluacion: 'facil',
+            estado: 'completada',
+          });
+        }
+      }
+
+      it('sin historial empieza con el peso inicial del catálogo', async () => {
+        await iniciar();
+
+        expect(screen.getByLabelText('Peso en kg')).toHaveValue(15);
+      });
+
+      it('empieza con el peso que recomienda la progresión', async () => {
+        await sesionAnteriorFacil();
+        await iniciar();
+
+        expect(screen.getByLabelText('Peso en kg')).toHaveValue(17.5);
+      });
+
+      it('empieza con el peso ajustado a mano y lo guarda en la serie', async () => {
+        await sesionAnteriorFacil();
+        await ajustesPesoLocal.guardar('usuario-prueba', {
+          idEjercicio: 'press-pecho-maquina',
+          peso: 25,
+          unidad: 'kg',
+          ajustadoEn: new Date().toISOString(),
+        });
+        await iniciar();
+
+        expect(screen.getByLabelText('Peso en kg')).toHaveValue(25);
+        await guardarCon('Normal');
+        const guardadas = await seriesLocal.listar('usuario-prueba');
+        expect(guardadas[guardadas.length - 1]).toMatchObject({ peso: 25, numeroSerie: 1 });
       });
     });
   });
