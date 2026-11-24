@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Preferences } from '@capacitor/preferences';
 import {
   borrarDatosLocales,
@@ -11,6 +11,14 @@ import {
 } from './local';
 import type { PerfilUsuario, RespuestasSalud, RutinaAsignada } from '../types/perfil';
 import type { SerieRegistrada } from '../types/series';
+import { LIMITE_SERIES_POR_USUARIO } from './recorteSeries';
+import { guardarJson } from './almacenLocal';
+
+// Por defecto llama a la implementación real; permite simular un fallo de escritura puntual.
+vi.mock('./almacenLocal', async (importOriginal) => {
+  const real = await importOriginal<typeof import('./almacenLocal')>();
+  return { ...real, guardarJson: vi.fn(real.guardarJson) };
+});
 
 const USUARIO_A = 'usuario-a';
 const USUARIO_B = 'usuario-b';
@@ -247,5 +255,68 @@ describe('borrarDatosLocales', () => {
   it('no falla si no había nada guardado y exige un usuario', async () => {
     await expect(borrarDatosLocales(USUARIO_A)).resolves.toBeUndefined();
     await expect(borrarDatosLocales('')).rejects.toThrow(/sesión/i);
+  });
+});
+
+describe('límite de series guardadas', () => {
+  const claveSeries = (usuario: string): string => `spotter.usuario.${usuario}.series`;
+
+  /** Series del mismo ejercicio en días consecutivos: cada una es su propia sesión. */
+  function seriesAntiguas(cantidad: number, prefijo = 'antigua'): SerieRegistrada[] {
+    return Array.from({ length: cantidad }, (_, indice) =>
+      crearSerie({
+        id: `${prefijo}-${indice}`,
+        registradaEn: new Date(Date.UTC(2020, 0, 1 + indice, 18)).toISOString(),
+      }),
+    );
+  }
+
+  async function sembrar(usuario: string, series: SerieRegistrada[]): Promise<void> {
+    await Preferences.set({ key: claveSeries(usuario), value: JSON.stringify(series) });
+  }
+
+  it('al pasar el límite descarta la serie más antigua y conserva la recién guardada', async () => {
+    await sembrar(USUARIO_A, seriesAntiguas(LIMITE_SERIES_POR_USUARIO));
+    const nueva = crearSerie({ id: 'nueva', registradaEn: '2026-11-24T18:00:00.000Z' });
+
+    await seriesLocal.guardar(USUARIO_A, nueva);
+    const guardadas = await seriesLocal.listar(USUARIO_A);
+
+    expect(guardadas).toHaveLength(LIMITE_SERIES_POR_USUARIO);
+    expect(guardadas.map((serie) => serie.id)).not.toContain('antigua-0');
+    expect(guardadas[0].id).toBe('antigua-1');
+    expect(guardadas[guardadas.length - 1]).toEqual(nueva);
+  });
+
+  it('por debajo del límite no borra nada', async () => {
+    await sembrar(USUARIO_A, seriesAntiguas(LIMITE_SERIES_POR_USUARIO - 1));
+
+    await seriesLocal.guardar(USUARIO_A, crearSerie({ id: 'nueva', registradaEn: '2026-11-24T18:00:00.000Z' }));
+
+    const guardadas = await seriesLocal.listar(USUARIO_A);
+    expect(guardadas).toHaveLength(LIMITE_SERIES_POR_USUARIO);
+    expect(guardadas[0].id).toBe('antigua-0');
+  });
+
+  it('no toca las series de otro usuario', async () => {
+    const deB = seriesAntiguas(3, 'b');
+    await sembrar(USUARIO_B, deB);
+    await sembrar(USUARIO_A, seriesAntiguas(LIMITE_SERIES_POR_USUARIO));
+
+    await seriesLocal.guardar(USUARIO_A, crearSerie({ id: 'nueva', registradaEn: '2026-11-24T18:00:00.000Z' }));
+
+    expect(await seriesLocal.listar(USUARIO_B)).toEqual(deB);
+  });
+
+  it('si el guardado falla, la lista anterior queda intacta', async () => {
+    const previas = seriesAntiguas(LIMITE_SERIES_POR_USUARIO);
+    await sembrar(USUARIO_A, previas);
+    vi.mocked(guardarJson).mockRejectedValueOnce(new Error('sin espacio'));
+
+    await expect(
+      seriesLocal.guardar(USUARIO_A, crearSerie({ id: 'nueva', registradaEn: '2026-11-24T18:00:00.000Z' })),
+    ).rejects.toThrow('sin espacio');
+
+    expect(await seriesLocal.listar(USUARIO_A)).toEqual(previas);
   });
 });
