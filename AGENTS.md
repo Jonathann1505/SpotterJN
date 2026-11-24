@@ -233,3 +233,13 @@
 - Pendientes no corregidos por decisión: Perfil («Tu rutina actual» desactualizado tras cambiar la rutina; `Perfil.tsx` es de Nayeli), contadores que guardan el último valor válido si el campo queda vacío o fuera de rango (sospecha), pesos en kg durante un instante antes de cargar un perfil en lb, y «Reintentar» en Mi progreso.
 - Sospechas a verificar en el celular: teclado tapando campos (no hay `windowSoftInputMode`) y el disparo de `visibilitychange` al pasar a segundo plano para el aviso del descanso.
 - Verificación: `npm test` (488 pruebas/55 archivos), `npm run build` y `tsc --noEmit` aprobados.
+
+### 2026-11-24 — Corrección del aviso de fin de descanso (RF-11)
+
+- Reportado en un celular real: al terminar el descanso no salía ninguna notificación.
+- Causas: (1) con la app abierta no se programaba el aviso por diseño; (2) en segundo plano dependía de `visibilitychange`, que Capacitor 7 en Android no emite al pausar la app; (3) sin alarmas exactas el aviso llegaba tarde y el temporizador, que sigue corriendo, lo cancelaba al llegar a cero.
+- Arreglo: el aviso se programa al empezar el descanso y se reprograma con ±30 s; solo se cancela al saltar (o restar hasta cero), con «Sentí dolor» o al salir de la sesión antes de tiempo; al terminar el tiempo no se cancela. `TemporizadorDescanso` pasa el motivo del fin (`tiempo` | `saltado`) a `alTerminar`. Al conceder el permiso en el primer descanso se programa el aviso en curso.
+- Decisión del usuario: se declaran `USE_EXACT_ALARM` y `SCHEDULE_EXACT_ALARM` (`maxSdkVersion="32"`) para que el aviso sea puntual.
+- Pruebas: las del aviso en `SesionEntrenamiento.test.tsx` se reescribieron para el comportamiento nuevo y se verificó que fallan con el código anterior.
+- Pendiente: confirmar en el celular que la notificación suena con la app abierta y en segundo plano.
+- Verificación: `npm test` (490 pruebas/55 archivos), `npm run build`, `tsc --noEmit` y `gradlew assembleDebug` aprobados; la APK incluye los permisos de alarma exacta.
