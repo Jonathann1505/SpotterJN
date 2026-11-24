@@ -86,6 +86,10 @@ La animación recorre **inicial → intermedia → final → intermedia**. La pa
 | Sentadilla con peso corporal | Hecha (video) |
 | Press de pecho en máquina | Hecha (video) |
 | Remo invertido | Hecha (video) |
-| Los otros 11 (incluidas las zancadas) | Pendiente: esperan su video o sus 3 imágenes |
+| Zancadas | Hecha (video) |
+| Press con mancuernas | Hecha (video) |
+| Extensión de tríceps en polea | Hecha (video) |
+| Peso muerto rumano | Hecha (video) |
+| Los otros 7 (jalón al pecho, remo en máquina, remo con mancuerna, remo con barra, prensa de piernas, sentadilla goblet y curl femoral) | Pendiente: esperan su video o sus 3 imágenes |
 
 Mientras un ejercicio no tenga animación, su ficha muestra «Animación próximamente» y el resto de la guía.
