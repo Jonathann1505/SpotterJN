@@ -1,5 +1,6 @@
 import type { EjercicioRutina, UnidadPeso } from '../types/perfil';
 import type { SerieRegistrada } from '../types/series';
+import type { AjustePeso } from '../types/ajustesPeso';
 import { esPesoCorporal } from './sesion';
 import { kgALb, lbAKg, pesoEnUnidad } from './unidades';
 
@@ -10,9 +11,23 @@ export const INCREMENTO_REPETICIONES = 2;
 /** Bajada tras varias sesiones de fallo con el mismo peso (RF-16). */
 export const FACTOR_BAJADA = 0.9;
 export const SESIONES_FALLIDAS_PARA_BAJAR = 3;
+/** Peso máximo que se acepta en el ajuste manual (RF-17). */
+export const PESO_MAXIMO_MANUAL: Readonly<Record<UnidadPeso, number>> = { kg: 300, lb: 660 };
+
+/** Un peso manual es válido si es un número finito entre 0 y el máximo de la unidad. */
+export function esPesoManualValido(peso: number, unidad: UnidadPeso): boolean {
+  return Number.isFinite(peso) && peso >= 0 && peso <= PESO_MAXIMO_MANUAL[unidad];
+}
 
 export type AccionProgresion = 'sube' | 'mantiene' | 'baja';
-export type MotivoProgresion = 'sin-series' | 'todo-bien' | 'dificil' | 'incompleta' | 'molestia' | 'tres-fallos';
+export type MotivoProgresion =
+  | 'sin-series'
+  | 'todo-bien'
+  | 'dificil'
+  | 'incompleta'
+  | 'molestia'
+  | 'tres-fallos'
+  | 'ajuste-manual';
 
 export interface ObjetivoEjercicio {
   series: number;
@@ -26,6 +41,8 @@ export interface EntradaProgresion {
   /** Peso de partida en la unidad del perfil; null en ejercicios de peso corporal. */
   pesoActual: number | null;
   unidad: UnidadPeso;
+  /** Ajuste manual del ejercicio (RF-17); manda si es más reciente que la última serie. */
+  ajuste?: AjustePeso | null;
 }
 
 export interface ResultadoProgresion {
@@ -86,7 +103,7 @@ function evaluarSesion(sesion: SesionEjercicio, objetivo: ObjetivoEjercicio): Re
   return sesion.completadas.length >= objetivo.series ? 'exito' : 'incompleta';
 }
 
-function convertirPeso(peso: number, desde: UnidadPeso, hacia: UnidadPeso): number {
+export function convertirPeso(peso: number, desde: UnidadPeso, hacia: UnidadPeso): number {
   if (desde === hacia) {
     return peso;
   }
@@ -131,6 +148,8 @@ export const explicarProgresion: Explicador = ({ motivo, peso, repeticiones, uni
       return `Sentiste molestia: mantén ${carga} y cuídate.`;
     case 'tres-fallos':
       return `Llevas 3 sesiones difíciles con este peso: baja a ${carga} y vuelve a subir.`;
+    case 'ajuste-manual':
+      return `Ajustado por ti: empieza con ${carga}.`;
   }
 };
 
@@ -151,6 +170,21 @@ export function calcularProgresion(
     const sinFrase = { ...resultado, unidad };
     return { ...sinFrase, explicacion: explicar(sinFrase) };
   };
+
+  // RF-17: el ajuste manual sobrescribe la recomendación hasta la siguiente sesión y no tiene tope de subida.
+  const ajuste = entrada.ajuste ?? null;
+  if (!pesoCorporal && ajuste !== null) {
+    const ultimaSerie = ultima?.series[ultima.series.length - 1];
+    const ajusteVigente = !ultimaSerie || Date.parse(ajuste.ajustadoEn) > Date.parse(ultimaSerie.registradaEn);
+    if (ajusteVigente) {
+      return terminar({
+        accion: 'mantiene',
+        motivo: 'ajuste-manual',
+        peso: convertirPeso(ajuste.peso, ajuste.unidad, unidad),
+        repeticiones: objetivo.repeticiones,
+      });
+    }
+  }
 
   if (!ultima) {
     return terminar({ accion: 'mantiene', motivo: 'sin-series', peso: entrada.pesoActual, repeticiones: objetivo.repeticiones });
@@ -219,6 +253,7 @@ export function recomendarParaEjercicio(
   series: readonly SerieRegistrada[],
   unidad: UnidadPeso,
   explicar: Explicador = explicarProgresion,
+  ajuste: AjustePeso | null = null,
 ): ResultadoProgresion {
   return calcularProgresion(
     {
@@ -226,6 +261,7 @@ export function recomendarParaEjercicio(
       objetivo: { series: ejercicio.series, repeticiones: ejercicio.repeticiones },
       pesoActual: esPesoCorporal(ejercicio) ? null : pesoEnUnidad(ejercicio.pesoInicialKg, unidad),
       unidad,
+      ajuste: ajuste !== null && ajuste.idEjercicio === ejercicio.id ? ajuste : null,
     },
     explicar,
   );

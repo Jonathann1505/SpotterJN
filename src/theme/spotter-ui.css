@@ -789,6 +789,32 @@ ion-content {
   color: var(--sj-ink);
 }
 
+/* Peso de Hoy que se puede ajustar a mano (RF-17) */
+.sj-peso-ajustable {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.15rem;
+  min-height: var(--sj-alto-tactil);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.sj-peso-ajustable ion-icon {
+  align-self: center;
+  margin-left: 0.25rem;
+  color: var(--sj-blue-ink);
+  font-size: 1rem;
+}
+
+.sj-peso-ajustable:focus-visible {
+  outline: 3px solid var(--sj-blue);
+  outline-offset: 2px;
+}
+
 .sj-dialogo-titulo {
   margin: 0.25rem 0 0.75rem;
   font-size: 1.5rem;

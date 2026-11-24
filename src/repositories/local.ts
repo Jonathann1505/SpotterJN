@@ -11,6 +11,7 @@ import { borrarClave, guardarJson, leerJson } from './almacenLocal';
 import { recortarSeries } from './recorteSeries';
 import type { AjustesRecordatorios } from '../types/recordatorios';
 import { AUTOEVALUACIONES, ESTADOS_SERIE, type Autoevaluacion, type SerieRegistrada } from '../types/series';
+import type { AjustePeso, AjustesPeso } from '../types/ajustesPeso';
 import { HORA_PREDETERMINADA, esHoraValida } from '../utils/recordatorios';
 import type {
   FichasVistasRepositorio,
@@ -19,9 +20,10 @@ import type {
   RutinaRepositorio,
   SaludRepositorio,
   SeriesRepositorio,
+  AjustesPesoRepositorio,
 } from './repositorios';
 
-const TIPOS_DE_DATO = ['perfil', 'salud', 'rutina', 'fichasVistas', 'recordatorios', 'series'] as const;
+const TIPOS_DE_DATO = ['perfil', 'salud', 'rutina', 'fichasVistas', 'recordatorios', 'series', 'ajustesPeso'] as const;
 
 type TipoDato = (typeof TIPOS_DE_DATO)[number];
 
@@ -164,3 +166,36 @@ export const seriesLocal: SeriesRepositorio = {
 export async function borrarDatosLocales(usuarioId: string): Promise<void> {
   await Promise.all(TIPOS_DE_DATO.map((tipo) => borrarClave(crearClave(usuarioId, tipo))));
 }
+
+function esAjustePeso(valor: unknown): valor is AjustePeso {
+  return (
+    esObjeto(valor) &&
+    typeof valor.idEjercicio === 'string' &&
+    typeof valor.peso === 'number' &&
+    Number.isFinite(valor.peso) &&
+    valor.peso >= 0 &&
+    (valor.unidad === 'kg' || valor.unidad === 'lb') &&
+    typeof valor.ajustadoEn === 'string' &&
+    !Number.isNaN(Date.parse(valor.ajustadoEn))
+  );
+}
+
+/** Lee los ajustes válidos; descarta los corruptos o guardados bajo otro id de ejercicio. */
+async function leerAjustesPeso(usuarioId: string): Promise<Record<string, AjustePeso>> {
+  const guardados = (await leerJson(crearClave(usuarioId, 'ajustesPeso'), esObjeto)) ?? {};
+  const validos: Record<string, AjustePeso> = {};
+  for (const [idEjercicio, ajuste] of Object.entries(guardados)) {
+    if (esAjustePeso(ajuste) && ajuste.idEjercicio === idEjercicio) {
+      validos[idEjercicio] = ajuste;
+    }
+  }
+  return validos;
+}
+
+export const ajustesPesoLocal: AjustesPesoRepositorio = {
+  obtener: async (usuarioId): Promise<AjustesPeso> => leerAjustesPeso(usuarioId),
+  guardar: async (usuarioId, ajuste) => {
+    const ajustes = await leerAjustesPeso(usuarioId);
+    await guardarJson(crearClave(usuarioId, 'ajustesPeso'), { ...ajustes, [ajuste.idEjercicio]: ajuste });
+  },
+};

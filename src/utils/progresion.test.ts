@@ -1,6 +1,15 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { SerieRegistrada } from '../types/series';
-import { agruparEnSesiones, calcularProgresion, explicarProgresion, type ObjetivoEjercicio } from './progresion';
+import type { AjustePeso } from '../types/ajustesPeso';
+import {
+  PESO_MAXIMO_MANUAL,
+  agruparEnSesiones,
+  calcularProgresion,
+  esPesoManualValido,
+  explicarProgresion,
+  recomendarParaEjercicio,
+  type ObjetivoEjercicio,
+} from './progresion';
 
 const OBJETIVO: ObjetivoEjercicio = { series: 3, repeticiones: 12 };
 
@@ -236,5 +245,98 @@ describe('calcularProgresion', () => {
     );
     expect(new Set(frases).size).toBe(6);
     frases.forEach((frase) => expect(frase).toContain('40 kg'));
+  });
+});
+
+describe('ajuste manual del peso (RF-17)', () => {
+  function ajuste(cambios: Partial<AjustePeso> = {}): AjustePeso {
+    return { idEjercicio: 'press-banca', peso: 50, unidad: 'kg', ajustadoEn: '2026-11-22T10:00:00.000Z', ...cambios };
+  }
+  const sesionFacil = () =>
+    sesion('2026-11-20', [{ autoevaluacion: 'facil' }, { autoevaluacion: 'facil' }, { autoevaluacion: 'facil' }]);
+
+  it('con un ajuste más reciente que la última sesión usa el peso ajustado', () => {
+    const resultado = calcularProgresion({
+      series: sesionFacil(),
+      objetivo: OBJETIVO,
+      pesoActual: 20,
+      unidad: 'kg',
+      ajuste: ajuste(),
+    });
+
+    expect(resultado).toMatchObject({ motivo: 'ajuste-manual', peso: 50 });
+    expect(resultado.explicacion).toBe('Ajustado por ti: empieza con 50 kg.');
+  });
+
+  it('sin series también usa el ajuste en lugar del peso inicial', () => {
+    expect(
+      calcularProgresion({ series: [], objetivo: OBJETIVO, pesoActual: 20, unidad: 'kg', ajuste: ajuste({ peso: 25 }) }).peso,
+    ).toBe(25);
+  });
+
+  it('el ajuste manual no tiene el tope de subida automática', () => {
+    // Última sesión con 40 kg: la regla automática subiría como máximo a 42,5 kg.
+    const resultado = calcularProgresion({
+      series: sesionFacil(),
+      objetivo: OBJETIVO,
+      pesoActual: 20,
+      unidad: 'kg',
+      ajuste: ajuste({ peso: 60 }),
+    });
+    expect(resultado.peso).toBe(60);
+  });
+
+  it('después de una nueva sesión vuelve a las reglas desde el peso de esa sesión', () => {
+    const conAjuste = sesion('2026-11-23', [
+      { peso: 50, autoevaluacion: 'facil' },
+      { peso: 50, autoevaluacion: 'facil' },
+      { peso: 50, autoevaluacion: 'facil' },
+    ]);
+    const resultado = calcularProgresion({
+      series: [...sesionFacil(), ...conAjuste],
+      objetivo: OBJETIVO,
+      pesoActual: 20,
+      unidad: 'kg',
+      ajuste: ajuste(),
+    });
+
+    expect(resultado).toMatchObject({ accion: 'sube', motivo: 'todo-bien', peso: 52.5 });
+  });
+
+  it('convierte el ajuste a la unidad actual del perfil', () => {
+    const resultado = calcularProgresion({
+      series: [],
+      objetivo: OBJETIVO,
+      pesoActual: 20,
+      unidad: 'kg',
+      ajuste: ajuste({ peso: 100, unidad: 'lb' }),
+    });
+
+    expect(resultado.peso).toBe(45.5);
+    expect(resultado.explicacion).toBe('Ajustado por ti: empieza con 45,5 kg.');
+  });
+
+  it('en peso corporal ignora cualquier ajuste', () => {
+    expect(
+      calcularProgresion({ series: [], objetivo: OBJETIVO, pesoActual: null, unidad: 'kg', ajuste: ajuste() }),
+    ).toMatchObject({ motivo: 'sin-series', peso: null });
+  });
+
+  it('recomendarParaEjercicio solo aplica el ajuste del mismo ejercicio', () => {
+    const ejercicio = { id: 'press-banca', nombre: 'Press de banca', series: 3, repeticiones: 12, pesoInicialKg: 20 };
+
+    expect(recomendarParaEjercicio(ejercicio, [], 'kg', explicarProgresion, ajuste()).peso).toBe(50);
+    expect(recomendarParaEjercicio(ejercicio, [], 'kg', explicarProgresion, ajuste({ idEjercicio: 'otro' })).peso).toBe(20);
+  });
+
+  it('valida el peso manual: sin negativos y con un máximo de 300 kg o 660 lb', () => {
+    expect(PESO_MAXIMO_MANUAL).toEqual({ kg: 300, lb: 660 });
+    expect(esPesoManualValido(0, 'kg')).toBe(true);
+    expect(esPesoManualValido(300, 'kg')).toBe(true);
+    expect(esPesoManualValido(300.5, 'kg')).toBe(false);
+    expect(esPesoManualValido(660, 'lb')).toBe(true);
+    expect(esPesoManualValido(661, 'lb')).toBe(false);
+    expect(esPesoManualValido(-1, 'kg')).toBe(false);
+    expect(esPesoManualValido(Number.NaN, 'kg')).toBe(false);
   });
 });

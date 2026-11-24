@@ -1,10 +1,10 @@
-import { cleanup, fireEvent, render } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { IonApp } from '@ionic/react';
 import { MemoryRouter, Route } from 'react-router-dom';
 import { Preferences } from '@capacitor/preferences';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ProveedorPerfil } from '../context/PerfilContext';
-import { perfilLocal, rutinaLocal, saludLocal, seriesLocal } from '../repositories/local';
+import { ajustesPesoLocal, perfilLocal, rutinaLocal, saludLocal, seriesLocal } from '../repositories/local';
 import { asignarRutina, describirSesion } from '../utils/rutina';
 import Hoy from './Hoy';
 
@@ -218,6 +218,131 @@ describe('Hoy', () => {
       expect(pesoMostrado(container, segundo.nombre)).toBe(
         segundo.pesoInicialKg > 0 ? `${segundo.pesoInicialKg.toLocaleString('es')} kg` : 'Peso corporal',
       );
+    });
+  });
+
+  describe('ajuste manual del peso (RF-17)', () => {
+    const [conPeso, corporal] = rutina.dias[0].ejercicios;
+    const pesoInicial = conPeso.pesoInicialKg.toLocaleString('es');
+
+    async function abrirHoy(): Promise<HTMLElement> {
+      await saludLocal.guardar('usuario-prueba', salud);
+      await rutinaLocal.guardar('usuario-prueba', rutina);
+      const { container } = renderizar();
+      await screen.findByRole('heading', { name: rutina.dias[0].nombre });
+      return container;
+    }
+
+    function botonAjustar(nombre: string): HTMLElement {
+      return screen.getByRole('button', { name: new RegExp(`^Ajustar peso de ${nombre}`) });
+    }
+
+    /** Diálogo del ajuste; se busca por nombre porque Cerrar sesión también tiene un diálogo en el DOM. */
+    function dialogoAjuste(): HTMLElement {
+      return screen.getByRole('dialog', { name: `Peso de ${conPeso.nombre}` });
+    }
+
+    function sinDialogoAjuste(): boolean {
+      return screen.queryByRole('dialog', { name: `Peso de ${conPeso.nombre}` }) === null;
+    }
+
+    function botonDelDialogo(texto: 'Guardar' | 'Cancelar'): HTMLElement {
+      const boton = within(dialogoAjuste()).getByText(texto).closest('ion-button');
+      if (!boton) {
+        throw new Error(`No se encontró el botón ${texto}.`);
+      }
+      return boton;
+    }
+
+    it('tocar el peso abre el diálogo con el peso actual y el foco en el campo', async () => {
+      await abrirHoy();
+      fireEvent.click(botonAjustar(conPeso.nombre));
+
+      const dialogo = screen.getByRole('dialog', { name: `Peso de ${conPeso.nombre}` });
+      const campo = within(dialogo).getByLabelText('Peso en kg');
+      expect(campo).toHaveValue(conPeso.pesoInicialKg);
+      expect(campo).toHaveFocus();
+    });
+
+    it('Cancelar cierra sin guardar', async () => {
+      await abrirHoy();
+      fireEvent.click(botonAjustar(conPeso.nombre));
+      fireEvent.click(within(dialogoAjuste()).getByRole('button', { name: 'Aumentar peso' }));
+      fireEvent.click(botonDelDialogo('Cancelar'));
+
+      expect(sinDialogoAjuste()).toBe(true);
+      expect(await ajustesPesoLocal.obtener('usuario-prueba')).toEqual({});
+      expect(botonAjustar(conPeso.nombre)).toHaveTextContent(`${pesoInicial} kg`);
+      expect(screen.queryByText(/Ajustado por ti/)).not.toBeInTheDocument();
+    });
+
+    it('Escape también cierra sin guardar', async () => {
+      await abrirHoy();
+      fireEvent.click(botonAjustar(conPeso.nombre));
+      fireEvent.keyDown(document, { key: 'Escape' });
+
+      expect(sinDialogoAjuste()).toBe(true);
+      expect(await ajustesPesoLocal.obtener('usuario-prueba')).toEqual({});
+    });
+
+    it('Guardar actualiza el peso mostrado, marca «Ajustado por ti» y lo guarda', async () => {
+      await abrirHoy();
+      fireEvent.click(botonAjustar(conPeso.nombre));
+      const campo = within(dialogoAjuste()).getByLabelText('Peso en kg');
+      fireEvent.change(campo, { target: { value: '80' } });
+      fireEvent.click(botonDelDialogo('Guardar'));
+
+      await waitFor(() => expect(sinDialogoAjuste()).toBe(true));
+      expect(botonAjustar(conPeso.nombre)).toHaveTextContent('80 kg');
+      expect(screen.getByText('Ajustado por ti: empieza con 80 kg.')).toBeInTheDocument();
+      expect(await ajustesPesoLocal.obtener('usuario-prueba')).toEqual({
+        [conPeso.id]: expect.objectContaining({ idEjercicio: conPeso.id, peso: 80, unidad: 'kg' }),
+      });
+    });
+
+    it('al volver a abrir Hoy conserva el peso ajustado', async () => {
+      await ajustesPesoLocal.guardar('usuario-prueba', {
+        idEjercicio: conPeso.id,
+        peso: 70,
+        unidad: 'kg',
+        ajustadoEn: new Date().toISOString(),
+      });
+      await abrirHoy();
+
+      expect(botonAjustar(conPeso.nombre)).toHaveTextContent('70 kg');
+      expect(screen.getByText('Ajustado por ti: empieza con 70 kg.')).toBeInTheDocument();
+    });
+
+    it('muestra el ajuste convertido si el perfil cambió de unidad', async () => {
+      await perfilLocal.guardar('usuario-prueba', { nombre: '', meta: 'fuerza', unidadPeso: 'lb' });
+      await ajustesPesoLocal.guardar('usuario-prueba', {
+        idEjercicio: conPeso.id,
+        peso: 50,
+        unidad: 'kg',
+        ajustadoEn: new Date().toISOString(),
+      });
+      await abrirHoy();
+
+      await waitFor(() => expect(botonAjustar(conPeso.nombre)).toHaveTextContent('110 lb'));
+    });
+
+    it('si falla el guardado mantiene el diálogo abierto con el error', async () => {
+      const guardar = vi.spyOn(ajustesPesoLocal, 'guardar').mockRejectedValueOnce(new Error('sin espacio'));
+      await abrirHoy();
+      fireEvent.click(botonAjustar(conPeso.nombre));
+      fireEvent.click(botonDelDialogo('Guardar'));
+
+      expect(await within(dialogoAjuste()).findByRole('alert')).toHaveTextContent(
+        'No se pudo guardar el peso. Inténtalo de nuevo.',
+      );
+      guardar.mockRestore();
+    });
+
+    it('los ejercicios de peso corporal no ofrecen ajuste', async () => {
+      await abrirHoy();
+
+      expect(corporal.pesoInicialKg).toBe(0);
+      expect(screen.queryByRole('button', { name: new RegExp(`^Ajustar peso de ${corporal.nombre}`) })).toBeNull();
     });
   });
 });

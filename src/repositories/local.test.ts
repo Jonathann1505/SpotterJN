@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Preferences } from '@capacitor/preferences';
 import {
+  ajustesPesoLocal,
   borrarDatosLocales,
   fichasVistasLocal,
   perfilLocal,
@@ -11,6 +12,7 @@ import {
 } from './local';
 import type { PerfilUsuario, RespuestasSalud, RutinaAsignada } from '../types/perfil';
 import type { SerieRegistrada } from '../types/series';
+import type { AjustePeso } from '../types/ajustesPeso';
 import { LIMITE_SERIES_POR_USUARIO } from './recorteSeries';
 import { guardarJson } from './almacenLocal';
 
@@ -318,5 +320,68 @@ describe('límite de series guardadas', () => {
     ).rejects.toThrow('sin espacio');
 
     expect(await seriesLocal.listar(USUARIO_A)).toEqual(previas);
+  });
+});
+
+describe('repositorio local de ajustes manuales de peso', () => {
+  const claveAjustes = (usuario: string): string => `spotter.usuario.${usuario}.ajustesPeso`;
+
+  function ajuste(cambios: Partial<AjustePeso> = {}): AjustePeso {
+    return { idEjercicio: 'press-banca', peso: 50, unidad: 'kg', ajustadoEn: '2026-11-24T18:00:00.000Z', ...cambios };
+  }
+
+  it('devuelve un objeto vacío si no hay ajustes', async () => {
+    expect(await ajustesPesoLocal.obtener(USUARIO_A)).toEqual({});
+  });
+
+  it('guarda y lee un ajuste por ejercicio y reemplaza el anterior del mismo ejercicio', async () => {
+    await ajustesPesoLocal.guardar(USUARIO_A, ajuste());
+    await ajustesPesoLocal.guardar(USUARIO_A, ajuste({ idEjercicio: 'remo-barra', peso: 30 }));
+    await ajustesPesoLocal.guardar(USUARIO_A, ajuste({ peso: 55, ajustadoEn: '2026-11-25T18:00:00.000Z' }));
+
+    expect(await ajustesPesoLocal.obtener(USUARIO_A)).toEqual({
+      'press-banca': ajuste({ peso: 55, ajustadoEn: '2026-11-25T18:00:00.000Z' }),
+      'remo-barra': ajuste({ idEjercicio: 'remo-barra', peso: 30 }),
+    });
+  });
+
+  it('no mezcla los ajustes de distintas cuentas', async () => {
+    await ajustesPesoLocal.guardar(USUARIO_A, ajuste({ peso: 60 }));
+    await ajustesPesoLocal.guardar(USUARIO_B, ajuste({ peso: 20, unidad: 'lb' }));
+
+    expect(await ajustesPesoLocal.obtener(USUARIO_A)).toEqual({ 'press-banca': ajuste({ peso: 60 }) });
+    expect(await ajustesPesoLocal.obtener(USUARIO_B)).toEqual({ 'press-banca': ajuste({ peso: 20, unidad: 'lb' }) });
+  });
+
+  it('ignora los ajustes corruptos sin perder los válidos', async () => {
+    await Preferences.set({
+      key: claveAjustes(USUARIO_A),
+      value: JSON.stringify({
+        'press-banca': ajuste(),
+        'remo-barra': { ...ajuste({ idEjercicio: 'remo-barra' }), unidad: 'oz' },
+        sentadilla: { ...ajuste({ idEjercicio: 'sentadilla' }), peso: -5 },
+        prensa: { ...ajuste({ idEjercicio: 'prensa' }), ajustadoEn: 'ayer' },
+        'otro-id': ajuste({ idEjercicio: 'no-coincide' }),
+        texto: 'x',
+      }),
+    });
+
+    expect(await ajustesPesoLocal.obtener(USUARIO_A)).toEqual({ 'press-banca': ajuste() });
+  });
+
+  it('trata como vacío un valor que no es un objeto o no es JSON', async () => {
+    await Preferences.set({ key: claveAjustes(USUARIO_A), value: '[1,2]' });
+    expect(await ajustesPesoLocal.obtener(USUARIO_A)).toEqual({});
+
+    await Preferences.set({ key: claveAjustes(USUARIO_A), value: 'no es json' });
+    expect(await ajustesPesoLocal.obtener(USUARIO_A)).toEqual({});
+  });
+
+  it('se borra junto con el resto de datos de la persona', async () => {
+    await ajustesPesoLocal.guardar(USUARIO_A, ajuste());
+
+    await borrarDatosLocales(USUARIO_A);
+
+    expect(await ajustesPesoLocal.obtener(USUARIO_A)).toEqual({});
   });
 });

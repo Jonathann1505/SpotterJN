@@ -6,7 +6,7 @@ import { MiniaturaEjercicio } from '../components/MiniaturaEjercicio';
 import { CargandoSJ } from '../components/CargandoSJ';
 import { BotonSJ, PantallaSJ } from '../components/PantallaSJ';
 import { usePerfil } from '../context/PerfilContext';
-import { rutinaLocal, saludLocal, seriesLocal } from '../repositories/local';
+import { ajustesPesoLocal, rutinaLocal, saludLocal, seriesLocal } from '../repositories/local';
 import type { RespuestasSalud, RutinaAsignada } from '../types/perfil';
 import type { SerieRegistrada } from '../types/series';
 import { recomendarParaEjercicio } from '../utils/progresion';
@@ -15,12 +15,15 @@ import { describirSesion } from '../utils/rutina';
 import { sesionParaFecha } from '../utils/semana';
 import { useSesion } from '../context/SesionContext';
 import CerrarSesion from '../components/CerrarSesion';
+import { PesoAjustable } from '../components/PesoAjustable';
+import type { AjustePeso, AjustesPeso } from '../types/ajustesPeso';
 
 interface DatosHoy {
   usuarioId: string;
   salud: RespuestasSalud | null;
   rutina: RutinaAsignada | null;
   series: SerieRegistrada[];
+  ajustes: AjustesPeso;
 }
 
 function Hoy() {
@@ -45,15 +48,17 @@ function Hoy() {
       rutinaLocal.obtener(usuarioId),
       // Sin series legibles se muestra el peso inicial: no bloquea la pantalla.
       seriesLocal.listar(usuarioId).catch((): SerieRegistrada[] => []),
+      // Sin ajustes legibles se usa la recomendación automática.
+      ajustesPesoLocal.obtener(usuarioId).catch((): AjustesPeso => ({})),
     ])
-      .then(([salud, rutina, series]) => {
+      .then(([salud, rutina, series, ajustes]) => {
         if (activo) {
-          setDatos({ usuarioId, salud, rutina, series });
+          setDatos({ usuarioId, salud, rutina, series, ajustes });
         }
       })
       .catch(() => {
         if (activo) {
-          setDatos({ usuarioId, salud: null, rutina: null, series: [] });
+          setDatos({ usuarioId, salud: null, rutina: null, series: [], ajustes: {} });
         }
       });
 
@@ -110,7 +115,26 @@ function Hoy() {
       <ul className="sj-lista sj-lista-hoy">
         {proximaSesion.ejercicios.map((ejercicio) => {
           // Peso recomendado por la progresión (RF-15 a RF-17); sin series es el peso inicial.
-          const recomendacion = recomendarParaEjercicio(ejercicio, datos.series, perfil.unidadPeso);
+          const recomendacion = recomendarParaEjercicio(
+            ejercicio,
+            datos.series,
+            perfil.unidadPeso,
+            undefined,
+            datos.ajustes[ejercicio.id] ?? null,
+          );
+          // RF-17: el peso elegido a mano será el de partida de la próxima sesión.
+          const guardarAjuste = async (peso: number): Promise<void> => {
+            const ajuste: AjustePeso = {
+              idEjercicio: ejercicio.id,
+              peso,
+              unidad: perfil.unidadPeso,
+              ajustadoEn: new Date().toISOString(),
+            };
+            await ajustesPesoLocal.guardar(datos.usuarioId, ajuste);
+            setDatos((actuales) =>
+              actuales === null ? actuales : { ...actuales, ajustes: { ...actuales.ajustes, [ejercicio.id]: ajuste } },
+            );
+          };
           return (
           <li key={ejercicio.id} className="sj-fila-ejercicio">
             <MiniaturaEjercicio idEjercicio={ejercicio.id} nombre={ejercicio.nombre} />
@@ -130,10 +154,12 @@ function Hoy() {
               )}
             </span>
             {recomendacion.peso !== null ? (
-              <p className="sj-peso">
-                {recomendacion.peso.toLocaleString('es')}
-                <small> {perfil.unidadPeso}</small>
-              </p>
+              <PesoAjustable
+                nombreEjercicio={ejercicio.nombre}
+                peso={recomendacion.peso}
+                unidad={perfil.unidadPeso}
+                alGuardar={guardarAjuste}
+              />
             ) : (
               <p className="sj-peso sj-peso-corporal">Peso corporal</p>
             )}

@@ -1,6 +1,7 @@
 import type { PerfilUsuario, RespuestasSalud, RutinaAsignada } from '../types/perfil';
 import type { AjustesRecordatorios } from '../types/recordatorios';
 import type { SerieRegistrada } from '../types/series';
+import type { AjustePeso, AjustesPeso } from '../types/ajustesPeso';
 
 export interface PerfilRepositorio {
   obtener(usuarioId: string): Promise<PerfilUsuario | null>;
@@ -33,4 +34,11 @@ export interface SeriesRepositorio {
   /** Todas las series del usuario, en el orden en que se registraron. */
   listar(usuarioId: string): Promise<SerieRegistrada[]>;
   listarPorEjercicio(usuarioId: string, idEjercicio: string): Promise<SerieRegistrada[]>;
+}
+
+export interface AjustesPesoRepositorio {
+  /** Ajustes manuales de peso del usuario, indexados por id de ejercicio. */
+  obtener(usuarioId: string): Promise<AjustesPeso>;
+  /** Guarda (o reemplaza) el ajuste de un ejercicio. */
+  guardar(usuarioId: string, ajuste: AjustePeso): Promise<void>;
 }

@@ -39,6 +39,7 @@ SpotterJN/
 │   │   ├── CerrarSesion.tsx
 │   │   ├── ContadorNumerico.tsx  # stepper controlado de peso y repeticiones (RF-10)
 │   │   ├── PantallaSJ.tsx       # marco de pantalla, botones y acceso compartidos
+│   │   ├── PesoAjustable.tsx    # peso de Hoy con diálogo de ajuste manual (RF-17)
 │   │   └── TemporizadorDescanso.tsx
 │   ├── context/
 │   │   ├── PerfilContext.tsx     # perfil y unidad de peso (kg/lb)
@@ -79,6 +80,7 @@ SpotterJN/
 │   │   ├── recordatorios.ts      # programa los recordatorios locales
 │   │   └── supabase.ts
 │   ├── types/
+│   │   ├── ajustesPeso.ts        # ajuste manual del peso por ejercicio (RF-17)
 │   │   ├── consentimientos.ts
 │   │   ├── perfil.ts
 │   │   └── series.ts             # serie registrada y autoevaluación (RF-10)
@@ -296,7 +298,16 @@ La ruta protegida `/sesion`, accesible desde «Empezar entrenamiento» en Hoy, c
 - **Hoy** muestra el peso (o las repeticiones) recomendado y la frase cuando el ejercicio ya tiene series; si no, el peso inicial.
 - **Resumen al terminar:** en «Sesión completada» y «Sesión finalizada», `ResumenSesion` lista cada ejercicio con lo hecho y la recomendación (flecha y texto Sube / Mantén / Baja, carga nueva y frase), junto a «Volver a Hoy».
 
-Pendientes: pantalla de historial, gráfica, ajuste manual del peso recomendado, recomendaciones con IA real, sincronización con Supabase, cifrado (RNF-11), límite de crecimiento de la lista de series y notificaciones al terminar el descanso.
+### Ajuste manual del peso (RF-17)
+
+- En **Hoy**, el peso de cada ejercicio con carga es un botón («Ajustar peso de …»). Abre un diálogo accesible (`role="dialog"`, foco en el campo al abrir y de vuelta al peso al cerrar, Escape para cancelar) con `ContadorNumerico` precargado (pasos de 0,5 kg o 1 lb) y los botones «Guardar» y «Cancelar». Los ejercicios de peso corporal no tienen ajuste.
+- Validación: sin negativos ni vacío, con un máximo de **300 kg o 660 lb** (`PESO_MAXIMO_MANUAL`). Si el guardado falla, el diálogo sigue abierto con el error.
+- Se guarda un `AjustePeso` por usuario y ejercicio (`idEjercicio`, `peso`, `unidad`, `ajustadoEn`) con `ajustesPesoLocal`, clave `spotter.usuario.<id>.ajustesPeso` (un mapa por ejercicio). Los datos corruptos se descartan y «Borrar datos» también los elimina.
+- **Convivencia con la progresión:** `calcularProgresion` usa el ajuste mientras sea **más reciente que la última serie** de ese ejercicio (motivo `ajuste-manual`, frase «Ajustado por ti: empieza con X kg.»). El ajuste manual no tiene el tope de 2,5 kg o 5 lb. Tras la siguiente sesión, las reglas siguen normales desde el peso de esa sesión.
+- **Peso de partida en la sesión:** `/sesion` precarga el contador de peso con la recomendación (o el ajuste) de cada ejercicio, calculada una vez al empezar con las series y ajustes anteriores.
+- **Cambio de unidad:** el ajuste guarda su unidad; al mostrarlo se convierte a la unidad actual del perfil y se redondea a 0,5 kg o 1 lb (por ejemplo, 50 kg se muestran como 110 lb), así nunca aparece el número de la otra unidad.
+
+Pendientes: recomendaciones con IA real, sincronización con Supabase, cifrado (RNF-11) y notificaciones al terminar el descanso.
 
 ### Contador numérico (RF-10)
 
