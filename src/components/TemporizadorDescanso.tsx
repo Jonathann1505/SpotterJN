@@ -13,46 +13,62 @@ function formatearTiempo(segundos: number): string {
 interface PropiedadesTemporizador {
   /** Se llama cuando el tiempo llega a cero o al tocar «Saltar descanso». */
   alTerminar?: () => void;
+  /** Se llama al empezar y cada vez que cambia la hora de fin (ms desde 1970), por ejemplo con ±30 s o al saltar. */
+  alCambiarFin?: (finEn: number) => void;
 }
 
-function TemporizadorDescanso({ alTerminar }: PropiedadesTemporizador = {}) {
-  const [tiempoRestante, setTiempoRestante] = useState(DURACION_INICIAL);
-  // Se guarda la última función recibida para no reiniciar el efecto en cada render.
+function TemporizadorDescanso({ alTerminar, alCambiarFin }: PropiedadesTemporizador = {}) {
+  // El tiempo se calcula con la hora real de fin: en segundo plano los intervalos se frenan,
+  // pero al volver el temporizador coincide con el aviso del sistema (RF-11).
+  const [finEn, setFinEn] = useState(() => Date.now() + DURACION_INICIAL * 1000);
+  const [ahora, setAhora] = useState(() => Date.now());
+  const [duracionTotal, setDuracionTotal] = useState(DURACION_INICIAL);
+  // Se guardan las últimas funciones recibidas para no reiniciar los efectos en cada render.
   const alTerminarActual = useRef(alTerminar);
   alTerminarActual.current = alTerminar;
-  const [duracionTotal, setDuracionTotal] = useState(DURACION_INICIAL);
-  const [activo, setActivo] = useState(true);
+  const alCambiarFinActual = useRef(alCambiarFin);
+  alCambiarFinActual.current = alCambiarFin;
+
+  const tiempoRestante = Math.max(0, Math.ceil((finEn - ahora) / 1000));
+  const activo = tiempoRestante > 0;
 
   useEffect(() => {
     if (!activo) {
       return undefined;
     }
 
-    const intervalo = window.setInterval(() => {
-      setTiempoRestante((actual) => Math.max(0, actual - 1));
-    }, 1000);
+    const actualizar = (): void => setAhora(Date.now());
+    const intervalo = window.setInterval(actualizar, 1000);
+    // Al volver a la app se recalcula enseguida, sin esperar al siguiente intervalo.
+    document.addEventListener('visibilitychange', actualizar);
 
-    return () => window.clearInterval(intervalo);
+    return () => {
+      window.clearInterval(intervalo);
+      document.removeEventListener('visibilitychange', actualizar);
+    };
   }, [activo]);
 
   useEffect(() => {
+    alCambiarFinActual.current?.(finEn);
+  }, [finEn]);
+
+  useEffect(() => {
     if (tiempoRestante === 0) {
-      setActivo(false);
       alTerminarActual.current?.();
     }
   }, [tiempoRestante]);
 
   const ajustarTiempo = (cambio: 30 | -30): void => {
-    setTiempoRestante((actual) => Math.max(0, actual + cambio));
+    const momento = Date.now();
+    setFinEn((actual) => Math.max(momento, Math.max(actual, momento) + cambio * 1000));
+    setAhora(momento);
     setDuracionTotal((actual) => Math.max(0, actual + cambio));
-    if (cambio > 0) {
-      setActivo(true);
-    }
   };
 
   const saltarDescanso = (): void => {
-    setTiempoRestante(0);
-    setActivo(false);
+    const momento = Date.now();
+    setFinEn(momento);
+    setAhora(momento);
   };
 
   const progreso = duracionTotal > 0 ? tiempoRestante / duracionTotal : 0;

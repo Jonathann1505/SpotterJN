@@ -87,4 +87,36 @@ describe('TemporizadorDescanso', () => {
     });
     expect(alTerminar).toHaveBeenCalledTimes(1);
   });
+
+  it('informa la hora de fin al empezar y cada vez que cambia', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-11-24T18:00:00.000Z'));
+    const inicio = Date.now();
+    const alCambiarFin = vi.fn();
+    render(<TemporizadorDescanso alCambiarFin={alCambiarFin} />);
+
+    expect(alCambiarFin).toHaveBeenLastCalledWith(inicio + 90_000);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Sumar 30 segundos' }));
+    expect(alCambiarFin).toHaveBeenLastCalledWith(inicio + 120_000);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Restar 30 segundos' }));
+    expect(alCambiarFin).toHaveBeenLastCalledWith(inicio + 90_000);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Saltar descanso' }));
+    expect(alCambiarFin).toHaveBeenLastCalledWith(inicio);
+  });
+
+  it('al volver a la app muestra el tiempo real aunque los intervalos se hayan frenado', () => {
+    vi.useFakeTimers();
+    render(<TemporizadorDescanso />);
+
+    // En segundo plano pasa un minuto sin que se ejecute ningún intervalo.
+    vi.setSystemTime(Date.now() + 60_000);
+    act(() => {
+      document.dispatchEvent(new Event('visibilitychange'));
+    });
+
+    expect(screen.getByRole('timer')).toHaveAttribute('aria-label', 'Tiempo restante 00:30');
+  });
 });
