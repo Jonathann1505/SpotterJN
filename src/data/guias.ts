@@ -154,6 +154,7 @@ export const GUIAS: Readonly<Record<string, GuiaEjercicio>> = {
   },
   'peso-muerto-rumano': {
     grupoMuscular: 'Piernas',
+    animacion: 'ejercicios/peso-muerto-rumano.mp4',
     ajusteMaquina:
       'Con la barra a la altura de la cadera, ponte con los pies al ancho de la cadera y agarra la barra un poco más abierta que los hombros. Rodillas ligeramente flexionadas.',
     movimiento:
