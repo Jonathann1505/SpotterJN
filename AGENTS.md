@@ -201,3 +201,9 @@
 - Decisión: además del límite, se protegen siempre la serie recién guardada y las series de las 3 últimas sesiones de cada ejercicio, aunque la lista quede algo por encima de 2000; así la progresión nunca vuelve al peso del catálogo por el recorte.
 - Pruebas: `recorteSeries.test.ts` (función pura) y casos de repositorio en `local.test.ts` con el límite real; el fallo de escritura se simula con `vi.mock('./almacenLocal')` porque `Preferences` no se puede espiar.
 - Verificación: `npm test` (439 pruebas/53 archivos) y `npm run build` aprobados.
+
+### 2026-11-24 — Revisión de la sesión de 30 días (RF-01)
+
+- Revisión sin cambios de código ni de configuración: no se encontró ningún error real.
+- `createClient` usa `persistSession: true` y `autoRefreshToken: true`; la sesión vive en `localStorage` del WebView. `getSession()` renueva el token caducado al abrir la app y la renovación automática se pausa y reanuda con `visibilitychange` (comprobado en `@supabase/auth-js` 2.117.3).
+- Pendiente (panel de Supabase): confirmar en Authentication → Sessions que no hay límite de duración ni de inactividad menor a 30 días, y revisar la caducidad del JWT. Hasta entonces no se afirma el cumplimiento de RF-01.

@@ -348,7 +348,16 @@ El componente reutilizable **Cerrar sesión** está disponible en Hoy y Perfil. 
 
 El cierre local no invalida las sesiones de otros dispositivos. Los datos de perfil, salud y rutina no se eliminan al salir: permanecen asociados al ID de su usuario para que otra cuenta en el mismo dispositivo no los reciba.
 
-La sesión persiste mediante los tokens que administra Supabase en el almacenamiento de la aplicación. **No se afirma que cumpla la persistencia de 30 días indicada por RF-01**: la duración efectiva depende de la configuración y renovación de sesiones de Supabase y queda pendiente verificarla en el proyecto.
+#### Duración de la sesión (RF-01)
+
+Verificado en el código (`src/services/supabase.ts`, `src/context/SesionContext.tsx` y `@supabase/auth-js` 2.117.3):
+
+- El cliente se crea con `persistSession: true` y `autoRefreshToken: true`. Sin almacenamiento propio, Supabase guarda la sesión (token de acceso y token de renovación) en `localStorage` del WebView, que en Android se conserva al cerrar y reabrir la app hasta que se borran sus datos.
+- Al abrir la app, `SesionContext` llama a `getSession()`: si el token de acceso caducó, Supabase lo renueva con el token de renovación antes de devolver la sesión; si falla, la app muestra el error con «Reintentar».
+- Con la app abierta, el token se renueva solo; la renovación se pausa en segundo plano y se reanuda al volver (evento `visibilitychange`).
+- Cerrar sesión usa alcance local y borra la sesión de este dispositivo.
+
+**Pendiente de verificar en el panel de Supabase**, porque no depende del código: que la duración de las sesiones no corte antes de 30 días (Authentication → Sessions: límite de duración de la sesión e inactividad; y la caducidad del token de acceso en la configuración de JWT). **No se afirma todavía que se cumplan los 30 días de RF-01.**
 
 ### Probar el flujo en web
 
