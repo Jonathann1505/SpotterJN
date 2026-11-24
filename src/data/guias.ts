@@ -186,6 +186,7 @@ export const GUIAS: Readonly<Record<string, GuiaEjercicio>> = {
   },
   zancadas: {
     grupoMuscular: 'Piernas',
+    animacion: 'ejercicios/zancadas.mp4',
     ajusteMaquina:
       'De pie con los pies juntos, da un paso largo hacia adelante.',
     movimiento:
