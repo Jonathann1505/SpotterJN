@@ -12,6 +12,12 @@ import { useSesion } from '../context/SesionContext';
 import { ajustesPesoLocal, rutinaLocal, seriesLocal } from '../repositories/local';
 import type { AjustesPeso } from '../types/ajustesPeso';
 import { recomendarParaEjercicio } from '../utils/progresion';
+import {
+  cancelarAvisoDescanso,
+  estadoAvisoDescanso,
+  pedirPermisoAvisoDescanso,
+  programarAvisoDescanso,
+} from '../services/notificaciones';
 import type { DiaRutina, RutinaAsignada } from '../types/perfil';
 import type { SerieRegistrada } from '../types/series';
 import {
@@ -51,7 +57,11 @@ function SesionEntrenamiento() {
   const [seriesDeLaSesion, setSeriesDeLaSesion] = useState<SerieRegistrada[]>([]);
   // Series y ajustes anteriores a esta sesión: dan el peso de partida de cada ejercicio (RF-15, RF-17).
   const [previas, setPrevias] = useState<{ series: SerieRegistrada[]; ajustes: AjustesPeso }>({ series: [], ajustes: {} });
-  const [descanso, setDescanso] = useState<{ repeticiones: number; peso: number | null } | null>(null);
+  const [descanso, setDescanso] = useState<{ repeticiones: number; peso: number | null; aviso: string } | null>(null);
+  // Hora real de fin del descanso en curso, para el aviso en segundo plano (RF-11).
+  const [finDescanso, setFinDescanso] = useState<number | null>(null);
+  const [preguntarAviso, setPreguntarAviso] = useState(false);
+  const avisoRevisado = useRef(false);
   // Evita guardar dos veces si se toca rápido antes de que React actualice el estado.
   const guardadoEnCurso = useRef(false);
   const { perfil } = usePerfil();
@@ -101,6 +111,46 @@ function SesionEntrenamiento() {
       activo = false;
     };
   }, [usuarioId]);
+
+  // La primera vez que empieza un descanso se explica y se ofrece el aviso; si se rechaza, no se insiste.
+  useEffect(() => {
+    if (descanso === null || avisoRevisado.current) {
+      return;
+    }
+    avisoRevisado.current = true;
+    void estadoAvisoDescanso().then((estado) => {
+      if (estado === 'preguntar') {
+        setPreguntarAviso(true);
+      }
+    });
+  }, [descanso]);
+
+  // El aviso solo se programa con la app en segundo plano: con la app abierta avisa el temporizador
+  // y nunca salen dos avisos. Se cancela al volver, al saltar, al cambiar el tiempo o al cerrar el descanso.
+  const textoAviso = descanso?.aviso ?? null;
+  useEffect(() => {
+    if (finDescanso === null || textoAviso === null) {
+      return undefined;
+    }
+    const alCambiarVisibilidad = (): void => {
+      if (document.visibilityState === 'hidden') {
+        void programarAvisoDescanso(new Date(finDescanso), textoAviso);
+      } else {
+        void cancelarAvisoDescanso();
+      }
+    };
+    if (document.visibilityState === 'hidden') {
+      alCambiarVisibilidad();
+    }
+    document.addEventListener('visibilitychange', alCambiarVisibilidad);
+    return () => {
+      document.removeEventListener('visibilitychange', alCambiarVisibilidad);
+      // Si el aviso ya sonó con la app en segundo plano, se deja visible para que la persona lo vea.
+      if (document.visibilityState !== 'hidden' || Date.now() < finDescanso) {
+        void cancelarAvisoDescanso();
+      }
+    };
+  }, [finDescanso, textoAviso]);
 
   if (cargando) {
     return (
@@ -211,6 +261,7 @@ function SesionEntrenamiento() {
     }
     const siguiente = saltarEjercicio(progreso, dia);
     setDescanso(null);
+    setFinDescanso(null);
     setTerminadaPorMolestia(siguiente.completada);
     setProgreso(siguiente);
     setAutoevaluacion(null);
@@ -255,7 +306,11 @@ function SesionEntrenamiento() {
       setPeso(null);
     } else if (!siguiente.completada) {
       // Quedan series de este ejercicio: se descansa antes de la siguiente.
-      setDescanso({ repeticiones: repeticionesActuales, peso: pesoCorporal ? null : pesoActual });
+      setDescanso({
+        repeticiones: repeticionesActuales,
+        peso: pesoCorporal ? null : pesoActual,
+        aviso: `Descanso terminado. Vamos con la serie ${siguiente.serie} de ${ejercicio.series}.`,
+      });
     }
     setProgreso(siguiente);
     setAutoevaluacion(null);
@@ -284,7 +339,13 @@ function SesionEntrenamiento() {
             Serie anterior: {descanso.repeticiones} repeticiones ·{' '}
             {descanso.peso === null ? 'peso corporal' : `${descanso.peso} ${perfil.unidadPeso}`}
           </p>
-          <TemporizadorDescanso alTerminar={() => setDescanso(null)} />
+          <TemporizadorDescanso
+            alTerminar={() => {
+              setDescanso(null);
+              setFinDescanso(null);
+            }}
+            alCambiarFin={setFinDescanso}
+          />
         </section>
       ) : (
         <>
@@ -345,6 +406,30 @@ function SesionEntrenamiento() {
           },
         ]}
         onDidDismiss={() => setAlertaDolor(false)}
+      />
+
+      <IonAlert
+        isOpen={preguntarAviso}
+        header="Aviso de fin de descanso"
+        backdropDismiss={false}
+        message="¿Te avisamos con una notificación cuando termine el descanso, aunque tengas la app en segundo plano?"
+        buttons={[
+          {
+            text: 'Ahora no',
+            role: 'cancel',
+            handler: () => {
+              void pedirPermisoAvisoDescanso(false);
+            },
+          },
+          {
+            text: 'Activar',
+            role: 'confirm',
+            handler: () => {
+              void pedirPermisoAvisoDescanso(true);
+            },
+          },
+        ]}
+        onDidDismiss={() => setPreguntarAviso(false)}
       />
     </PantallaSJ>
   );
