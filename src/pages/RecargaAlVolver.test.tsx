@@ -6,7 +6,7 @@ import { createMemoryHistory, type MemoryHistory } from 'history';
 import { Route, useHistory } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ProveedorPerfil } from '../context/PerfilContext';
-import { rutinaLocal, saludLocal, seriesLocal } from '../repositories/local';
+import { borrarDatosLocales, rutinaLocal, saludLocal, seriesLocal } from '../repositories/local';
 import { asignarRutina } from '../utils/rutina';
 import { sesionParaFecha } from '../utils/semana';
 import Hoy from './Hoy';
@@ -51,6 +51,11 @@ function renderizar(inicial: string, cambiar: () => Promise<void>): MemoryHistor
           <IonRouterOutlet>
             <Route exact path="/hoy" component={Hoy} />
             <Route exact path="/rutina" component={RutinaAsignada} />
+            <Route exact path="/aviso-medico">
+              <IonPage>
+                <h1>Aviso médico</h1>
+              </IonPage>
+            </Route>
             <Route exact path="/otra">
               <CambiarDatosYVolver cambiar={cambiar} destino={inicial} />
             </Route>
@@ -67,7 +72,8 @@ async function irYVolver(historial: MemoryHistory, destino: string): Promise<voi
     historial.push('/otra');
   });
   fireEvent.click(await screen.findByText('Guardar y volver'));
-  await vi.waitFor(() => expect(historial.location.pathname).toBe(destino));
+  await vi.waitFor(() => expect(historial.location.pathname).not.toBe('/otra'));
+  expect(['/aviso-medico', destino]).toContain(historial.location.pathname);
 }
 
 describe('las pantallas recargan sus datos al volver a mostrarse', () => {
@@ -126,5 +132,41 @@ describe('las pantallas recargan sus datos al volver a mostrarse', () => {
     await irYVolver(historial, '/rutina');
 
     expect(await screen.findByRole('heading', { name: '4 días por semana', hidden: true })).toBeInTheDocument();
+  });
+
+  it('Hoy muestra el ejercicio nuevo al volver de cambiar uno de la rutina', async () => {
+    const sesionDeHoy = sesionParaFecha(rutina, new Date());
+    if (!sesionDeHoy) {
+      throw new Error('La rutina de prueba no tiene sesiones.');
+    }
+    const [original] = sesionDeHoy.dia.ejercicios;
+    const reemplazo = { ...original, id: 'reemplazo-de-prueba', nombre: 'Ejercicio de reemplazo' };
+
+    const historial = renderizar('/hoy', () =>
+      rutinaLocal.guardar(USUARIO, {
+        ...rutina,
+        dias: rutina.dias.map((dia, indice) =>
+          indice === sesionDeHoy.indice
+            ? { ...dia, ejercicios: dia.ejercicios.map((e) => (e.id === original.id ? reemplazo : e)) }
+            : dia,
+        ),
+      }),
+    );
+    expect(await screen.findByRole('button', { name: `Ver la ficha de ${original.nombre}` })).toBeInTheDocument();
+
+    await irYVolver(historial, '/hoy');
+
+    expect(
+      (await screen.findAllByRole('button', { name: 'Ver la ficha de Ejercicio de reemplazo', hidden: true })).length,
+    ).toBeGreaterThan(0);
+  });
+
+  it('Hoy no muestra datos borrados al volver: lleva de nuevo al aviso médico', async () => {
+    const historial = renderizar('/hoy', () => borrarDatosLocales(USUARIO));
+    await screen.findByRole('heading', { name: sesionParaFecha(rutina, new Date())?.dia.nombre ?? '' });
+
+    await irYVolver(historial, '/hoy');
+
+    expect(historial.location.pathname).toBe('/aviso-medico');
   });
 });
