@@ -52,6 +52,7 @@ export const GUIAS: Readonly<Record<string, GuiaEjercicio>> = {
   },
   'triceps-polea': {
     grupoMuscular: 'Tríceps',
+    animacion: 'ejercicios/triceps-polea.mp4',
     ajusteMaquina:
       'Coloca la polea en la parte alta con una barra o una cuerda. Párate frente a ella con los codos pegados a los costados.',
     movimiento:
