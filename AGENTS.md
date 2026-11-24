@@ -216,3 +216,12 @@
 - `/sesion` ahora parte del peso recomendado o ajustado en vez del peso del catálogo (antes la recomendación solo se veía en Hoy); cambio localizado en la carga inicial y en `pesoActual`, sin tocar la elección del día.
 - Pendientes: IA real, Supabase y revisar el diálogo en un celular (no se verificó visualmente).
 - Verificación: `npm test` (464 pruebas/53 archivos) y `npm run build` aprobados.
+
+### 2026-11-24 — Aviso de fin de descanso (RF-11)
+
+- Rama `feature/aviso-descanso` desde `develop` (con los PR #26 y #27).
+- `@capacitor/local-notifications` 7.0.7 ya estaba instalado y registrado en Gradle; `git diff --ignore-cr-at-eol` no mostró cambios reales en `capacitor.build.gradle` ni `capacitor.settings.gradle`, así que siguen sin subirse.
+- Añadidos el ícono `ic_stat_spotterjn` y la configuración `LocalNotifications` en `capacitor.config.ts`; el servicio `src/services/notificaciones.ts`; `TemporizadorDescanso` calcula con la hora real de fin y emite `alCambiarFin`; `/sesion` programa el aviso solo en segundo plano y lo cancela en todos los demás casos.
+- Decisiones: sin `SCHEDULE_EXACT_ALARM` (el aviso puede retrasarse unos segundos); aviso solo en segundo plano para evitar dobles avisos; permiso pedido en el primer descanso con explicación y sin insistir; al cerrarse el descanso se cancela solo si la app está visible o la hora de fin aún no llegó, para no borrar un aviso recién mostrado.
+- Pendiente: probar en un celular real (permiso, segundo plano, saltar, ±30 s y avisos viejos).
+- Verificación: `npm test` (484 pruebas/54 archivos), `npm run build`, `npx cap sync android` y `gradlew assembleDebug` aprobados.

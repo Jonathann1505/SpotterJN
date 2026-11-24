@@ -77,6 +77,7 @@ SpotterJN/
 │   │   └── almacenLocal.ts
 │   ├── services/
 │   │   ├── auth.ts
+│   │   ├── notificaciones.ts     # aviso de fin de descanso (RF-11)
 │   │   ├── recordatorios.ts      # programa los recordatorios locales
 │   │   └── supabase.ts
 │   ├── types/
@@ -245,7 +246,7 @@ Cada ejercicio tiene una ficha en `/ejercicio/:id` con su animación, cómo ajus
 
 ## Sesión de entrenamiento (M3)
 
-La ruta protegida `/sesion`, accesible desde «Empezar entrenamiento» en Hoy, carga la jornada indicada de la rutina del usuario (por defecto la primera) y la recorre ejercicio por ejercicio. Permite volver a Hoy y guarda cada serie en el dispositivo (ver «Guardado de series»). El componente de descanso RF-11 (`TemporizadorDescanso`) ofrece una cuenta regresiva de 90 segundos que comienza automáticamente, círculo de tiempo restante y controles para sumar/restar 30 segundos o saltar; acepta `alTerminar`, que se llama al llegar a cero o al tocar «Saltar descanso». Se usa entre series (ver «Descanso entre series»).
+La ruta protegida `/sesion`, accesible desde «Empezar entrenamiento» en Hoy, carga la jornada indicada de la rutina del usuario (por defecto la primera) y la recorre ejercicio por ejercicio. Permite volver a Hoy y guarda cada serie en el dispositivo (ver «Guardado de series»). El componente de descanso RF-11 (`TemporizadorDescanso`) ofrece una cuenta regresiva de 90 segundos que comienza automáticamente, círculo de tiempo restante y controles para sumar/restar 30 segundos o saltar; acepta `alTerminar`, que se llama al llegar a cero o al tocar «Saltar descanso», y `alCambiarFin`, que informa la hora de fin al empezar y en cada cambio. El tiempo se calcula con la hora real de fin, así que al volver de segundo plano muestra el tiempo correcto aunque Android haya frenado los intervalos. Se usa entre series (ver «Descanso entre series»).
 
 ### Registro de serie y autoevaluación (RF-10)
 
@@ -281,7 +282,16 @@ La ruta protegida `/sesion`, accesible desde «Empezar entrenamiento» en Hoy, c
 - Al llegar a cero o con «Saltar descanso» vuelve el registro de la siguiente serie, con la autoevaluación sin elegir. Las repeticiones y el peso se conservan dentro del mismo ejercicio.
 - No hay descanso tras la última serie de un ejercicio (se pasa al siguiente) ni tras la última de la sesión.
 - «Sentí dolor» sigue visible durante el descanso; al confirmarlo se cierra el descanso y se pasa al siguiente ejercicio.
-- Las notificaciones al terminar el descanso quedan fuera de alcance.
+
+#### Aviso de fin de descanso (RF-11)
+
+- Plugin: `@capacitor/local-notifications` **7.0.7** (ya instalado para los recordatorios; compatible con Capacitor 7). Las pantallas no lo llaman directamente: lo envuelve `src/services/notificaciones.ts` (`estadoAvisoDescanso`, `pedirPermisoAvisoDescanso`, `programarAvisoDescanso`, `cancelarAvisoDescanso`), con todo en `try/catch`. En la web (plataforma no nativa) no hace nada.
+- **Cuándo se programa:** solo cuando la app pasa a segundo plano durante un descanso (`visibilitychange`), para la hora exacta de fin, con el texto «Descanso terminado. Vamos con la serie X de Y.». Con la app abierta avisa solo el temporizador en pantalla, así que nunca salen dos avisos.
+- **Cuándo se cancela:** al volver a la app, al saltar el descanso, al cambiar el tiempo con ±30 s (se reprograma con la nueva hora), al terminar el descanso, con «Sentí dolor» y al salir de la sesión (también al cerrar sesión, porque se sale de `/sesion`). Si el aviso ya sonó con la app en segundo plano, se deja visible; al volver a la app se retira.
+- **Permiso:** no se pide al abrir la app. La primera vez que empieza un descanso aparece «¿Te avisamos con una notificación cuando termine el descanso…?» con «Activar» o «Ahora no». Solo «Activar» pide el permiso del sistema (`POST_NOTIFICATIONS` en Android 13 o superior). Tras responder se guarda en el dispositivo que ya se preguntó (`spotter.dispositivo.avisoDescanso.permisoPreguntado`) y no se vuelve a preguntar; si se niega, el temporizador funciona igual y no se muestra ningún error.
+- **Alarmas exactas:** no se declara `SCHEDULE_EXACT_ALARM`. En Android 12 o superior el plugin usa una alarma inexacta, así que el aviso puede llegar con algunos segundos de retraso (más en ahorro de energía); el temporizador en pantalla sí es exacto.
+- **Ícono:** `android/app/src/main/res/drawable/ic_stat_spotterjn.xml` (silueta blanca de una mancuerna), configurado en `capacitor.config.ts` como `smallIcon` con `iconColor` azul, para que no salga un cuadro blanco. También lo usan los recordatorios.
+- Pendiente de probar en un celular real: aceptar y negar el permiso, dejar la app en segundo plano durante el descanso, saltar y cambiar el tiempo, y comprobar que no quedan avisos viejos.
 
 ### Progresión de peso (RF-15 a RF-19)
 
@@ -307,7 +317,7 @@ La ruta protegida `/sesion`, accesible desde «Empezar entrenamiento» en Hoy, c
 - **Peso de partida en la sesión:** `/sesion` precarga el contador de peso con la recomendación (o el ajuste) de cada ejercicio, calculada una vez al empezar con las series y ajustes anteriores.
 - **Cambio de unidad:** el ajuste guarda su unidad; al mostrarlo se convierte a la unidad actual del perfil y se redondea a 0,5 kg o 1 lb (por ejemplo, 50 kg se muestran como 110 lb), así nunca aparece el número de la otra unidad.
 
-Pendientes: recomendaciones con IA real, sincronización con Supabase, cifrado (RNF-11) y notificaciones al terminar el descanso.
+Pendientes: recomendaciones con IA real, sincronización con Supabase, cifrado (RNF-11) y, si se quiere puntualidad total del aviso del descanso, el permiso de alarmas exactas.
 
 ### Contador numérico (RF-10)
 
