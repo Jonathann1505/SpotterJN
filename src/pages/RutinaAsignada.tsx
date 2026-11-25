@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { IonIcon } from '@ionic/react';
 import { helpCircleOutline } from 'ionicons/icons';
 import { Redirect, useHistory } from 'react-router-dom';
@@ -12,6 +12,7 @@ import type { RutinaAsignada as Rutina } from '../types/perfil';
 import { describirRutina, describirSemana, describirSesion } from '../utils/rutina';
 import { formatearPeso } from '../utils/unidades';
 import { useSesion } from '../context/SesionContext';
+import { useRecargaAlVolver } from '../hooks/useRecargaAlVolver';
 
 function RutinaAsignada() {
   const [rutina, setRutina] = useState<Rutina | null>(null);
@@ -21,6 +22,9 @@ function RutinaAsignada() {
   const { sesion } = useSesion();
   const usuarioId = sesion?.user.id ?? null;
   const history = useHistory();
+  // Ionic conserva esta pantalla en la pila: al volver (por ejemplo tras cambiar la rutina) se recarga.
+  const recarga = useRecargaAlVolver('/rutina');
+  const usuarioCargado = useRef<string | null>(null);
 
   useEffect(() => {
     let activo = true;
@@ -32,8 +36,12 @@ function RutinaAsignada() {
       };
     }
 
-    setRutina(null);
-    setCargando(true);
+    // En una recarga se mantiene la rutina visible hasta tener la nueva, sin volver al estado de carga.
+    if (recarga === 0 || usuarioCargado.current !== usuarioId) {
+      setRutina(null);
+      setCargando(true);
+    }
+    usuarioCargado.current = usuarioId;
     void rutinaLocal
       .obtener(usuarioId)
       .then((guardada) => {
@@ -51,7 +59,7 @@ function RutinaAsignada() {
     return () => {
       activo = false;
     };
-  }, [usuarioId]);
+  }, [usuarioId, recarga]);
 
   if (cargando) {
     return (

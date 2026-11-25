@@ -611,24 +611,15 @@ describe('SesionEntrenamiento', () => {
     });
 
     describe('aviso de fin de descanso (RF-11)', () => {
-      let visibilidad: DocumentVisibilityState = 'visible';
-
-      function cambiarVisibilidad(estado: DocumentVisibilityState): void {
-        visibilidad = estado;
-        act(() => {
-          document.dispatchEvent(new Event('visibilitychange'));
-        });
-      }
-
       beforeEach(() => {
-        visibilidad = 'visible';
-        Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => visibilidad });
+        // Se limpia al empezar: el desmontaje de la prueba anterior también cancela su aviso.
+        vi.clearAllMocks();
         avisos.estadoAvisoDescanso.mockResolvedValue('no-disponible');
+        avisos.pedirPermisoAvisoDescanso.mockResolvedValue(false);
       });
 
       afterEach(() => {
-        Reflect.deleteProperty(document, 'visibilityState');
-        vi.clearAllMocks();
+        vi.useRealTimers();
       });
 
       async function empezarDescanso(): Promise<void> {
@@ -647,61 +638,58 @@ describe('SesionEntrenamiento', () => {
         return llamada[0].getTime();
       }
 
-      it('con la app abierta no programa el aviso: avisa solo el temporizador', async () => {
-        await empezarDescanso();
-
-        expect(avisos.programarAvisoDescanso).not.toHaveBeenCalled();
-      });
-
-      it('al pasar a segundo plano programa el aviso para el fin del descanso y lo cancela al volver', async () => {
+      it('programa el aviso al empezar el descanso, también con la app abierta', async () => {
         const antes = Date.now();
         await empezarDescanso();
-        cambiarVisibilidad('hidden');
 
-        expect(avisos.programarAvisoDescanso).toHaveBeenCalledWith(
-          expect.any(Date),
-          'Descanso terminado. Vamos con la serie 2 de 2.',
+        await vi.waitFor(() =>
+          expect(avisos.programarAvisoDescanso).toHaveBeenCalledWith(
+            expect.any(Date),
+            'Descanso terminado. Vamos con la serie 2 de 2.',
+          ),
         );
         const fin = ultimoFinProgramado();
         expect(fin).toBeGreaterThanOrEqual(antes + 90_000);
         expect(fin).toBeLessThanOrEqual(Date.now() + 90_000);
+      });
 
-        avisos.cancelarAvisoDescanso.mockClear();
-        cambiarVisibilidad('visible');
-        expect(avisos.cancelarAvisoDescanso).toHaveBeenCalled();
+      it('no cancela el aviso cuando el tiempo del descanso termina solo', async () => {
+        vi.useFakeTimers({ toFake: ['Date', 'setInterval', 'clearInterval'] });
+        await empezarDescanso();
+        await vi.waitFor(() => expect(avisos.programarAvisoDescanso).toHaveBeenCalled());
+
+        act(() => {
+          vi.advanceTimersByTime(91_000);
+        });
+
+        expect(screen.queryByRole('heading', { name: 'Descanso' })).not.toBeInTheDocument();
+        expect(avisos.cancelarAvisoDescanso).not.toHaveBeenCalled();
       });
 
       it('+30 s y -30 s reprograman el aviso con la nueva hora de fin', async () => {
         await empezarDescanso();
-        cambiarVisibilidad('hidden');
+        await vi.waitFor(() => expect(avisos.programarAvisoDescanso).toHaveBeenCalled());
         const finInicial = ultimoFinProgramado();
-        cambiarVisibilidad('visible');
 
         fireEvent.click(screen.getByRole('button', { name: 'Sumar 30 segundos' }));
-        cambiarVisibilidad('hidden');
-        expect(ultimoFinProgramado() - finInicial).toBeGreaterThanOrEqual(29_000);
-        cambiarVisibilidad('visible');
+        await vi.waitFor(() => expect(ultimoFinProgramado() - finInicial).toBeGreaterThanOrEqual(29_000));
 
         fireEvent.click(screen.getByRole('button', { name: 'Restar 30 segundos' }));
         fireEvent.click(screen.getByRole('button', { name: 'Restar 30 segundos' }));
-        cambiarVisibilidad('hidden');
-        expect(ultimoFinProgramado()).toBeLessThan(finInicial);
+        await vi.waitFor(() => expect(ultimoFinProgramado()).toBeLessThan(finInicial));
       });
 
-      it('Saltar descanso cancela el aviso y no vuelve a programarlo', async () => {
+      it('Saltar descanso cancela el aviso', async () => {
         await empezarDescanso();
-        avisos.cancelarAvisoDescanso.mockClear();
 
         fireEvent.click(screen.getByRole('button', { name: 'Saltar descanso' }));
-        expect(avisos.cancelarAvisoDescanso).toHaveBeenCalled();
 
-        cambiarVisibilidad('hidden');
-        expect(avisos.programarAvisoDescanso).not.toHaveBeenCalled();
+        expect(avisos.cancelarAvisoDescanso).toHaveBeenCalled();
+        expect(screen.getByText('Guardar serie')).toBeInTheDocument();
       });
 
       it('Sentí dolor durante el descanso cancela el aviso', async () => {
         await empezarDescanso();
-        avisos.cancelarAvisoDescanso.mockClear();
 
         const sentiDolor = screen.getByText('Sentí dolor').closest('ion-button');
         if (!sentiDolor) {
@@ -720,7 +708,6 @@ describe('SesionEntrenamiento', () => {
 
       it('salir de la sesión durante el descanso cancela el aviso', async () => {
         await empezarDescanso();
-        avisos.cancelarAvisoDescanso.mockClear();
 
         cleanup();
 
@@ -738,14 +725,17 @@ describe('SesionEntrenamiento', () => {
         expect(screen.getByRole('timer')).toBeInTheDocument();
       });
 
-      it('si se acepta pide el permiso del sistema', async () => {
+      it('si se acepta el permiso, programa el aviso del descanso en curso', async () => {
         avisos.estadoAvisoDescanso.mockResolvedValue('preguntar');
+        avisos.pedirPermisoAvisoDescanso.mockResolvedValue(true);
         await empezarDescanso();
+        await vi.waitFor(() => expect(avisos.programarAvisoDescanso).toHaveBeenCalledTimes(1));
 
         const dialogo = await screen.findByRole('alertdialog', { name: 'Aviso de fin de descanso' });
         fireEvent.click(within(dialogo).getByRole('button', { name: 'Activar' }));
 
         expect(avisos.pedirPermisoAvisoDescanso).toHaveBeenCalledWith(true);
+        await vi.waitFor(() => expect(avisos.programarAvisoDescanso).toHaveBeenCalledTimes(2));
       });
 
       it('sin aviso disponible no pregunta y el descanso funciona igual', async () => {

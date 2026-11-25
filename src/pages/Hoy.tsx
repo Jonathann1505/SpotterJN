@@ -16,6 +16,7 @@ import { sesionParaFecha } from '../utils/semana';
 import { useSesion } from '../context/SesionContext';
 import CerrarSesion from '../components/CerrarSesion';
 import { PesoAjustable } from '../components/PesoAjustable';
+import { useRecargaAlVolver } from '../hooks/useRecargaAlVolver';
 import type { AjustePeso, AjustesPeso } from '../types/ajustesPeso';
 
 interface DatosHoy {
@@ -32,6 +33,8 @@ function Hoy() {
   const { sesion } = useSesion();
   const usuarioId = sesion?.user.id ?? null;
   const history = useHistory();
+  // Ionic conserva Hoy en la pila: al volver (por ejemplo tras una sesión) se recargan los datos.
+  const recarga = useRecargaAlVolver('/hoy');
 
   useEffect(() => {
     let activo = true;
@@ -42,7 +45,8 @@ function Hoy() {
       };
     }
 
-    setDatos(null);
+    // Al recargar para el mismo usuario se mantienen los datos visibles hasta tener los nuevos.
+    setDatos((actuales) => (actuales?.usuarioId === usuarioId ? actuales : null));
     void Promise.all([
       saludLocal.obtener(usuarioId),
       rutinaLocal.obtener(usuarioId),
@@ -65,7 +69,7 @@ function Hoy() {
     return () => {
       activo = false;
     };
-  }, [usuarioId]);
+  }, [usuarioId, recarga]);
 
   if (datos === null || !sesion || datos.usuarioId !== sesion.user.id) {
     return (

@@ -185,6 +185,10 @@ Sin botón atrás: `/login`, `/consentimientos` y `/registro` (pestañas de acce
 
 Pendiente de probar en dispositivo: el botón atrás en Android (flecha) y en iOS («‹ Atrás»), el botón físico de Android, el gesto de deslizar en iOS y el área segura con notch.
 
+#### Recarga al volver a una pantalla
+
+Ionic conserva en la pila las pantallas anteriores: al volver a ellas (con el botón atrás o con `history.replace`) no se montan de nuevo y sus efectos de carga no se repiten. `useRecargaAlVolver(ruta)` (`src/hooks/useRecargaAlVolver.ts`) devuelve un número que aumenta cada vez que se vuelve a esa ruta; se usa como dependencia del efecto de carga. Lo usan **Hoy** (tras terminar una sesión, cambiar un ejercicio o borrar los datos) y **Mi rutina** (tras cambiar la rutina). Durante la recarga se mantienen los datos visibles, sin volver al skeleton. Cualquier pantalla nueva que lea datos y pueda quedar debajo en la pila debe usarlo.
+
 ### Animaciones y microinteracciones
 
 - **Transición entre páginas:** `src/theme/transiciones.ts` define `transicionPaginaSJ` con `createAnimation` de Ionic y se registra en `setupIonicReact({ navAnimation })`. Al avanzar, la pantalla nueva entra con fundido y 12 px de desplazamiento en 260 ms con `cubic-bezier(0.2, 0, 0, 1)`; al regresar, la actual sale en 200 ms.
@@ -286,10 +290,11 @@ La ruta protegida `/sesion`, accesible desde «Empezar entrenamiento» en Hoy, c
 #### Aviso de fin de descanso (RF-11)
 
 - Plugin: `@capacitor/local-notifications` **7.0.7** (ya instalado para los recordatorios; compatible con Capacitor 7). Las pantallas no lo llaman directamente: lo envuelve `src/services/notificaciones.ts` (`estadoAvisoDescanso`, `pedirPermisoAvisoDescanso`, `programarAvisoDescanso`, `cancelarAvisoDescanso`), con todo en `try/catch`. En la web (plataforma no nativa) no hace nada.
-- **Cuándo se programa:** solo cuando la app pasa a segundo plano durante un descanso (`visibilitychange`), para la hora exacta de fin, con el texto «Descanso terminado. Vamos con la serie X de Y.». Con la app abierta avisa solo el temporizador en pantalla, así que nunca salen dos avisos.
-- **Cuándo se cancela:** al volver a la app, al saltar el descanso, al cambiar el tiempo con ±30 s (se reprograma con la nueva hora), al terminar el descanso, con «Sentí dolor» y al salir de la sesión (también al cerrar sesión, porque se sale de `/sesion`). Si el aviso ya sonó con la app en segundo plano, se deja visible; al volver a la app se retira.
+- **Cuándo se programa:** al empezar cada descanso, con la app abierta o en segundo plano, para la hora exacta de fin y con el texto «Descanso terminado. Vamos con la serie X de Y.». Con la app abierta es el único aviso que suena, porque el temporizador en pantalla no hace sonido. No depende de `visibilitychange`: Capacitor 7 en Android no emite eventos del documento al pausar la app.
+- **Cuándo se cancela:** solo por acciones de la persona: «Saltar descanso» o restar con −30 s hasta cero, «Sentí dolor» y salir de la sesión antes de que termine el descanso (también al cerrar sesión, porque se sale de `/sesion`). Con ±30 s se reprograma con la nueva hora. Cuando el tiempo termina solo **no** se cancela, para que la notificación salga; `TemporizadorDescanso` indica el motivo del fin (`tiempo` o `saltado`) en `alTerminar`.
 - **Permiso:** no se pide al abrir la app. La primera vez que empieza un descanso aparece «¿Te avisamos con una notificación cuando termine el descanso…?» con «Activar» o «Ahora no». Solo «Activar» pide el permiso del sistema (`POST_NOTIFICATIONS` en Android 13 o superior). Tras responder se guarda en el dispositivo que ya se preguntó (`spotter.dispositivo.avisoDescanso.permisoPreguntado`) y no se vuelve a preguntar; si se niega, el temporizador funciona igual y no se muestra ningún error.
-- **Alarmas exactas:** no se declara `SCHEDULE_EXACT_ALARM`. En Android 12 o superior el plugin usa una alarma inexacta, así que el aviso puede llegar con algunos segundos de retraso (más en ahorro de energía); el temporizador en pantalla sí es exacto.
+- **Canal de notificación:** el aviso usa su propio canal, `descanso` («Fin del descanso»), con importancia alta, sonido y vibración, que se crea antes de programarlo. El canal por defecto del plugin tiene importancia normal y en Android solo deja un ícono en la barra de estado, sin ventana emergente: así se comprobó en un emulador. Si el canal no se puede crear, el aviso sale por el canal por defecto.
+- **Alarmas exactas:** el `AndroidManifest.xml` declara `USE_EXACT_ALARM` (Android 13 o superior, se concede al instalar y está pensado para apps de temporizador) y `SCHEDULE_EXACT_ALARM` con `maxSdkVersion="32"` (Android 12). Con ellos el plugin programa una alarma exacta y el aviso suena a la hora. Si la app se publicara en Google Play, Google revisa el uso de `USE_EXACT_ALARM`.
 - **Ícono:** `android/app/src/main/res/drawable/ic_stat_spotterjn.xml` (silueta blanca de una mancuerna), configurado en `capacitor.config.ts` como `smallIcon` con `iconColor` azul, para que no salga un cuadro blanco. También lo usan los recordatorios.
 - Pendiente de probar en un celular real: aceptar y negar el permiso, dejar la app en segundo plano durante el descanso, saltar y cambiar el tiempo, y comprobar que no quedan avisos viejos.
 
@@ -317,7 +322,7 @@ La ruta protegida `/sesion`, accesible desde «Empezar entrenamiento» en Hoy, c
 - **Peso de partida en la sesión:** `/sesion` precarga el contador de peso con la recomendación (o el ajuste) de cada ejercicio, calculada una vez al empezar con las series y ajustes anteriores.
 - **Cambio de unidad:** el ajuste guarda su unidad; al mostrarlo se convierte a la unidad actual del perfil y se redondea a 0,5 kg o 1 lb (por ejemplo, 50 kg se muestran como 110 lb), así nunca aparece el número de la otra unidad.
 
-Pendientes: recomendaciones con IA real, sincronización con Supabase, cifrado (RNF-11) y, si se quiere puntualidad total del aviso del descanso, el permiso de alarmas exactas.
+Pendientes: recomendaciones con IA real, sincronización con Supabase y cifrado (RNF-11).
 
 ### Contador numérico (RF-10)
 

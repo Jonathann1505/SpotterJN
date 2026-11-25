@@ -10,9 +10,14 @@ function formatearTiempo(segundos: number): string {
   return `${minutos}:${resto}`;
 }
 
+export type MotivoFinDescanso = 'tiempo' | 'saltado';
+
 interface PropiedadesTemporizador {
-  /** Se llama cuando el tiempo llega a cero o al tocar «Saltar descanso». */
-  alTerminar?: () => void;
+  /**
+   * Se llama al terminar el descanso: `tiempo` si la cuenta llegó sola a cero; `saltado` si la persona
+   * lo terminó (Saltar descanso o restar hasta cero).
+   */
+  alTerminar?: (motivo: MotivoFinDescanso) => void;
   /** Se llama al empezar y cada vez que cambia la hora de fin (ms desde 1970), por ejemplo con ±30 s o al saltar. */
   alCambiarFin?: (finEn: number) => void;
 }
@@ -28,6 +33,8 @@ function TemporizadorDescanso({ alTerminar, alCambiarFin }: PropiedadesTemporiza
   alTerminarActual.current = alTerminar;
   const alCambiarFinActual = useRef(alCambiarFin);
   alCambiarFinActual.current = alCambiarFin;
+  // Recuerda si el fin lo provocó la persona y no la cuenta.
+  const terminadoPorPersona = useRef(false);
 
   const tiempoRestante = Math.max(0, Math.ceil((finEn - ahora) / 1000));
   const activo = tiempoRestante > 0;
@@ -54,19 +61,23 @@ function TemporizadorDescanso({ alTerminar, alCambiarFin }: PropiedadesTemporiza
 
   useEffect(() => {
     if (tiempoRestante === 0) {
-      alTerminarActual.current?.();
+      alTerminarActual.current?.(terminadoPorPersona.current ? 'saltado' : 'tiempo');
+      terminadoPorPersona.current = false;
     }
   }, [tiempoRestante]);
 
   const ajustarTiempo = (cambio: 30 | -30): void => {
     const momento = Date.now();
-    setFinEn((actual) => Math.max(momento, Math.max(actual, momento) + cambio * 1000));
+    const nuevoFin = Math.max(momento, Math.max(finEn, momento) + cambio * 1000);
+    terminadoPorPersona.current = nuevoFin <= momento;
+    setFinEn(nuevoFin);
     setAhora(momento);
     setDuracionTotal((actual) => Math.max(0, actual + cambio));
   };
 
   const saltarDescanso = (): void => {
     const momento = Date.now();
+    terminadoPorPersona.current = true;
     setFinEn(momento);
     setAhora(momento);
   };

@@ -119,4 +119,33 @@ describe('TemporizadorDescanso', () => {
 
     expect(screen.getByRole('timer')).toHaveAttribute('aria-label', 'Tiempo restante 00:30');
   });
+
+  it('indica si el descanso terminó por tiempo o porque la persona lo terminó', () => {
+    vi.useFakeTimers();
+    const alTerminar = vi.fn();
+    const { unmount } = render(<TemporizadorDescanso alTerminar={alTerminar} />);
+    act(() => {
+      vi.advanceTimersByTime(90_000);
+    });
+    expect(alTerminar).toHaveBeenLastCalledWith('tiempo');
+    unmount();
+
+    const alSaltar = vi.fn();
+    render(<TemporizadorDescanso alTerminar={alSaltar} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Saltar descanso' }));
+    expect(alSaltar).toHaveBeenLastCalledWith('saltado');
+  });
+
+  it('restar hasta cero cuenta como terminado por la persona', () => {
+    vi.useFakeTimers();
+    const alTerminar = vi.fn();
+    render(<TemporizadorDescanso alTerminar={alTerminar} />);
+
+    for (let i = 0; i < 3; i += 1) {
+      fireEvent.click(screen.getByRole('button', { name: 'Restar 30 segundos' }));
+    }
+
+    expect(alTerminar).toHaveBeenCalledTimes(1);
+    expect(alTerminar).toHaveBeenLastCalledWith('saltado');
+  });
 });

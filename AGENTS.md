@@ -225,3 +225,23 @@
 - Decisiones: sin `SCHEDULE_EXACT_ALARM` (el aviso puede retrasarse unos segundos); aviso solo en segundo plano para evitar dobles avisos; permiso pedido en el primer descanso con explicación y sin insistir; al cerrarse el descanso se cancela solo si la app está visible o la hora de fin aún no llegó, para no borrar un aviso recién mostrado.
 - Pendiente: probar en un celular real (permiso, segundo plano, saltar, ±30 s y avisos viejos).
 - Verificación: `npm test` (484 pruebas/54 archivos), `npm run build`, `npx cap sync android` y `gradlew assembleDebug` aprobados.
+
+### 2026-11-24 — Revisión de errores antes de la entrega
+
+- Rama `fix/revision-errores` desde `develop` (con el PR #28 del aviso del descanso). Comprobaciones: `npm test`, `npm run build` y `tsc --noEmit` sin errores ni avisos de consola; sin linter; `npm audit` con 7 avisos solo en dependencias de desarrollo (sin cambios).
+- Error corregido (Alta): Ionic reutiliza las páginas que quedan en la pila, así que Hoy y Mi rutina no recargaban al volver. Hoy mostraba el peso anterior tras una sesión, el ejercicio viejo tras cambiarlo y los datos borrados tras «Borrar datos»; Mi rutina mostraba la rutina anterior tras cambiarla. Se añadió `useRecargaAlVolver` (basado en la ubicación del router, porque `useIonViewWillEnter` no se dispara al volver en jsdom) y se usa en `Hoy.tsx` y `RutinaAsignada.tsx`. Pruebas en `RecargaAlVolver.test.tsx`, verificadas fallando sin el arreglo.
+- Pendientes no corregidos por decisión: Perfil («Tu rutina actual» desactualizado tras cambiar la rutina; `Perfil.tsx` es de Nayeli), contadores que guardan el último valor válido si el campo queda vacío o fuera de rango (sospecha), pesos en kg durante un instante antes de cargar un perfil en lb, y «Reintentar» en Mi progreso.
+- Sospechas a verificar en el celular: teclado tapando campos (no hay `windowSoftInputMode`) y el disparo de `visibilitychange` al pasar a segundo plano para el aviso del descanso.
+- Verificación: `npm test` (488 pruebas/55 archivos), `npm run build` y `tsc --noEmit` aprobados.
+
+### 2026-11-24 — Corrección del aviso de fin de descanso (RF-11)
+
+- Reportado en un celular real: al terminar el descanso no salía ninguna notificación.
+- Causas: (1) con la app abierta no se programaba el aviso por diseño; (2) en segundo plano dependía de `visibilitychange`, que Capacitor 7 en Android no emite al pausar la app; (3) sin alarmas exactas el aviso llegaba tarde y el temporizador, que sigue corriendo, lo cancelaba al llegar a cero.
+- Arreglo: el aviso se programa al empezar el descanso y se reprograma con ±30 s; solo se cancela al saltar (o restar hasta cero), con «Sentí dolor» o al salir de la sesión antes de tiempo; al terminar el tiempo no se cancela. `TemporizadorDescanso` pasa el motivo del fin (`tiempo` | `saltado`) a `alTerminar`. Al conceder el permiso en el primer descanso se programa el aviso en curso.
+- Decisión del usuario: se declaran `USE_EXACT_ALARM` y `SCHEDULE_EXACT_ALARM` (`maxSdkVersion="32"`) para que el aviso sea puntual.
+- Pruebas: las del aviso en `SesionEntrenamiento.test.tsx` se reescribieron para el comportamiento nuevo y se verificó que fallan con el código anterior.
+- Pendiente: confirmar en el celular que la notificación suena con la app abierta y en segundo plano.
+- Verificación: `npm test` (490 pruebas/55 archivos), `npm run build`, `tsc --noEmit` y `gradlew assembleDebug` aprobados; la APK incluye los permisos de alarma exacta.
+
+- Seguimiento (mismo día): en Android 14 seguía sin «saltar». En un emulador, con depuración remota del WebView, se comprobó que la notificación sí se publicaba a la hora exacta, pero por el canal `default` del plugin (importancia 3): solo un ícono en la barra de estado. Con un canal propio `descanso` de importancia 5 Android muestra la ventana emergente. `programarAvisoDescanso` crea ese canal y envía el aviso por él (commit `d1ec259`).
