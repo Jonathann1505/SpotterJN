@@ -243,3 +243,5 @@
 - Pruebas: las del aviso en `SesionEntrenamiento.test.tsx` se reescribieron para el comportamiento nuevo y se verificó que fallan con el código anterior.
 - Pendiente: confirmar en el celular que la notificación suena con la app abierta y en segundo plano.
 - Verificación: `npm test` (490 pruebas/55 archivos), `npm run build`, `tsc --noEmit` y `gradlew assembleDebug` aprobados; la APK incluye los permisos de alarma exacta.
+
+- Seguimiento (mismo día): en Android 14 seguía sin «saltar». En un emulador, con depuración remota del WebView, se comprobó que la notificación sí se publicaba a la hora exacta, pero por el canal `default` del plugin (importancia 3): solo un ícono en la barra de estado. Con un canal propio `descanso` de importancia 5 Android muestra la ventana emergente. `programarAvisoDescanso` crea ese canal y envía el aviso por él (commit `d1ec259`).
