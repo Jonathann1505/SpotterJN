@@ -1,6 +1,7 @@
 import { Preferences } from '@capacitor/preferences';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
+  CANAL_AVISO_DESCANSO,
   CLAVE_PERMISO_PREGUNTADO,
   ID_AVISO_DESCANSO,
   cancelarAvisoDescanso,
@@ -16,6 +17,7 @@ const mocks = vi.hoisted(() => ({
   schedule: vi.fn(async () => ({ notifications: [] })),
   cancel: vi.fn(async () => undefined),
   removeDeliveredNotifications: vi.fn(async () => undefined),
+  createChannel: vi.fn(async () => undefined),
 }));
 
 vi.mock('@capacitor/core', async (importOriginal) => {
@@ -30,6 +32,7 @@ vi.mock('@capacitor/local-notifications', () => ({
     schedule: mocks.schedule,
     cancel: mocks.cancel,
     removeDeliveredNotifications: mocks.removeDeliveredNotifications,
+    createChannel: mocks.createChannel,
   },
 }));
 
@@ -42,6 +45,7 @@ describe('servicio del aviso de fin de descanso (RF-11)', () => {
     mocks.checkPermissions.mockResolvedValue({ display: 'granted' });
     mocks.cancel.mockResolvedValue(undefined);
     mocks.schedule.mockResolvedValue({ notifications: [] });
+    mocks.createChannel.mockResolvedValue(undefined);
     await Preferences.clear();
   });
 
@@ -75,6 +79,26 @@ describe('servicio del aviso de fin de descanso (RF-11)', () => {
           schedule: { at: fin, allowWhileIdle: true },
         }),
       ],
+    });
+  });
+
+  it('envía el aviso por un canal de importancia alta para que salte en pantalla', async () => {
+    await programarAvisoDescanso(enUnMinuto(), 'Descanso terminado.');
+
+    expect(mocks.createChannel).toHaveBeenCalledWith(
+      expect.objectContaining({ id: CANAL_AVISO_DESCANSO, importance: 5, vibration: true }),
+    );
+    expect(mocks.schedule).toHaveBeenCalledWith({
+      notifications: [expect.objectContaining({ channelId: CANAL_AVISO_DESCANSO })],
+    });
+  });
+
+  it('si no se puede crear el canal, programa el aviso igual por el canal por defecto', async () => {
+    mocks.createChannel.mockRejectedValueOnce(new Error('fallo'));
+    await programarAvisoDescanso(enUnMinuto(), 'Descanso terminado.');
+
+    expect(mocks.schedule).toHaveBeenCalledWith({
+      notifications: [expect.not.objectContaining({ channelId: expect.anything() })],
     });
   });
 
