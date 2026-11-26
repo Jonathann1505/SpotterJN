@@ -170,6 +170,7 @@ export const GUIAS: Readonly<Record<string, GuiaEjercicio>> = {
   },
   'curl-femoral': {
     grupoMuscular: 'Piernas',
+    animacion: 'ejercicios/curl-femoral.mp4',
     ajusteMaquina:
       'Ajusta el rodillo para que quede justo sobre los tobillos, con las rodillas alineadas con el eje de la máquina.',
     movimiento:
