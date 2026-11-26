@@ -88,6 +88,21 @@ async function prepararCanal(): Promise<boolean> {
   }
 }
 
+/**
+ * Retira de la barra de notificaciones el aviso ya mostrado. Android pone `setOnlyAlertOnce` en las notificaciones
+ * del plugin: si el aviso anterior sigue ahí cuando llega el siguiente con el mismo identificador, el sistema lo
+ * trata como una actualización y no suena, no vibra ni salta en pantalla. Nunca lanza errores.
+ */
+async function retirarAvisoMostrado(): Promise<void> {
+  try {
+    await LocalNotifications.removeDeliveredNotifications({
+      notifications: [{ id: ID_AVISO_DESCANSO, title: '', body: '' }],
+    });
+  } catch {
+    // Si no se puede retirar, el aviso nuevo se programa igualmente.
+  }
+}
+
 /** Programa (o reprograma) el aviso de fin de descanso. Sin permiso o en la web no hace nada. */
 export async function programarAvisoDescanso(finEn: Date, mensaje: string): Promise<void> {
   if (!esNativo() || finEn.getTime() <= Date.now()) {
@@ -100,6 +115,8 @@ export async function programarAvisoDescanso(finEn: Date, mensaje: string): Prom
     }
     const canalListo = await prepararCanal();
     await LocalNotifications.cancel({ notifications: [{ id: ID_AVISO_DESCANSO }] });
+    // Cada descanso necesita un aviso «nuevo» para que suene aunque el anterior no se haya tocado.
+    await retirarAvisoMostrado();
     await LocalNotifications.schedule({
       notifications: [
         {
@@ -124,9 +141,7 @@ export async function cancelarAvisoDescanso(): Promise<void> {
   }
   try {
     await LocalNotifications.cancel({ notifications: [{ id: ID_AVISO_DESCANSO }] });
-    await LocalNotifications.removeDeliveredNotifications({
-      notifications: [{ id: ID_AVISO_DESCANSO, title: '', body: '' }],
-    });
+    await retirarAvisoMostrado();
   } catch {
     // Sin efecto visible para la persona.
   }
