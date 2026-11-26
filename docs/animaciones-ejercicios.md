@@ -90,6 +90,11 @@ La animación recorre **inicial → intermedia → final → intermedia**. La pa
 | Press con mancuernas | Hecha (video) |
 | Extensión de tríceps en polea | Hecha (video) |
 | Peso muerto rumano | Hecha (video) |
-| Los otros 7 (jalón al pecho, remo en máquina, remo con mancuerna, remo con barra, prensa de piernas, sentadilla goblet y curl femoral) | Pendiente: esperan su video o sus 3 imágenes |
+| Jalón al pecho | Hecha (video) |
+| Remo en máquina (remo sentado en polea) | Hecha (video) |
+| Remo con mancuerna | Hecha (video) |
+| Sentadilla goblet | Hecha (video) |
+| Curl femoral en máquina | Hecha (video) |
+| Los otros 2 (remo con barra y prensa de piernas) | Pendiente: esperan su video o sus 3 imágenes |
 
 Mientras un ejercicio no tenga animación, su ficha muestra «Animación próximamente» y el resto de la guía.
