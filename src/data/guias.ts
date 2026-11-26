@@ -146,6 +146,7 @@ export const GUIAS: Readonly<Record<string, GuiaEjercicio>> = {
   },
   'sentadilla-goblet': {
     grupoMuscular: 'Piernas',
+    animacion: 'ejercicios/sentadilla-goblet.mp4',
     ajusteMaquina:
       'Sostén una mancuerna en vertical con ambas manos frente al pecho, con los pies un poco más abiertos que los hombros y las puntas ligeramente hacia afuera.',
     movimiento:

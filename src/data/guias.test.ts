@@ -42,6 +42,10 @@ describe('obtenerGuia', () => {
     expect(obtenerGuia('remo-mancuerna').animacion).toBe('ejercicios/remo-mancuerna.mp4');
   });
 
+  it('asocia el video de sentadilla-goblet', () => {
+    expect(obtenerGuia('sentadilla-goblet').animacion).toBe('ejercicios/sentadilla-goblet.mp4');
+  });
+
   it('usa una guía provisional para ejercicios sin contenido', () => {
     expect(obtenerGuia('no-existe')).toBe(GUIA_PENDIENTE);
     expect(GUIA_PENDIENTE.animacion).toBeUndefined();
