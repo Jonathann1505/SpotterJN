@@ -90,12 +90,12 @@ export const GUIAS: Readonly<Record<string, GuiaEjercicio>> = {
     grupoMuscular: 'Espalda',
     animacion: 'ejercicios/remo-maquina.mp4',
     ajusteMaquina:
-      'Ajusta el asiento para que las asas queden a la altura de tu pecho y apoya el pecho en el soporte.',
+      'Siéntate con los pies firmes en los apoyos y las rodillas ligeramente flexionadas. Toma el agarre con los brazos estirados y la espalda recta.',
     movimiento:
       'Jala las asas hacia ti juntando los omóplatos y regresa despacio hasta estirar los brazos, sin soltar el peso de golpe.',
     ubicacion: 'Zona de máquinas de fuerza, junto a las demás máquinas de espalda.',
     erroresComunes:
-      'Encoger los hombros, usar el impulso del cuerpo o no llevar los codos hacia atrás. Mantén el pecho firme contra el soporte.',
+      'Encoger los hombros, balancear el torso hacia adelante y atrás para impulsarte o no llevar los codos hacia atrás. Mantén la espalda recta y el pecho arriba.',
     respiracion: 'Exhala al jalar las asas hacia ti e inhala al volver.',
   },
   'remo-mancuerna': {
@@ -148,7 +148,7 @@ export const GUIAS: Readonly<Record<string, GuiaEjercicio>> = {
     grupoMuscular: 'Piernas',
     animacion: 'ejercicios/sentadilla-goblet.mp4',
     ajusteMaquina:
-      'Sostén una mancuerna en vertical con ambas manos frente al pecho, con los pies un poco más abiertos que los hombros y las puntas ligeramente hacia afuera.',
+      'Sostén una mancuerna (o una pesa rusa) en vertical con ambas manos frente al pecho, con los pies un poco más abiertos que los hombros y las puntas ligeramente hacia afuera.',
     movimiento:
       'Baja como si te sentaras entre los talones, con el pecho arriba y los talones en el piso, y sube empujando el piso.',
     ubicacion: 'Zona de peso libre, junto al rack de mancuernas.',
