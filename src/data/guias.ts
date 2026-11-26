@@ -76,6 +76,7 @@ export const GUIAS: Readonly<Record<string, GuiaEjercicio>> = {
   },
   'jalon-pecho': {
     grupoMuscular: 'Espalda',
+    animacion: 'ejercicios/jalon-pecho.mp4',
     ajusteMaquina:
       'Ajusta el rodillo para que sujete tus muslos y toma la barra un poco más abierta que los hombros. Siéntate con el pecho arriba.',
     movimiento:

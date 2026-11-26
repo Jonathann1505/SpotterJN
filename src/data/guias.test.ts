@@ -30,6 +30,10 @@ describe('obtenerGuia', () => {
     expect(obtenerGuia('peso-muerto-rumano').animacion).toBe('ejercicios/peso-muerto-rumano.mp4');
   });
 
+  it('asocia el video de jalon-pecho', () => {
+    expect(obtenerGuia('jalon-pecho').animacion).toBe('ejercicios/jalon-pecho.mp4');
+  });
+
   it('usa una guía provisional para ejercicios sin contenido', () => {
     expect(obtenerGuia('no-existe')).toBe(GUIA_PENDIENTE);
     expect(GUIA_PENDIENTE.animacion).toBeUndefined();
