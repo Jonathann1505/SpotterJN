@@ -135,6 +135,7 @@ export const GUIAS: Readonly<Record<string, GuiaEjercicio>> = {
   },
   'prensa-piernas': {
     grupoMuscular: 'Piernas',
+    animacion: 'ejercicios/prensa-piernas.mp4',
     ajusteMaquina:
       'Ajusta el respaldo para que las rodillas formen unos 90 grados al bajar. Pon los pies en la plataforma al ancho de los hombros, con la espalda y la cadera pegadas al asiento.',
     movimiento:

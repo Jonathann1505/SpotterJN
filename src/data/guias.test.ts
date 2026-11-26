@@ -50,6 +50,10 @@ describe('obtenerGuia', () => {
     expect(obtenerGuia('curl-femoral').animacion).toBe('ejercicios/curl-femoral.mp4');
   });
 
+  it('asocia el video de prensa-piernas', () => {
+    expect(obtenerGuia('prensa-piernas').animacion).toBe('ejercicios/prensa-piernas.mp4');
+  });
+
   it('usa una guía provisional para ejercicios sin contenido', () => {
     expect(obtenerGuia('no-existe')).toBe(GUIA_PENDIENTE);
     expect(GUIA_PENDIENTE.animacion).toBeUndefined();
