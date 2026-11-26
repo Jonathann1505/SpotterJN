@@ -37,11 +37,24 @@ describe('MiniaturaEjercicio', () => {
     expect(video?.getAttribute('src')).toContain('#t=0.1');
   });
 
-  it('usa un recuadro con la inicial cuando no hay video', () => {
+  it('muestra una imagen fija cuando la animación no es un video pero la guía tiene miniatura', () => {
     simularMenosMovimiento(false);
     const { container } = render(<MiniaturaEjercicio idEjercicio="press-banca" nombre="Press de banca" />);
 
     expect(container.querySelector('video')).toBeNull();
+    expect(container.querySelector('.sj-miniatura-vacia')).toBeNull();
+    const imagen = container.querySelector('img');
+    expect(imagen?.getAttribute('src')).toContain('ejercicios/press-banca-miniatura.webp');
+    expect(imagen?.getAttribute('alt')).toBe('');
+    expect(container.querySelector('.sj-miniatura')?.getAttribute('aria-hidden')).toBe('true');
+  });
+
+  it('usa un recuadro con la inicial cuando no hay video ni imagen', () => {
+    simularMenosMovimiento(false);
+    const { container } = render(<MiniaturaEjercicio idEjercicio="ejercicio-nuevo" nombre="Press militar" />);
+
+    expect(container.querySelector('video')).toBeNull();
+    expect(container.querySelector('img')).toBeNull();
     expect(container.querySelector('.sj-miniatura-vacia')?.textContent).toBe('P');
   });
 });

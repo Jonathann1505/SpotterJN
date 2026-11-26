@@ -75,6 +75,16 @@ describe('obtenerGuia', () => {
     expect(Object.keys(GUIAS).filter((id) => !ids.has(id))).toEqual([]);
   });
 
+  it('las miniaturas indicadas existen en la carpeta public', () => {
+    const archivos = Object.keys(import.meta.glob('../../public/ejercicios/*.{webp,png,jpg}'));
+    const conMiniatura = Object.entries(GUIAS).filter(([, guia]) => guia.miniatura);
+
+    expect(conMiniatura.map(([id]) => id)).toContain('press-banca');
+    for (const [id, guia] of conMiniatura) {
+      expect(archivos, `falta la miniatura de ${id}`).toContain(`../../public/${guia.miniatura}`);
+    }
+  });
+
   it('las animaciones indicadas existen en la carpeta public', () => {
     const archivos = Object.keys(import.meta.glob('../../public/ejercicios/*.{html,mp4}'));
     for (const [id, guia] of Object.entries(GUIAS)) {

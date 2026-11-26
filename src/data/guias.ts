@@ -4,6 +4,8 @@ export interface GuiaEjercicio {
   grupoMuscular: string;
   /** Animación dentro de public/, si el ejercicio ya cuenta con una. */
   animacion?: string;
+  /** Imagen fija dentro de public/ para las miniaturas cuando la animación no es un video (por ejemplo, un HTML). */
+  miniatura?: string;
   ajusteMaquina: string;
   movimiento: string;
   ubicacion: string;
@@ -17,6 +19,7 @@ export const GUIAS: Readonly<Record<string, GuiaEjercicio>> = {
   'press-banca': {
     grupoMuscular: 'Pecho',
     animacion: 'ejercicios/press-banca.html',
+    miniatura: 'ejercicios/press-banca-miniatura.webp',
     ajusteMaquina:
       'Acuéstate con los ojos justo debajo de la barra. Los soportes deben quedar a la altura de tus brazos casi estirados.',
     movimiento:
