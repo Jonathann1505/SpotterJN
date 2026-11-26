@@ -68,7 +68,6 @@ La animación recorre **inicial → intermedia → final → intermedia**. La pa
 | Jalón al pecho (`jalon-pecho`) | Brazos estirados hacia arriba | Barra a la altura de la cara | Barra en la parte alta del pecho | `tiron` |
 | Remo en máquina (`remo-maquina`) | Brazos estirados al frente | Asas a medio camino | Asas junto al torso, omóplatos juntos | `tiron` |
 | Remo con mancuerna (`remo-mancuerna`) | Brazo estirado hacia abajo | Mancuerna a media altura | Mancuerna junto a la cadera | `tiron` |
-| Remo con barra (`remo-barra`) | Torso inclinado, barra colgando a la altura de las rodillas | Barra a media altura | Barra junto al abdomen | `tiron` |
 | Remo invertido (`remo-invertido`) | Colgado bajo la barra, brazos estirados | Medio camino hacia la barra | Pecho junto a la barra | `tiron` |
 | Prensa de piernas (`prensa-piernas`) | Piernas casi estiradas | Rodillas a medio doblar | Rodillas dobladas a unos 90 grados | `piernas` |
 | Sentadilla goblet (`sentadilla-goblet`) | De pie con la mancuerna al pecho | A medio bajar | Sentadilla profunda, talones en el piso | `piernas` |
@@ -86,6 +85,17 @@ La animación recorre **inicial → intermedia → final → intermedia**. La pa
 | Sentadilla con peso corporal | Hecha (video) |
 | Press de pecho en máquina | Hecha (video) |
 | Remo invertido | Hecha (video) |
-| Los otros 11 (incluidas las zancadas) | Pendiente: esperan su video o sus 3 imágenes |
+| Zancadas | Hecha (video) |
+| Press con mancuernas | Hecha (video) |
+| Extensión de tríceps en polea | Hecha (video) |
+| Peso muerto rumano | Hecha (video) |
+| Jalón al pecho | Hecha (video) |
+| Remo en máquina (remo sentado en polea) | Hecha (video) |
+| Remo con mancuerna | Hecha (video) |
+| Sentadilla goblet | Hecha (video) |
+| Curl femoral en máquina | Hecha (video) |
+| Prensa de piernas | Hecha (video) |
+
+Los 15 ejercicios del catálogo tienen animación. Las miniaturas de las listas usan el video; el press de banca, que es un HTML, usa la imagen fija `press-banca-miniatura.webp` (campo `miniatura` de su guía). El remo con barra se retiró del catálogo; las rutinas guardadas que lo incluían lo cambian por otro tirón del mismo equipo al leerse (`migrarEjerciciosRetirados`).
 
 Mientras un ejercicio no tenga animación, su ficha muestra «Animación próximamente» y el resto de la guía.

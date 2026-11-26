@@ -14,6 +14,46 @@ describe('obtenerGuia', () => {
     expect(obtenerGuia('remo-invertido').animacion).toBe('ejercicios/remo-invertido.mp4');
   });
 
+  it('asocia el video de zancadas', () => {
+    expect(obtenerGuia('zancadas').animacion).toBe('ejercicios/zancadas.mp4');
+  });
+
+  it('asocia el video de press-mancuernas', () => {
+    expect(obtenerGuia('press-mancuernas').animacion).toBe('ejercicios/press-mancuernas.mp4');
+  });
+
+  it('asocia el video de triceps-polea', () => {
+    expect(obtenerGuia('triceps-polea').animacion).toBe('ejercicios/triceps-polea.mp4');
+  });
+
+  it('asocia el video de peso-muerto-rumano', () => {
+    expect(obtenerGuia('peso-muerto-rumano').animacion).toBe('ejercicios/peso-muerto-rumano.mp4');
+  });
+
+  it('asocia el video de jalon-pecho', () => {
+    expect(obtenerGuia('jalon-pecho').animacion).toBe('ejercicios/jalon-pecho.mp4');
+  });
+
+  it('asocia el video de remo-maquina', () => {
+    expect(obtenerGuia('remo-maquina').animacion).toBe('ejercicios/remo-maquina.mp4');
+  });
+
+  it('asocia el video de remo-mancuerna', () => {
+    expect(obtenerGuia('remo-mancuerna').animacion).toBe('ejercicios/remo-mancuerna.mp4');
+  });
+
+  it('asocia el video de sentadilla-goblet', () => {
+    expect(obtenerGuia('sentadilla-goblet').animacion).toBe('ejercicios/sentadilla-goblet.mp4');
+  });
+
+  it('asocia el video de curl-femoral', () => {
+    expect(obtenerGuia('curl-femoral').animacion).toBe('ejercicios/curl-femoral.mp4');
+  });
+
+  it('asocia el video de prensa-piernas', () => {
+    expect(obtenerGuia('prensa-piernas').animacion).toBe('ejercicios/prensa-piernas.mp4');
+  });
+
   it('usa una guía provisional para ejercicios sin contenido', () => {
     expect(obtenerGuia('no-existe')).toBe(GUIA_PENDIENTE);
     expect(GUIA_PENDIENTE.animacion).toBeUndefined();
@@ -33,6 +73,16 @@ describe('obtenerGuia', () => {
   it('no hay guías de ejercicios que no existen en el catálogo', () => {
     const ids = new Set(EJERCICIOS.map((ejercicio) => ejercicio.id));
     expect(Object.keys(GUIAS).filter((id) => !ids.has(id))).toEqual([]);
+  });
+
+  it('las miniaturas indicadas existen en la carpeta public', () => {
+    const archivos = Object.keys(import.meta.glob('../../public/ejercicios/*.{webp,png,jpg}'));
+    const conMiniatura = Object.entries(GUIAS).filter(([, guia]) => guia.miniatura);
+
+    expect(conMiniatura.map(([id]) => id)).toContain('press-banca');
+    for (const [id, guia] of conMiniatura) {
+      expect(archivos, `falta la miniatura de ${id}`).toContain(`../../public/${guia.miniatura}`);
+    }
   });
 
   it('las animaciones indicadas existen en la carpeta public', () => {

@@ -11,11 +11,12 @@ function prefiereMenosMovimiento(): boolean {
 
 /**
  * Imagen pequeña de un ejercicio para las listas. Si su animación es un video se muestra en bucle y
- * silenciada (o como cuadro fijo si el sistema pide menos movimiento); si no, un recuadro con la inicial.
+ * silenciada (o como cuadro fijo si el sistema pide menos movimiento); si la animación es otro tipo de archivo,
+ * una imagen fija si la guía tiene `miniatura`; si no, un recuadro con la inicial.
  * Es decorativa: el nombre del ejercicio ya aparece como texto junto a ella.
  */
 export function MiniaturaEjercicio({ idEjercicio, nombre }: PropiedadesMiniatura) {
-  const { animacion } = obtenerGuia(idEjercicio);
+  const { animacion, miniatura } = obtenerGuia(idEjercicio);
 
   if (animacion?.toLowerCase().endsWith('.mp4')) {
     const sinMovimiento = prefiereMenosMovimiento();
@@ -30,6 +31,14 @@ export function MiniaturaEjercicio({ idEjercicio, nombre }: PropiedadesMiniatura
           preload={sinMovimiento ? 'metadata' : 'auto'}
           tabIndex={-1}
         />
+      </span>
+    );
+  }
+
+  if (miniatura) {
+    return (
+      <span className="sj-miniatura" aria-hidden="true">
+        <img src={`${import.meta.env.BASE_URL}${miniatura}`} alt="" loading="lazy" />
       </span>
     );
   }

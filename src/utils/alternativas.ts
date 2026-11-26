@@ -1,4 +1,4 @@
-import { EJERCICIOS, buscarEjercicio, type EjercicioCatalogo } from '../data/ejercicios';
+import { EJERCICIOS, buscarEjercicio, type EjercicioCatalogo, type Movimiento } from '../data/ejercicios';
 import { obtenerGuia } from '../data/guias';
 import type { EquipoGimnasio, RutinaAsignada } from '../types/perfil';
 
@@ -67,4 +67,44 @@ export function reemplazarEjercicio(
       ),
     })),
   };
+}
+
+/** Ejercicios que salieron del catálogo y el movimiento por el que se sustituyen en las rutinas ya guardadas. */
+const EJERCICIOS_RETIRADOS: Readonly<Record<string, Movimiento>> = {
+  'remo-barra': 'tiron',
+};
+
+/**
+ * Sustituye en una rutina guardada los ejercicios que ya no existen en el catálogo por uno del mismo movimiento
+ * que la persona pueda hacer con su equipo y que no repita otro del mismo día. Si no hay ninguno, lo deja igual.
+ */
+export function migrarEjerciciosRetirados(rutina: RutinaAsignada): RutinaAsignada {
+  let cambiada = false;
+  const dias = rutina.dias.map((dia) => {
+    const enUso = new Set(dia.ejercicios.map((e) => e.id));
+    const ejercicios = dia.ejercicios.map((ejercicio) => {
+      const movimiento = EJERCICIOS_RETIRADOS[ejercicio.id];
+      if (movimiento === undefined || buscarEjercicio(ejercicio.id) !== undefined) {
+        return ejercicio;
+      }
+
+      const reemplazo = EJERCICIOS.filter(
+        (candidato) =>
+          candidato.movimiento === movimiento &&
+          !enUso.has(candidato.id) &&
+          (candidato.equipo === 'peso-corporal' || rutina.cuestionario.equipo.includes(candidato.equipo)),
+      ).sort((a, b) => posicionEquipo(a.equipo) - posicionEquipo(b.equipo))[0];
+      if (!reemplazo) {
+        return ejercicio;
+      }
+
+      cambiada = true;
+      enUso.add(reemplazo.id);
+      return { ...ejercicio, id: reemplazo.id, nombre: reemplazo.nombre, pesoInicialKg: reemplazo.pesoInicialKg };
+    });
+
+    return { ...dia, ejercicios };
+  });
+
+  return cambiada ? { ...rutina, dias } : rutina;
 }

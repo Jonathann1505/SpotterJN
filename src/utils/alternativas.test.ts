@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { buscarEjercicio } from '../data/ejercicios';
 import type { CuestionarioRutina, RutinaAsignada } from '../types/perfil';
-import { reemplazarEjercicio, sugerirAlternativas } from './alternativas';
+import { migrarEjerciciosRetirados, reemplazarEjercicio, sugerirAlternativas } from './alternativas';
 
 function rutinaCon(
   ejercicios: string[][],
@@ -114,5 +114,68 @@ describe('reemplazarEjercicio', () => {
     reemplazarEjercicio(rutina, 'press-banca', nuevo);
 
     expect(rutina.dias[0].ejercicios[0].id).toBe('press-banca');
+  });
+});
+
+describe('migrarEjerciciosRetirados', () => {
+  const ejercicio = (id: string, nombre: string, pesoInicialKg: number) => ({
+    id,
+    nombre,
+    series: 3,
+    repeticiones: 12,
+    pesoInicialKg,
+  });
+  const rutinaAntigua = (equipo: CuestionarioRutina['equipo'], ejercicios: ReturnType<typeof ejercicio>[]): RutinaAsignada => ({
+    cuestionario: { experiencia: 'ninguna', diasPorSemana: 2, equipo },
+    dias: [{ nombre: 'Día 1 – Cuerpo completo', ejercicios }],
+    asignadaEn: '2026-11-13T10:00:00.000Z',
+  });
+  const remoConBarra = ejercicio('remo-barra', 'Remo con barra', 20);
+
+  it('el remo con barra ya no está en el catálogo', () => {
+    expect(buscarEjercicio('remo-barra')).toBeUndefined();
+  });
+
+  it('lo sustituye por un tirón de su equipo, primero el más guiado, conservando series y repeticiones', () => {
+    const rutina = rutinaAntigua(['barra', 'maquinas'], [ejercicio('press-banca', 'Press de banca', 20), remoConBarra]);
+
+    const migrada = migrarEjerciciosRetirados(rutina);
+
+    expect(migrada.dias[0].ejercicios[1]).toEqual({
+      id: 'remo-maquina',
+      nombre: 'Remo en máquina',
+      series: 3,
+      repeticiones: 12,
+      pesoInicialKg: 20,
+    });
+    expect(migrada.dias[0].ejercicios[0].id).toBe('press-banca');
+  });
+
+  it('con solo barra usa un ejercicio de peso corporal, que siempre está disponible', () => {
+    const migrada = migrarEjerciciosRetirados(rutinaAntigua(['barra'], [remoConBarra]));
+
+    expect(migrada.dias[0].ejercicios[0]).toMatchObject({ id: 'remo-invertido', pesoInicialKg: 0 });
+  });
+
+  it('no repite un ejercicio que ya está ese día', () => {
+    const migrada = migrarEjerciciosRetirados(
+      rutinaAntigua(['barra', 'maquinas'], [ejercicio('remo-maquina', 'Remo en máquina', 20), remoConBarra]),
+    );
+
+    const ids = migrada.dias[0].ejercicios.map((e) => e.id);
+    expect(ids).not.toContain('remo-barra');
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it('deja la rutina igual, sin copiarla, si no hay nada que cambiar', () => {
+    const rutina = rutinaAntigua(['maquinas'], [ejercicio('press-pecho-maquina', 'Press de pecho en máquina', 15)]);
+
+    expect(migrarEjerciciosRetirados(rutina)).toBe(rutina);
+  });
+
+  it('si no hay ningún sustituto posible, conserva el ejercicio original', () => {
+    const rutina = rutinaAntigua(['barra'], [ejercicio('remo-invertido', 'Remo invertido', 0), remoConBarra]);
+
+    expect(migrarEjerciciosRetirados(rutina)).toBe(rutina);
   });
 });

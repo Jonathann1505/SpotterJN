@@ -21,7 +21,6 @@ export const EJERCICIOS: readonly EjercicioCatalogo[] = [
   { id: 'jalon-pecho', nombre: 'Jalón al pecho', movimiento: 'tiron', equipo: 'poleas', pesoInicialKg: 20 },
   { id: 'remo-maquina', nombre: 'Remo en máquina', movimiento: 'tiron', equipo: 'maquinas', pesoInicialKg: 20 },
   { id: 'remo-mancuerna', nombre: 'Remo con mancuerna', movimiento: 'tiron', equipo: 'mancuernas', pesoInicialKg: 8 },
-  { id: 'remo-barra', nombre: 'Remo con barra', movimiento: 'tiron', equipo: 'barra', pesoInicialKg: 20 },
   { id: 'remo-invertido', nombre: 'Remo invertido', movimiento: 'tiron', equipo: 'peso-corporal', pesoInicialKg: 0 },
   { id: 'prensa-piernas', nombre: 'Prensa de piernas', movimiento: 'piernas', equipo: 'maquinas', pesoInicialKg: 40 },
   { id: 'sentadilla-goblet', nombre: 'Sentadilla goblet', movimiento: 'piernas', equipo: 'mancuernas', pesoInicialKg: 10 },

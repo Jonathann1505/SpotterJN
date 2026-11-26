@@ -4,6 +4,8 @@ export interface GuiaEjercicio {
   grupoMuscular: string;
   /** Animación dentro de public/, si el ejercicio ya cuenta con una. */
   animacion?: string;
+  /** Imagen fija dentro de public/ para las miniaturas cuando la animación no es un video (por ejemplo, un HTML). */
+  miniatura?: string;
   ajusteMaquina: string;
   movimiento: string;
   ubicacion: string;
@@ -17,6 +19,7 @@ export const GUIAS: Readonly<Record<string, GuiaEjercicio>> = {
   'press-banca': {
     grupoMuscular: 'Pecho',
     animacion: 'ejercicios/press-banca.html',
+    miniatura: 'ejercicios/press-banca-miniatura.webp',
     ajusteMaquina:
       'Acuéstate con los ojos justo debajo de la barra. Los soportes deben quedar a la altura de tus brazos casi estirados.',
     movimiento:
@@ -40,6 +43,7 @@ export const GUIAS: Readonly<Record<string, GuiaEjercicio>> = {
   },
   'press-mancuernas': {
     grupoMuscular: 'Pecho',
+    animacion: 'ejercicios/press-mancuernas.mp4',
     ajusteMaquina:
       'Siéntate en un banco con una mancuerna en cada mano apoyada en los muslos y acuéstate llevándolas al pecho. Pies firmes en el piso y espalda pegada al banco.',
     movimiento:
@@ -51,6 +55,7 @@ export const GUIAS: Readonly<Record<string, GuiaEjercicio>> = {
   },
   'triceps-polea': {
     grupoMuscular: 'Tríceps',
+    animacion: 'ejercicios/triceps-polea.mp4',
     ajusteMaquina:
       'Coloca la polea en la parte alta con una barra o una cuerda. Párate frente a ella con los codos pegados a los costados.',
     movimiento:
@@ -74,6 +79,7 @@ export const GUIAS: Readonly<Record<string, GuiaEjercicio>> = {
   },
   'jalon-pecho': {
     grupoMuscular: 'Espalda',
+    animacion: 'ejercicios/jalon-pecho.mp4',
     ajusteMaquina:
       'Ajusta el rodillo para que sujete tus muslos y toma la barra un poco más abierta que los hombros. Siéntate con el pecho arriba.',
     movimiento:
@@ -85,17 +91,19 @@ export const GUIAS: Readonly<Record<string, GuiaEjercicio>> = {
   },
   'remo-maquina': {
     grupoMuscular: 'Espalda',
+    animacion: 'ejercicios/remo-maquina.mp4',
     ajusteMaquina:
-      'Ajusta el asiento para que las asas queden a la altura de tu pecho y apoya el pecho en el soporte.',
+      'Siéntate con los pies firmes en los apoyos y las rodillas ligeramente flexionadas. Toma el agarre con los brazos estirados y la espalda recta.',
     movimiento:
       'Jala las asas hacia ti juntando los omóplatos y regresa despacio hasta estirar los brazos, sin soltar el peso de golpe.',
     ubicacion: 'Zona de máquinas de fuerza, junto a las demás máquinas de espalda.',
     erroresComunes:
-      'Encoger los hombros, usar el impulso del cuerpo o no llevar los codos hacia atrás. Mantén el pecho firme contra el soporte.',
+      'Encoger los hombros, balancear el torso hacia adelante y atrás para impulsarte o no llevar los codos hacia atrás. Mantén la espalda recta y el pecho arriba.',
     respiracion: 'Exhala al jalar las asas hacia ti e inhala al volver.',
   },
   'remo-mancuerna': {
     grupoMuscular: 'Espalda',
+    animacion: 'ejercicios/remo-mancuerna.mp4',
     ajusteMaquina:
       'Apoya una mano y la rodilla del mismo lado en un banco, con la espalda recta y casi paralela al piso. Toma la mancuerna con la otra mano, con el brazo estirado.',
     movimiento:
@@ -104,17 +112,6 @@ export const GUIAS: Readonly<Record<string, GuiaEjercicio>> = {
     erroresComunes:
       'Girar el torso al jalar, redondear la espalda o subir el hombro hacia la oreja. Mantén la espalda recta y casi paralela al suelo.',
     respiracion: 'Exhala al subir la mancuerna e inhala al bajarla.',
-  },
-  'remo-barra': {
-    grupoMuscular: 'Espalda',
-    ajusteMaquina:
-      'Con la barra en el piso o en un rack, ponte con los pies al ancho de la cadera, inclina el torso hacia adelante con la espalda recta y agarra la barra un poco más abierta que los hombros.',
-    movimiento:
-      'Jala la barra hacia el abdomen llevando los codos hacia atrás y baja despacio. Mantén la espalda recta; si se redondea, usa menos peso.',
-    ubicacion: 'Zona de peso libre, junto a los racks y las barras olímpicas.',
-    erroresComunes:
-      'Redondear la espalda, subir y bajar el torso para impulsarte o dejar la barra lejos del cuerpo. Mantén la espalda recta y la barra cerca de tus piernas.',
-    respiracion: 'Exhala al jalar la barra hacia el abdomen e inhala al bajarla.',
   },
   'remo-invertido': {
     grupoMuscular: 'Espalda',
@@ -130,6 +127,7 @@ export const GUIAS: Readonly<Record<string, GuiaEjercicio>> = {
   },
   'prensa-piernas': {
     grupoMuscular: 'Piernas',
+    animacion: 'ejercicios/prensa-piernas.mp4',
     ajusteMaquina:
       'Ajusta el respaldo para que las rodillas formen unos 90 grados al bajar. Pon los pies en la plataforma al ancho de los hombros, con la espalda y la cadera pegadas al asiento.',
     movimiento:
@@ -141,8 +139,9 @@ export const GUIAS: Readonly<Record<string, GuiaEjercicio>> = {
   },
   'sentadilla-goblet': {
     grupoMuscular: 'Piernas',
+    animacion: 'ejercicios/sentadilla-goblet.mp4',
     ajusteMaquina:
-      'Sostén una mancuerna en vertical con ambas manos frente al pecho, con los pies un poco más abiertos que los hombros y las puntas ligeramente hacia afuera.',
+      'Sostén una mancuerna (o una pesa rusa) en vertical con ambas manos frente al pecho, con los pies un poco más abiertos que los hombros y las puntas ligeramente hacia afuera.',
     movimiento:
       'Baja como si te sentaras entre los talones, con el pecho arriba y los talones en el piso, y sube empujando el piso.',
     ubicacion: 'Zona de peso libre, junto al rack de mancuernas.',
@@ -152,6 +151,7 @@ export const GUIAS: Readonly<Record<string, GuiaEjercicio>> = {
   },
   'peso-muerto-rumano': {
     grupoMuscular: 'Piernas',
+    animacion: 'ejercicios/peso-muerto-rumano.mp4',
     ajusteMaquina:
       'Con la barra a la altura de la cadera, ponte con los pies al ancho de la cadera y agarra la barra un poco más abierta que los hombros. Rodillas ligeramente flexionadas.',
     movimiento:
@@ -163,6 +163,7 @@ export const GUIAS: Readonly<Record<string, GuiaEjercicio>> = {
   },
   'curl-femoral': {
     grupoMuscular: 'Piernas',
+    animacion: 'ejercicios/curl-femoral.mp4',
     ajusteMaquina:
       'Ajusta el rodillo para que quede justo sobre los tobillos, con las rodillas alineadas con el eje de la máquina.',
     movimiento:
@@ -186,6 +187,7 @@ export const GUIAS: Readonly<Record<string, GuiaEjercicio>> = {
   },
   zancadas: {
     grupoMuscular: 'Piernas',
+    animacion: 'ejercicios/zancadas.mp4',
     ajusteMaquina:
       'De pie con los pies juntos, da un paso largo hacia adelante.',
     movimiento:
