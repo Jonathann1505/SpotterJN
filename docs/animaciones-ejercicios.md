@@ -96,6 +96,6 @@ La animación recorre **inicial → intermedia → final → intermedia**. La pa
 | Curl femoral en máquina | Hecha (video) |
 | Prensa de piernas | Hecha (video) |
 
-Los 15 ejercicios del catálogo tienen animación. El remo con barra se retiró del catálogo; las rutinas guardadas que lo incluían lo cambian por otro tirón del mismo equipo al leerse (`migrarEjerciciosRetirados`).
+Los 15 ejercicios del catálogo tienen animación. Las miniaturas de las listas usan el video; el press de banca, que es un HTML, usa la imagen fija `press-banca-miniatura.webp` (campo `miniatura` de su guía). El remo con barra se retiró del catálogo; las rutinas guardadas que lo incluían lo cambian por otro tirón del mismo equipo al leerse (`migrarEjerciciosRetirados`).
 
 Mientras un ejercicio no tenga animación, su ficha muestra «Animación próximamente» y el resto de la guía.
