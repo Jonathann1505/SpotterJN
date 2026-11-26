@@ -100,6 +100,7 @@ export const GUIAS: Readonly<Record<string, GuiaEjercicio>> = {
   },
   'remo-mancuerna': {
     grupoMuscular: 'Espalda',
+    animacion: 'ejercicios/remo-mancuerna.mp4',
     ajusteMaquina:
       'Apoya una mano y la rodilla del mismo lado en un banco, con la espalda recta y casi paralela al piso. Toma la mancuerna con la otra mano, con el brazo estirado.',
     movimiento:

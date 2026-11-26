@@ -38,6 +38,10 @@ describe('obtenerGuia', () => {
     expect(obtenerGuia('remo-maquina').animacion).toBe('ejercicios/remo-maquina.mp4');
   });
 
+  it('asocia el video de remo-mancuerna', () => {
+    expect(obtenerGuia('remo-mancuerna').animacion).toBe('ejercicios/remo-mancuerna.mp4');
+  });
+
   it('usa una guía provisional para ejercicios sin contenido', () => {
     expect(obtenerGuia('no-existe')).toBe(GUIA_PENDIENTE);
     expect(GUIA_PENDIENTE.animacion).toBeUndefined();
