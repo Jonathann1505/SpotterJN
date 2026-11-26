@@ -120,12 +120,12 @@ describe('FichaEjercicio', () => {
   });
 
   it('muestra la guía y un aviso si el ejercicio todavía no tiene animación', async () => {
-    const { findByRole, queryByTitle, getByText } = renderizar('/ejercicio/remo-maquina');
+    const { findByRole, queryByTitle, getByText } = renderizar('/ejercicio/prensa-piernas');
 
-    expect(await findByRole('heading', { name: 'Remo en máquina' })).toBeInTheDocument();
+    expect(await findByRole('heading', { name: 'Prensa de piernas' })).toBeInTheDocument();
     expect(queryByTitle(/Animación del ejercicio/)).not.toBeInTheDocument();
     expect(getByText('Animación próximamente')).toBeInTheDocument();
-    expect(getByText(/Ajusta el asiento para que las asas/)).toBeInTheDocument();
+    expect(getByText(/Ajusta el respaldo para que las rodillas/)).toBeInTheDocument();
   });
 
   it('muestra el video de un ejercicio con animación en MP4', async () => {
