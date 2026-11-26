@@ -12,6 +12,7 @@ import { recortarSeries } from './recorteSeries';
 import type { AjustesRecordatorios } from '../types/recordatorios';
 import { AUTOEVALUACIONES, ESTADOS_SERIE, type Autoevaluacion, type SerieRegistrada } from '../types/series';
 import type { AjustePeso, AjustesPeso } from '../types/ajustesPeso';
+import { migrarEjerciciosRetirados } from '../utils/alternativas';
 import { HORA_PREDETERMINADA, esHoraValida } from '../utils/recordatorios';
 import type {
   FichasVistasRepositorio,
@@ -85,7 +86,11 @@ export const saludLocal: SaludRepositorio = {
 };
 
 export const rutinaLocal: RutinaRepositorio = {
-  obtener: (usuarioId) => leerJson(crearClave(usuarioId, 'rutina'), esRutina),
+  obtener: async (usuarioId) => {
+    const rutina = await leerJson(crearClave(usuarioId, 'rutina'), esRutina);
+    // Las rutinas guardadas con un ejercicio que salió del catálogo se actualizan al leerlas.
+    return rutina === null ? null : migrarEjerciciosRetirados(rutina);
+  },
   guardar: (usuarioId, rutina) => guardarJson(crearClave(usuarioId, 'rutina'), rutina),
 };
 

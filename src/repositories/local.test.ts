@@ -385,3 +385,25 @@ describe('repositorio local de ajustes manuales de peso', () => {
     expect(await ajustesPesoLocal.obtener(USUARIO_A)).toEqual({});
   });
 });
+
+describe('rutinas guardadas con un ejercicio retirado', () => {
+  it('al leerlas sustituye el remo con barra por un ejercicio que existe', async () => {
+    await Preferences.set({
+      key: `spotter.usuario.${USUARIO_A}.rutina`,
+      value: JSON.stringify({
+        cuestionario: { experiencia: 'ninguna', diasPorSemana: 2, equipo: ['barra', 'maquinas'] },
+        dias: [
+          {
+            nombre: 'Día 1 – Cuerpo completo',
+            ejercicios: [{ id: 'remo-barra', nombre: 'Remo con barra', series: 3, repeticiones: 12, pesoInicialKg: 20 }],
+          },
+        ],
+        asignadaEn: '2026-11-13T10:00:00.000Z',
+      }),
+    });
+
+    const rutina = await rutinaLocal.obtener(USUARIO_A);
+
+    expect(rutina?.dias[0].ejercicios[0]).toMatchObject({ id: 'remo-maquina', nombre: 'Remo en máquina', series: 3 });
+  });
+});

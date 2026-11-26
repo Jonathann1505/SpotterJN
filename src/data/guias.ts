@@ -110,17 +110,6 @@ export const GUIAS: Readonly<Record<string, GuiaEjercicio>> = {
       'Girar el torso al jalar, redondear la espalda o subir el hombro hacia la oreja. Mantén la espalda recta y casi paralela al suelo.',
     respiracion: 'Exhala al subir la mancuerna e inhala al bajarla.',
   },
-  'remo-barra': {
-    grupoMuscular: 'Espalda',
-    ajusteMaquina:
-      'Con la barra en el piso o en un rack, ponte con los pies al ancho de la cadera, inclina el torso hacia adelante con la espalda recta y agarra la barra un poco más abierta que los hombros.',
-    movimiento:
-      'Jala la barra hacia el abdomen llevando los codos hacia atrás y baja despacio. Mantén la espalda recta; si se redondea, usa menos peso.',
-    ubicacion: 'Zona de peso libre, junto a los racks y las barras olímpicas.',
-    erroresComunes:
-      'Redondear la espalda, subir y bajar el torso para impulsarte o dejar la barra lejos del cuerpo. Mantén la espalda recta y la barra cerca de tus piernas.',
-    respiracion: 'Exhala al jalar la barra hacia el abdomen e inhala al bajarla.',
-  },
   'remo-invertido': {
     grupoMuscular: 'Espalda',
     animacion: 'ejercicios/remo-invertido.mp4',

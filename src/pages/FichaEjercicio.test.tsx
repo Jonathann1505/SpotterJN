@@ -13,6 +13,21 @@ vi.mock('../context/SesionContext', () => ({
   useSesion: () => ({ sesion: { user: { id: 'usuario-prueba' } } }),
 }));
 
+// Todos los ejercicios del catálogo ya tienen video; esta lista permite probar la ficha de uno que aún no lo tenga.
+const sinAnimacion = vi.hoisted(() => new Set<string>());
+
+vi.mock('../data/guias', async (importarOriginal) => {
+  const original = await importarOriginal<typeof import('../data/guias')>();
+
+  return {
+    ...original,
+    obtenerGuia: (id: string) => {
+      const guia = original.obtenerGuia(id);
+      return sinAnimacion.has(id) ? { ...guia, animacion: undefined } : guia;
+    },
+  };
+});
+
 function renderizar(ruta: string) {
   return render(
     <IonApp>
@@ -75,7 +90,10 @@ describe('FichaEjercicio', () => {
   beforeEach(async () => {
     await Preferences.clear();
   });
-  afterEach(cleanup);
+  afterEach(() => {
+    sinAnimacion.clear();
+    cleanup();
+  });
 
   it('muestra la ficha completa la primera vez', async () => {
     await rutinaLocal.guardar(
@@ -120,6 +138,7 @@ describe('FichaEjercicio', () => {
   });
 
   it('muestra la guía y un aviso si el ejercicio todavía no tiene animación', async () => {
+    sinAnimacion.add('prensa-piernas');
     const { findByRole, queryByTitle, getByText } = renderizar('/ejercicio/prensa-piernas');
 
     expect(await findByRole('heading', { name: 'Prensa de piernas' })).toBeInTheDocument();
