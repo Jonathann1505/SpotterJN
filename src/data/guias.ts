@@ -88,6 +88,7 @@ export const GUIAS: Readonly<Record<string, GuiaEjercicio>> = {
   },
   'remo-maquina': {
     grupoMuscular: 'Espalda',
+    animacion: 'ejercicios/remo-maquina.mp4',
     ajusteMaquina:
       'Ajusta el asiento para que las asas queden a la altura de tu pecho y apoya el pecho en el soporte.',
     movimiento:
