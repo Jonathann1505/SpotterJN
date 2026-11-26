@@ -126,6 +126,37 @@ describe('servicio del aviso de fin de descanso (RF-11)', () => {
     await expect(pedirPermisoAvisoDescanso(true)).resolves.toBe(false);
   });
 
+  describe('aviso anterior que sigue en la barra de notificaciones', () => {
+    it('lo retira antes de programar el nuevo para que el nuevo suene', async () => {
+      await programarAvisoDescanso(enUnMinuto(), 'Descanso terminado.');
+
+      expect(mocks.removeDeliveredNotifications).toHaveBeenCalledWith({
+        notifications: [expect.objectContaining({ id: ID_AVISO_DESCANSO })],
+      });
+      const retirado = mocks.removeDeliveredNotifications.mock.invocationCallOrder[0];
+      const programado = mocks.schedule.mock.invocationCallOrder[0];
+      expect(retirado).toBeLessThan(programado);
+    });
+
+    it('programa el aviso aunque no se pueda retirar el anterior', async () => {
+      mocks.removeDeliveredNotifications.mockRejectedValueOnce(new Error('fallo'));
+
+      await programarAvisoDescanso(enUnMinuto(), 'Descanso terminado.');
+
+      expect(mocks.schedule).toHaveBeenCalledTimes(1);
+    });
+
+    it('no toca la barra de notificaciones si no hay permiso o no es un móvil', async () => {
+      mocks.checkPermissions.mockResolvedValue({ display: 'denied' });
+      await programarAvisoDescanso(enUnMinuto(), 'Descanso terminado.');
+      mocks.checkPermissions.mockResolvedValue({ display: 'granted' });
+      mocks.esNativo.mockReturnValue(false);
+      await programarAvisoDescanso(enUnMinuto(), 'Descanso terminado.');
+
+      expect(mocks.removeDeliveredNotifications).not.toHaveBeenCalled();
+    });
+  });
+
   it('cancela el aviso pendiente y retira el ya mostrado', async () => {
     await cancelarAvisoDescanso();
 
