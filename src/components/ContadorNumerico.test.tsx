@@ -109,7 +109,7 @@ describe('ContadorNumerico', () => {
     expect(screen.getByLabelText('Valor actual')).toHaveTextContent('50');
   });
 
-  it('ajusta el valor vacío al mínimo al salir del campo', () => {
+  it('recupera el último valor válido si el campo queda vacío al salir', () => {
     renderizarContador({ valorInicial: 10 });
     const entrada = screen.getByRole('spinbutton', { name: 'Repeticiones logradas' });
 
@@ -119,8 +119,9 @@ describe('ContadorNumerico', () => {
 
     fireEvent.blur(entrada);
 
-    expect(entrada).toHaveValue(0);
-    expect(screen.getByLabelText('Valor actual')).toHaveTextContent('0');
+    expect(entrada).toHaveValue(10);
+    expect(entrada).toHaveAttribute('aria-invalid', 'false');
+    expect(screen.getByLabelText('Valor actual')).toHaveTextContent('10');
   });
 
   it('ajusta un valor negativo al mínimo al salir del campo', () => {

@@ -245,3 +245,13 @@
 - Verificación: `npm test` (490 pruebas/55 archivos), `npm run build`, `tsc --noEmit` y `gradlew assembleDebug` aprobados; la APK incluye los permisos de alarma exacta.
 
 - Seguimiento (mismo día): en Android 14 seguía sin «saltar». En un emulador, con depuración remota del WebView, se comprobó que la notificación sí se publicaba a la hora exacta, pero por el canal `default` del plugin (importancia 3): solo un ícono en la barra de estado. Con un canal propio `descanso` de importancia 5 Android muestra la ventana emergente. `programarAvisoDescanso` crea ese canal y envía el aviso por él (commit `d1ec259`).
+
+### 2026-11-26 — Errores finales y botón atrás de Android
+
+- Rama `fix/errores-finales` desde `develop` (`bbfa552`, PR #33).
+- #5 (Media) corregido: Perfil recarga «Tu rutina actual» al volver de cambiar la rutina con `useRecargaAlVolver('/perfil')`. Prueba en `RecargaAlVolver.test.tsx`, verificada fallando sin el arreglo.
+- #6 (Media) confirmado y corregido: al vaciar el peso o las repeticiones y salir del campo, `ContadorNumerico` ponía el mínimo (0) y la serie se guardaba con 0. Ahora un campo vacío recupera el último valor válido; fuera de rango se sigue ajustando al límite. Prueba en `SesionEntrenamiento.test.tsx`, verificada fallando sin el arreglo; se actualizó la prueba del contador que esperaba 0.
+- Botón atrás físico de Android: sin `@capacitor/app`, Capacitor cerraba la app cuando el WebView no tenía historial. Se añadió `@capacitor/app` 7.1.2 (cambian de verdad `capacitor.build.gradle` y `capacitor.settings.gradle`, solo con las líneas del plugin) y `src/services/botonAtras.ts`: el botón físico pulsa el botón atrás de la pantalla visible y, en pantallas sin él, no hace nada (nunca cierra ni minimiza). Los diálogos propios se cierran con `useCerrarConBotonAtras`.
+- Teclado: no se cambió nada sin probarlo en un dispositivo. Con `targetSdkVersion` 35, Android 15 obliga el modo de borde a borde y el ajuste automático del teclado puede no reducir la vista; si en el celular el teclado tapa campos, la opción a evaluar es `android.adjustMarginsForEdgeToEdge` en `capacitor.config.ts`.
+- Pendientes sin cambios: #7 (kg un instante con perfil en lb) y #8 («Reintentar» en Mi progreso).
+- Verificación: `npm test` (544 pruebas/57 archivos), `npm run build` y `tsc --noEmit` aprobados. Pendiente: APK y prueba en un celular real del botón atrás y del teclado.

@@ -10,6 +10,7 @@ import { borrarDatosLocales, rutinaLocal, saludLocal, seriesLocal } from '../rep
 import { asignarRutina } from '../utils/rutina';
 import { sesionParaFecha } from '../utils/semana';
 import Hoy from './Hoy';
+import Perfil from './Perfil';
 import RutinaAsignada from './RutinaAsignada';
 
 vi.mock('../services/auth', () => ({ cerrarSesion: vi.fn() }));
@@ -51,6 +52,7 @@ function renderizar(inicial: string, cambiar: () => Promise<void>): MemoryHistor
           <IonRouterOutlet>
             <Route exact path="/hoy" component={Hoy} />
             <Route exact path="/rutina" component={RutinaAsignada} />
+            <Route exact path="/perfil" component={Perfil} />
             <Route exact path="/aviso-medico">
               <IonPage>
                 <h1>Aviso médico</h1>
@@ -132,6 +134,17 @@ describe('las pantallas recargan sus datos al volver a mostrarse', () => {
     await irYVolver(historial, '/rutina');
 
     expect(await screen.findByRole('heading', { name: '4 días por semana', hidden: true })).toBeInTheDocument();
+  });
+
+  it('Perfil muestra la rutina nueva en «Tu rutina actual» al volver de cambiarla', async () => {
+    const historial = renderizar('/perfil', () =>
+      rutinaLocal.guardar(USUARIO, asignarRutina({ experiencia: 'ninguna', diasPorSemana: 4, equipo: ['maquinas'] })),
+    );
+    expect(await screen.findByText(/^3 días por semana/)).toBeInTheDocument();
+
+    await irYVolver(historial, '/perfil');
+
+    expect(await screen.findByText(/^4 días por semana/, undefined, { timeout: 3000 })).toBeInTheDocument();
   });
 
   it('Hoy muestra el ejercicio nuevo al volver de cambiar uno de la rutina', async () => {
