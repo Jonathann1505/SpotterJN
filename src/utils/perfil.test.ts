@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { SerieRegistrada } from '../types/series';
-import { contarSesiones, inicialesDe } from './perfil';
+import { contarSesiones, describirExperiencia, describirSesiones, inicialesDe, resumirEquipo } from './perfil';
 
 function serie(registradaEn: string, cambios: Partial<SerieRegistrada> = {}): SerieRegistrada {
   return {
@@ -49,5 +49,24 @@ describe('contarSesiones', () => {
 
   it('sin series devuelve cero', () => {
     expect(contarSesiones([])).toBe(0);
+  });
+});
+
+describe('textos del resumen del perfil', () => {
+  it('describe la experiencia en lenguaje natural', () => {
+    expect(describirExperiencia('ninguna')).toBe('Sin experiencia previa');
+    expect(describirExperiencia('menos-6-meses')).toBe('Menos de 6 meses de experiencia');
+    expect(describirExperiencia('mas-6-meses')).toBe('Más de 6 meses de experiencia');
+  });
+
+  it('nombra el equipo si es uno solo y cuenta los tipos si son varios', () => {
+    expect(resumirEquipo(['maquinas'])).toBe('Equipo: máquinas guiadas');
+    expect(resumirEquipo(['mancuernas', 'barra', 'maquinas', 'poleas'])).toBe('Equipo: 4 tipos');
+  });
+
+  it('usa un mensaje propio cuando aún no hay sesiones', () => {
+    expect(describirSesiones(0)).toBe('Aún no registras sesiones');
+    expect(describirSesiones(1)).toBe('1 sesión registrada');
+    expect(describirSesiones(7)).toBe('7 sesiones registradas');
   });
 });

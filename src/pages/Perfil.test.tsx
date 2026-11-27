@@ -227,4 +227,48 @@ describe('Perfil', () => {
       expect(getByRole('list', { name: 'Ayuda' })).toHaveTextContent('Glosario');
     });
   });
+
+  describe('avance de la semana', () => {
+    it('muestra cuántas sesiones de la semana van hechas con una barra de avance', async () => {
+      const rutina = asignarRutina({ experiencia: 'ninguna', diasPorSemana: 4, equipo: ['maquinas'] });
+      await rutinaLocal.guardar('usuario-prueba', rutina);
+      await seriesLocal.guardar('usuario-prueba', {
+        id: 'serie-hoy',
+        registradaEn: new Date().toISOString(),
+        idEjercicio: rutina.dias[0].ejercicios[0].id,
+        nombreEjercicio: rutina.dias[0].ejercicios[0].nombre,
+        dia: rutina.dias[0].nombre,
+        numeroSerie: 1,
+        peso: 20,
+        unidad: 'kg',
+        repeticiones: 12,
+        autoevaluacion: 'normal',
+        estado: 'completada',
+      });
+      const { findByRole } = renderizar();
+
+      const barra = await findByRole('progressbar', { name: /Esta semana: 1 de 4 sesiones/ });
+      expect(barra).toHaveAttribute('aria-valuenow', '1');
+      expect(barra).toHaveAttribute('aria-valuemax', '4');
+      expect((barra.firstElementChild as HTMLElement).style.width).toBe('25%');
+    });
+
+    it('sin rutina no muestra la barra de la semana', async () => {
+      const { findByText, queryByRole } = renderizar();
+      await findByText('Todavía no tienes una rutina');
+
+      expect(queryByRole('progressbar')).not.toBeInTheDocument();
+    });
+
+    it('con cero sesiones invita a registrar la primera', async () => {
+      await rutinaLocal.guardar(
+        'usuario-prueba',
+        asignarRutina({ experiencia: 'ninguna', diasPorSemana: 3, equipo: ['maquinas'] }),
+      );
+      const { findByText } = renderizar();
+
+      expect(await findByText('Aún no registras sesiones')).toBeInTheDocument();
+      expect(await findByText(/3 días por semana · Sin experiencia previa/)).toBeInTheDocument();
+    });
+  });
 });
