@@ -166,6 +166,84 @@ describe('Hoy', () => {
     expect(container.querySelector('ion-back-button')).toBeNull();
   });
 
+  describe('elegir otro día', () => {
+    const opcion = (nombre: RegExp | string) => screen.getByRole('radio', { name: nombre });
+
+    async function guardarSerieDelDia(indice: number, fecha: Date): Promise<void> {
+      const ejercicio = rutina.dias[indice].ejercicios[0];
+      await seriesLocal.guardar('usuario-prueba', {
+        id: `serie-dia-${indice}`,
+        registradaEn: fecha.toISOString(),
+        idEjercicio: ejercicio.id,
+        nombreEjercicio: ejercicio.nombre,
+        dia: rutina.dias[indice].nombre,
+        numeroSerie: 1,
+        peso: ejercicio.pesoInicialKg,
+        unidad: 'kg',
+        repeticiones: ejercicio.repeticiones,
+        autoevaluacion: 'normal',
+        estado: 'completada',
+      });
+    }
+
+    beforeEach(async () => {
+      await saludLocal.guardar('usuario-prueba', salud);
+      await rutinaLocal.guardar('usuario-prueba', rutina);
+    });
+
+    it('lista los días de la rutina con su día de la semana y marca el que toca', async () => {
+      const { findByRole } = renderizar();
+      await findByRole('radiogroup', { name: 'Elegir otro día' });
+
+      expect(opcion(new RegExp(`${rutina.dias[0].nombre} · lunes — Hoy toca`))).toHaveAttribute('aria-checked', 'true');
+      expect(opcion(new RegExp(`${rutina.dias[1].nombre} · miércoles$`))).toHaveAttribute('aria-checked', 'false');
+      expect(opcion(new RegExp(`${rutina.dias[2].nombre} · viernes$`))).toHaveAttribute('aria-checked', 'false');
+    });
+
+    it('al escoger otro día cambia la sesión y empieza ese día', async () => {
+      const { findByRole, findByText } = renderizar();
+      await findByRole('radiogroup', { name: 'Elegir otro día' });
+
+      fireEvent.click(opcion(new RegExp(rutina.dias[2].nombre)));
+
+      expect(await findByRole('heading', { name: rutina.dias[2].nombre })).toBeInTheDocument();
+      expect(await findByText('Elegiste esta sesión.')).toBeInTheDocument();
+      expect(await findByText('Sesión elegida')).toBeInTheDocument();
+      fireEvent.click(await findByText('Empezar entrenamiento'));
+      expect(await findByText('pantalla de sesión {"indiceDia":2}')).toBeInTheDocument();
+    });
+
+    it('avisa de la sesión que faltó esta semana y la marca para hacerla', async () => {
+      simularFecha(20);
+      const { findByRole, findByText } = renderizar();
+      await findByRole('radiogroup', { name: 'Elegir otro día' });
+
+      expect(await findByText(/Te faltaron/)).toHaveTextContent(rutina.dias[0].nombre);
+      expect(opcion(new RegExp(`${rutina.dias[1].nombre} · miércoles — Te faltó`))).toBeInTheDocument();
+
+      fireEvent.click(opcion(new RegExp(rutina.dias[1].nombre)));
+      fireEvent.click(await findByText('Empezar entrenamiento'));
+      expect(await findByText('pantalla de sesión {"indiceDia":1}')).toBeInTheDocument();
+    });
+
+    it('marca como hecho el día con series de esta semana y no avisa de él', async () => {
+      simularFecha(18);
+      await guardarSerieDelDia(0, new Date(2026, 10, 16, 18, 0));
+      const { findByRole, queryByRole } = renderizar();
+      await findByRole('radiogroup', { name: 'Elegir otro día' });
+
+      expect(opcion(new RegExp(`${rutina.dias[0].nombre} · lunes — Hecho`))).toBeInTheDocument();
+      expect(queryByRole('status')).toBeNull();
+    });
+
+    it('sin días pasados sin hacer no muestra el aviso', async () => {
+      const { findByRole, queryByRole } = renderizar();
+      await findByRole('radiogroup', { name: 'Elegir otro día' });
+
+      expect(queryByRole('status')).toBeNull();
+    });
+  });
+
   describe('peso recomendado por la progresión', () => {
     const [primero, segundo] = rutina.dias[0].ejercicios;
 
