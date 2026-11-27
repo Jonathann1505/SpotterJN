@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { IonIcon } from '@ionic/react';
 import { helpCircleOutline } from 'ionicons/icons';
 import { buscarTermino } from '../data/glosario';
+import { useCerrarConBotonAtras } from '../hooks/useCerrarConBotonAtras';
 import { BotonSJ } from './PantallaSJ';
 import '../theme/spotter-ui.css';
 
@@ -17,6 +18,8 @@ export function AyudaTermino({ termino, children }: PropiedadesAyuda) {
   const [abierto, setAbierto] = useState(false);
   const idTitulo = useId();
   const entrada = buscarTermino(termino);
+  // El botón atrás de Android cierra la ayuda en vez de cambiar de pantalla.
+  useCerrarConBotonAtras(abierto, () => setAbierto(false));
 
   useEffect(() => {
     if (!abierto) {
