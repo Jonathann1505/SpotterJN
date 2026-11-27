@@ -22,9 +22,11 @@ import { useSesion } from '../context/SesionContext';
 import { useRecargaAlVolver } from '../hooks/useRecargaAlVolver';
 import { rutinaLocal, seriesLocal } from '../repositories/local';
 import { METAS_PRINCIPALES, type MetaPrincipal, type RutinaAsignada, type UnidadPeso } from '../types/perfil';
-import { ETIQUETAS_EQUIPO, ETIQUETAS_EXPERIENCIA, ETIQUETAS_META } from '../utils/etiquetasRutina';
+import { ETIQUETAS_META } from '../utils/etiquetasRutina';
 import { LONGITUD_MAXIMA_NOMBRE, esNombreValido } from '../utils/validaciones';
-import { contarSesiones, inicialesDe } from '../utils/perfil';
+import { contarSesiones, describirExperiencia, describirSesiones, inicialesDe, resumirEquipo } from '../utils/perfil';
+import { estadoDeLaSemana } from '../utils/semana';
+import type { SerieRegistrada } from '../types/series';
 
 const UNIDADES: readonly UnidadPeso[] = ['kg', 'lb'];
 
@@ -61,7 +63,7 @@ function Perfil() {
   const [mensaje, setMensaje] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [rutina, setRutina] = useState<RutinaAsignada | null>(null);
-  const [sesionesHechas, setSesionesHechas] = useState<number | null>(null);
+  const [series, setSeries] = useState<SerieRegistrada[] | null>(null);
   // El bloque de edición empieza abierto si aún no hay nombre, para invitar a completarlo.
   const [editando, setEditando] = useState(perfil.nombre.trim() === '');
   // Si la pantalla se monta antes de que cargue el perfil, se decide al terminar de cargarlo (una sola vez).
@@ -95,9 +97,9 @@ function Perfil() {
       .catch(() => undefined);
     void seriesLocal
       .listar(usuarioId)
-      .then((series) => {
+      .then((guardadas) => {
         if (activo) {
-          setSesionesHechas(contarSesiones(series));
+          setSeries(guardadas);
         }
       })
       .catch(() => undefined);
@@ -139,8 +141,12 @@ function Perfil() {
 
   const nombreVisible = perfil.nombre.trim();
   const iniciales = inicialesDe(nombreVisible);
-  const textoSesiones =
-    sesionesHechas === null ? null : sesionesHechas === 1 ? '1 sesión registrada' : `${sesionesHechas} sesiones registradas`;
+  const sesionesHechas = series === null ? null : contarSesiones(series);
+  const textoSesiones = sesionesHechas === null ? null : describirSesiones(sesionesHechas);
+  // Avance de la semana actual (lunes a domingo): días de la rutina ya hechos.
+  const semana = rutina && series ? estadoDeLaSemana(rutina, series, new Date()) : null;
+  const hechasSemana = semana ? semana.filter((dia) => dia.estado === 'hecho').length : 0;
+  const totalSemana = semana ? semana.length : 0;
 
   return (
     <PantallaSJ
@@ -179,6 +185,26 @@ function Perfil() {
             <dd>{perfil.unidadPeso}</dd>
           </div>
         </dl>
+        {semana && totalSemana > 0 ? (
+          <div className="sj-perfil-semana">
+            <p className="sj-texto" id="perfil-semana">
+              Esta semana:{' '}
+              <strong>
+                {hechasSemana} de {totalSemana} sesiones
+              </strong>
+            </p>
+            <div
+              className="sj-perfil-barra"
+              role="progressbar"
+              aria-labelledby="perfil-semana"
+              aria-valuemin={0}
+              aria-valuemax={totalSemana}
+              aria-valuenow={hechasSemana}
+            >
+              <span style={{ width: `${Math.round((hechasSemana / totalSemana) * 100)}%` }} />
+            </div>
+          </div>
+        ) : null}
       </section>
 
       <section className="sj-perfil-bloque">
@@ -246,11 +272,8 @@ function Perfil() {
           detalle={
             rutina ? (
               <>
-                {rutina.dias.length} días por semana · Experiencia:{' '}
-                {ETIQUETAS_EXPERIENCIA[rutina.cuestionario.experiencia].toLowerCase()}
-                <span className="sj-bloque">
-                  Equipo: {rutina.cuestionario.equipo.map((item) => ETIQUETAS_EQUIPO[item].toLowerCase()).join(', ')}
-                </span>
+                {rutina.dias.length} días por semana · {describirExperiencia(rutina.cuestionario.experiencia)}
+                <span className="sj-bloque">{resumirEquipo(rutina.cuestionario.equipo)}</span>
               </>
             ) : (
               'Todavía no tienes una rutina'

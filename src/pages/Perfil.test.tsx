@@ -117,8 +117,8 @@ describe('Perfil', () => {
     );
     const { findByText } = renderizar();
 
-    expect(await findByText(/4 días por semana · Experiencia: más de 6 meses/)).toBeInTheDocument();
-    expect(await findByText('Equipo: barra y discos, poleas')).toBeInTheDocument();
+    expect(await findByText(/4 días por semana · Más de 6 meses de experiencia/)).toBeInTheDocument();
+    expect(await findByText('Equipo: 2 tipos')).toBeInTheDocument();
   });
 
   it('no muestra el resumen si todavía no hay rutina', async () => {
