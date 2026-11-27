@@ -91,6 +91,7 @@ SpotterJN/
 │   │   ├── biblioteca.ts         # filtros de la biblioteca de ejercicios
 │   │   ├── historial.ts          # sesiones y peso semanal de un ejercicio (RF-23)
 │   │   ├── etiquetasRutina.ts    # textos de experiencia y equipo del cuestionario
+│   │   ├── perfil.ts             # iniciales del avatar y conteo de sesiones del perfil
 │   │   ├── progresion.ts         # progresión de peso por reglas (RF-15 a RF-19)
 │   │   ├── rutina.ts             # asignación de la rutina y resúmenes de sesión y semana
 │   │   ├── semana.ts             # qué sesión toca según el día de la semana
@@ -193,6 +194,15 @@ Pendiente de probar en dispositivo: el botón atrás en Android (flecha) y en iO
 #### Recarga al volver a una pantalla
 
 Ionic conserva en la pila las pantallas anteriores: al volver a ellas (con el botón atrás o con `history.replace`) no se montan de nuevo y sus efectos de carga no se repiten. `useRecargaAlVolver(ruta)` (`src/hooks/useRecargaAlVolver.ts`) devuelve un número que aumenta cada vez que se vuelve a esa ruta; se usa como dependencia del efecto de carga. Lo usan **Hoy** (tras terminar una sesión, cambiar un ejercicio o borrar los datos), **Mi rutina** (tras cambiar la rutina) y **Perfil** («Tu rutina actual», tras cambiar la rutina). Durante la recarga se mantienen los datos visibles, sin volver al skeleton. Cualquier pantalla nueva que lea datos y pueda quedar debajo en la pila debe usarlo.
+
+### Perfil
+
+El perfil sigue el patrón de las apps de entrenamiento más usadas (cabecera de resumen y listas de ajustes), con los colores, la tipografía, las esquinas rectas y los botones del tema:
+
+- **Cabecera** (`sj-tarjeta`): avatar cuadrado con las iniciales del nombre (`inicialesDe`, `src/utils/perfil.ts`; sin nombre muestra un ícono y «Completa tu perfil»), la meta principal y tres cifras: días por semana de la rutina, sesiones registradas (`contarSesiones`: fechas distintas con series completadas de un día de la rutina) y la unidad de peso. Con rutina, debajo muestra «Esta semana: X de Y sesiones» con una barra de avance (`role="progressbar"`), calculada con `estadoDeLaSemana`.
+- **Editar perfil**: bloque plegable (`aria-expanded`) con el nombre, la meta y «Guardar cambios». Empieza abierto solo si aún no hay nombre.
+- **Secciones** con filas de ícono, título, detalle y flecha (`sj-menu`, `sj-fila-menu`): «Tu entrenamiento» (Mi rutina con días, experiencia en lenguaje natural —«Sin experiencia previa»— y el equipo resumido —«Equipo: 4 tipos»—; Mi progreso con las sesiones o «Aún no registras sesiones»; Biblioteca), «Preferencias» (unidad de peso con su selector kg/lb, Recordatorios, Mis respuestas de salud) y «Ayuda» (Glosario). «Borrar datos» y «Cerrar sesión» siguen al final.
+- Las filas se oscurecen al tocarlas (`microinteracciones.css`) y recargan sus datos al volver al perfil (`useRecargaAlVolver`).
 
 ### Animaciones y microinteracciones
 

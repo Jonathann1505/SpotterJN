@@ -246,19 +246,23 @@
 
 - Seguimiento (mismo día): en Android 14 seguía sin «saltar». En un emulador, con depuración remota del WebView, se comprobó que la notificación sí se publicaba a la hora exacta, pero por el canal `default` del plugin (importancia 3): solo un ícono en la barra de estado. Con un canal propio `descanso` de importancia 5 Android muestra la ventana emergente. `programarAvisoDescanso` crea ese canal y envía el aviso por él (commit `d1ec259`).
 
-### 2026-11-27 — Botón atrás físico de Android
+### 2026-11-26 — Errores finales y botón atrás de Android
 
-- Rama `fix/boton-atras-android` desde `develop` (con los PR #30 a #33).
-- Causa: sin `@capacitor/app` el botón físico no llegaba a Ionic y Android cerraba la app desde cualquier pantalla. La nota del 2026-11-13 («lo gestiona `IonRouterOutlet`») era incorrecta.
-- Se instaló `@capacitor/app` 7.1.1 (commit chore con las líneas del plugin en los dos `.gradle`; desde entonces esos archivos ya no aparecen modificados por finales de línea).
-- Añadidos `src/utils/botonAtras.ts` (`decidirBotonAtras`, `RUTA_PADRE`), `src/services/botonAtras.ts` (`activarBotonAtras`, `salirDeLaApp`) y `ManejadorBotonAtras` en `App.tsx`. Decisión del usuario: Hoy y Login cierran la app, el flujo inicial no se sale y las demás pantallas retroceden.
-- Pruebas: `botonAtras.test.ts` y `ManejadorBotonAtras.test.tsx` simulan el evento `ionBackButton`.
-- Se subió `testTimeout` de Vitest a 15 s: la suite completa fallaba de forma intermitente por tiempo en pruebas con el router de Ionic, también en `develop` sin cambios (comprobado en un worktree temporal). Un commit de esta rama (`3b5a490`) se subió con una de esas fallas intermitentes; las ejecuciones posteriores pasaron 5 de 5.
-- Pendiente: probar el botón físico en el celular.
+- Rama `fix/errores-finales` desde `develop` (`bbfa552`, PR #33).
+- #5 (Media) corregido: Perfil recarga «Tu rutina actual» al volver de cambiar la rutina con `useRecargaAlVolver('/perfil')`. Prueba en `RecargaAlVolver.test.tsx`, verificada fallando sin el arreglo.
+- #6 (Media) confirmado y corregido: al vaciar el peso o las repeticiones y salir del campo, `ContadorNumerico` ponía el mínimo (0) y la serie se guardaba con 0. Ahora un campo vacío recupera el último valor válido; fuera de rango se sigue ajustando al límite. Prueba en `SesionEntrenamiento.test.tsx`, verificada fallando sin el arreglo; se actualizó la prueba del contador que esperaba 0.
+- Botón atrás físico de Android: sin `@capacitor/app`, Capacitor cerraba la app cuando el WebView no tenía historial. Se añadió `@capacitor/app` 7.1.2 (cambian de verdad `capacitor.build.gradle` y `capacitor.settings.gradle`, solo con las líneas del plugin) y `src/services/botonAtras.ts`: el botón físico pulsa el botón atrás de la pantalla visible y, en pantallas sin él, no hace nada (nunca cierra ni minimiza). Los diálogos propios se cierran con `useCerrarConBotonAtras`.
+- Teclado: no se cambió nada sin probarlo en un dispositivo. Con `targetSdkVersion` 35, Android 15 obliga el modo de borde a borde y el ajuste automático del teclado puede no reducir la vista; si en el celular el teclado tapa campos, la opción a evaluar es `android.adjustMarginsForEdgeToEdge` en `capacitor.config.ts`.
+- Pendientes sin cambios: #7 (kg un instante con perfil en lb) y #8 («Reintentar» en Mi progreso).
+- Verificación: `npm test` (544 pruebas/57 archivos), `npm run build` y `tsc --noEmit` aprobados. Pendiente: APK y prueba en un celular real del botón atrás y del teclado.
 
-### 2026-11-27 — develop volvió a compilar (botón atrás duplicado)
+### 2026-11-27 — Rediseño del perfil
 
-- Tras fusionar el PR #35, `develop` tenía dos manejos del botón atrás: `ManejadorBotonAtras` (PR #35) y `BotonAtrasAndroid`/`activarBotonAtrasAndroid` (PR #34), pero `services/botonAtras.ts` solo tenía la versión del PR #35. Resultado: `tsc` con errores, 24 pruebas fallando y sin poder compilar la APK.
-- Decisión del usuario: se deja la versión que probó en el celular (Hoy y Login cierran la app; el resto retrocede) y se conserva `useCerrarConBotonAtras` del PR #34 para los diálogos, con `PRIORIDAD_DIALOGO` (100) en `services/botonAtras.ts`. Se quitó `BotonAtrasAndroid` de `App.tsx` y se reescribieron las pruebas del servicio para la versión que queda.
-- Regla: antes de fusionar un PR, comprobar `npx tsc --noEmit`, `npm test` y `npm run build` sobre el resultado de la fusión; que GitHub diga «sin conflictos» no garantiza que compile.
-- Verificación: `tsc --noEmit`, `npm test` (557 pruebas, 3 de 3 ejecuciones) y `npm run build` aprobados.
+- Rama `style/rediseno-perfil` desde `develop` (con el PR #34). Pedido del usuario: un perfil más atractivo, al estilo de las apps de referencia, sin cambiar colores ni la forma de los botones.
+- Opción elegida: «Tarjeta + secciones». Cabecera con avatar de iniciales, meta y cifras (días por semana, sesiones, unidad); «Editar perfil» plegable; secciones Tu entrenamiento, Preferencias y Ayuda con filas ícono + título + detalle + flecha; Borrar datos y Cerrar sesión al final.
+- Añadido `src/utils/perfil.ts` (`inicialesDe`, `contarSesiones`) y estilos `sj-perfil-*`, `sj-menu` y `sj-fila-menu` en `spotter-ui.css`. Se conservaron los textos que comprueban las pruebas existentes (todas siguen pasando sin cambios).
+- Corregido durante el trabajo: el bloque de edición decidía si abrirse antes de cargar el perfil; ahora lo decide al terminar de cargar.
+- Nota: el PR #35 (`fix/boton-atras-android`) quedó con las dos versiones del botón atrás tras fusionar `develop` en él desde GitHub; en una copia temporal no compilaba (8 errores de `tsc`, 24 pruebas fallando). No se fusiona sin revisarlo.
+- Pendiente: revisar el perfil en el celular.
+- Verificación: `npm test` (553 pruebas), `npm run build` y `tsc --noEmit` aprobados.
+- Ajustes tras revisarlo en el celular: barra «Esta semana: X de Y sesiones» en la cabecera (reutiliza `estadoDeLaSemana`), experiencia en lenguaje natural, equipo resumido («Equipo: N tipos») y «Aún no registras sesiones» con cero (`describirExperiencia`, `resumirEquipo`, `describirSesiones` en `src/utils/perfil.ts`).

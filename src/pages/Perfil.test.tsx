@@ -4,7 +4,7 @@ import { MemoryRouter, Route } from 'react-router-dom';
 import { Preferences } from '@capacitor/preferences';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ProveedorPerfil } from '../context/PerfilContext';
-import { perfilLocal, rutinaLocal } from '../repositories/local';
+import { perfilLocal, rutinaLocal, seriesLocal } from '../repositories/local';
 import { asignarRutina } from '../utils/rutina';
 import Perfil from './Perfil';
 import { botonAtras } from '../test/navegacion';
@@ -117,8 +117,8 @@ describe('Perfil', () => {
     );
     const { findByText } = renderizar();
 
-    expect(await findByText(/4 días por semana · Experiencia: más de 6 meses/)).toBeInTheDocument();
-    expect(await findByText('Equipo: barra y discos, poleas')).toBeInTheDocument();
+    expect(await findByText(/4 días por semana · Más de 6 meses de experiencia/)).toBeInTheDocument();
+    expect(await findByText('Equipo: 2 tipos')).toBeInTheDocument();
   });
 
   it('no muestra el resumen si todavía no hay rutina', async () => {
@@ -155,5 +155,120 @@ describe('Perfil', () => {
     fireEvent.click(await findByText('Mis respuestas de salud'));
 
     expect(await findByText('pantalla salud')).toBeInTheDocument();
+  });
+
+  describe('cabecera y secciones', () => {
+    it('muestra el avatar con las iniciales, la meta y las cifras de la cuenta', async () => {
+      await perfilLocal.guardar('usuario-prueba', { nombre: 'Jonathan Escobar', meta: 'tonificar', unidadPeso: 'lb' });
+      await rutinaLocal.guardar(
+        'usuario-prueba',
+        asignarRutina({ experiencia: 'ninguna', diasPorSemana: 4, equipo: ['maquinas'] }),
+      );
+      for (const [indice, fecha] of ['2026-11-20T18:00:00', '2026-11-22T18:00:00'].entries()) {
+        await seriesLocal.guardar('usuario-prueba', {
+          id: `serie-${indice}`,
+          registradaEn: fecha,
+          idEjercicio: 'prensa-piernas',
+          nombreEjercicio: 'Prensa de piernas',
+          dia: 'Día 1 – Piernas',
+          numeroSerie: 1,
+          peso: 40,
+          unidad: 'kg',
+          repeticiones: 12,
+          autoevaluacion: 'normal',
+          estado: 'completada',
+        });
+      }
+      const { findByText, getByRole } = renderizar();
+
+      expect(await findByText('Jonathan Escobar')).toBeInTheDocument();
+      expect(await findByText('JE')).toBeInTheDocument();
+      const resumen = getByRole('region', { name: 'Resumen de tu cuenta' });
+      expect(resumen).toHaveTextContent('Tonificar');
+      await waitFor(() => expect(resumen).toHaveTextContent('Días por semana4'));
+      expect(resumen).toHaveTextContent('Sesiones2');
+      expect(resumen).toHaveTextContent('Unidadlb');
+      expect(await findByText('2 sesiones registradas')).toBeInTheDocument();
+    });
+
+    it('con nombre guardado el bloque de edición empieza cerrado y se abre al tocarlo', async () => {
+      await perfilLocal.guardar('usuario-prueba', { nombre: 'Nayeli', meta: 'fuerza', unidadPeso: 'kg' });
+      const { findByText, getByRole, queryByRole } = renderizar();
+      await findByText('Nayeli');
+
+      const editar = getByRole('button', { name: /Editar perfil/ });
+      await waitFor(() => expect(editar).toHaveAttribute('aria-expanded', 'false'));
+      expect(queryByRole('radiogroup', { name: 'Meta principal' })).not.toBeInTheDocument();
+
+      fireEvent.click(editar);
+
+      expect(editar).toHaveAttribute('aria-expanded', 'true');
+      expect(getByRole('radiogroup', { name: 'Meta principal' })).toBeInTheDocument();
+    });
+
+    it('sin nombre invita a completar el perfil con el bloque de edición abierto', async () => {
+      const { findByText, getByRole } = renderizar();
+
+      expect(await findByText('Completa tu perfil')).toBeInTheDocument();
+      expect(getByRole('button', { name: /Editar perfil/ })).toHaveAttribute('aria-expanded', 'true');
+    });
+
+    it('agrupa los accesos en secciones', async () => {
+      const { findByRole, getByRole } = renderizar();
+
+      const entrenamiento = await findByRole('list', { name: 'Tu entrenamiento' });
+      expect(entrenamiento).toHaveTextContent('Mi rutina');
+      expect(entrenamiento).toHaveTextContent('Mi progreso');
+      expect(entrenamiento).toHaveTextContent('Biblioteca de ejercicios');
+      const preferencias = getByRole('list', { name: 'Preferencias' });
+      expect(preferencias).toHaveTextContent('Unidad de peso');
+      expect(preferencias).toHaveTextContent('Recordatorios');
+      expect(preferencias).toHaveTextContent('Mis respuestas de salud');
+      expect(getByRole('list', { name: 'Ayuda' })).toHaveTextContent('Glosario');
+    });
+  });
+
+  describe('avance de la semana', () => {
+    it('muestra cuántas sesiones de la semana van hechas con una barra de avance', async () => {
+      const rutina = asignarRutina({ experiencia: 'ninguna', diasPorSemana: 4, equipo: ['maquinas'] });
+      await rutinaLocal.guardar('usuario-prueba', rutina);
+      await seriesLocal.guardar('usuario-prueba', {
+        id: 'serie-hoy',
+        registradaEn: new Date().toISOString(),
+        idEjercicio: rutina.dias[0].ejercicios[0].id,
+        nombreEjercicio: rutina.dias[0].ejercicios[0].nombre,
+        dia: rutina.dias[0].nombre,
+        numeroSerie: 1,
+        peso: 20,
+        unidad: 'kg',
+        repeticiones: 12,
+        autoevaluacion: 'normal',
+        estado: 'completada',
+      });
+      const { findByRole } = renderizar();
+
+      const barra = await findByRole('progressbar', { name: /Esta semana: 1 de 4 sesiones/ });
+      expect(barra).toHaveAttribute('aria-valuenow', '1');
+      expect(barra).toHaveAttribute('aria-valuemax', '4');
+      expect((barra.firstElementChild as HTMLElement).style.width).toBe('25%');
+    });
+
+    it('sin rutina no muestra la barra de la semana', async () => {
+      const { findByText, queryByRole } = renderizar();
+      await findByText('Todavía no tienes una rutina');
+
+      expect(queryByRole('progressbar')).not.toBeInTheDocument();
+    });
+
+    it('con cero sesiones invita a registrar la primera', async () => {
+      await rutinaLocal.guardar(
+        'usuario-prueba',
+        asignarRutina({ experiencia: 'ninguna', diasPorSemana: 3, equipo: ['maquinas'] }),
+      );
+      const { findByText } = renderizar();
+
+      expect(await findByText('Aún no registras sesiones')).toBeInTheDocument();
+      expect(await findByText(/3 días por semana · Sin experiencia previa/)).toBeInTheDocument();
+    });
   });
 });
