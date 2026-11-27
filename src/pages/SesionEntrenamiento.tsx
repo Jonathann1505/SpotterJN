@@ -320,6 +320,26 @@ function SesionEntrenamiento() {
 
   return (
     <PantallaSJ atras="/hoy" etiqueta="Sesión de entrenamiento" titulo={dia.nombre} reglaBajoTitulo pie={pie} pieFijo>
+      {/* En el descanso el temporizador va arriba para que sus botones no queden bajo «Sentí dolor». */}
+      {descanso ? (
+        <section className="sj-descanso-bloque" aria-labelledby="descanso-titulo">
+          <h2 className="sj-subtitulo" id="descanso-titulo">Descanso</h2>
+          <TemporizadorDescanso
+            alTerminar={(motivo) => {
+              if (motivo === 'saltado') {
+                void cancelarAvisoDescanso();
+              }
+              setDescanso(null);
+              setFinDescanso(null);
+            }}
+            alCambiarFin={setFinDescanso}
+          />
+          <p className="sj-texto sj-suave">
+            Serie anterior: {descanso.repeticiones} repeticiones ·{' '}
+            {descanso.peso === null ? 'peso corporal' : `${descanso.peso} ${perfil.unidadPeso}`}
+          </p>
+        </section>
+      ) : null}
       <section className="sj-tarjeta" aria-labelledby="ejercicio-actual">
         <p className="sj-eyebrow">
           Ejercicio {progreso.indiceEjercicio + 1} de {dia.ejercicios.length}
@@ -334,25 +354,7 @@ function SesionEntrenamiento() {
         </p>
       </section>
 
-      {descanso ? (
-        <section aria-labelledby="descanso-titulo">
-          <h3 className="sj-subtitulo" id="descanso-titulo">Descanso</h3>
-          <p className="sj-texto sj-suave">
-            Serie anterior: {descanso.repeticiones} repeticiones ·{' '}
-            {descanso.peso === null ? 'peso corporal' : `${descanso.peso} ${perfil.unidadPeso}`}
-          </p>
-          <TemporizadorDescanso
-            alTerminar={(motivo) => {
-              if (motivo === 'saltado') {
-                void cancelarAvisoDescanso();
-              }
-              setDescanso(null);
-              setFinDescanso(null);
-            }}
-            alCambiarFin={setFinDescanso}
-          />
-        </section>
-      ) : (
+      {descanso ? null : (
         <>
       <ContadorNumerico
         etiqueta="Repeticiones logradas"

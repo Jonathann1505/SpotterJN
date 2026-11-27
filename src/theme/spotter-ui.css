@@ -221,14 +221,28 @@ ion-content {
 .sj-descanso {
   display: grid;
   justify-items: center;
-  gap: var(--sj-espacio-5);
-  padding: var(--sj-espacio-6) 0;
+  gap: var(--sj-espacio-3);
+  padding: var(--sj-espacio-2) 0 var(--sj-espacio-3);
 }
 
+/* El círculo se achica en pantallas bajas para que los botones quepan sin desplazarse. */
 .sj-descanso-circulo {
   position: relative;
-  width: min(15rem, 70vw);
+  width: min(12rem, 55vw, 30vh);
   aspect-ratio: 1;
+}
+
+.sj-descanso-bloque {
+  margin-bottom: var(--sj-espacio-4);
+}
+
+.sj-descanso-bloque .sj-subtitulo {
+  margin-top: 0;
+}
+
+.sj-descanso-bloque .sj-texto {
+  margin: 0;
+  text-align: center;
 }
 
 .sj-descanso-circulo svg {
@@ -273,6 +287,7 @@ ion-content {
 }
 
 .sj-descanso-controles button {
+  flex: 1 1 0;
   min-height: 3rem;
   padding: 0.5rem 0.85rem;
   border: 2px solid var(--sj-ink);
@@ -281,6 +296,11 @@ ion-content {
   font: inherit;
   font-weight: 700;
   cursor: pointer;
+}
+
+/* «Saltar descanso» es la acción más usada: ocupa más que −30 s y +30 s. */
+.sj-descanso-controles button:last-child {
+  flex-grow: 2;
 }
 
 .sj-descanso-controles button:focus-visible {

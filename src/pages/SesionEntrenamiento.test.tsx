@@ -484,6 +484,20 @@ describe('SesionEntrenamiento', () => {
         expect(screen.queryByRole('radiogroup')).not.toBeInTheDocument();
       });
 
+      it('pone el temporizador y sus botones antes del ejercicio para que no queden bajo «Sentí dolor»', async () => {
+        await iniciar();
+        await guardarSinSaltar('Normal');
+
+        const descanso = (await screen.findByRole('heading', { name: 'Descanso' })).closest('section') as HTMLElement;
+        const ejercicio = screen.getByText('Serie 2 de 2').closest('section') as HTMLElement;
+        expect(descanso.compareDocumentPosition(ejercicio) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+        const controles = within(descanso).getByRole('group', { name: 'Temporizador de descanso' });
+        expect(within(controles).getByRole('button', { name: 'Restar 30 segundos' })).toBeInTheDocument();
+        expect(within(controles).getByRole('button', { name: 'Sumar 30 segundos' })).toBeInTheDocument();
+        expect(within(controles).getByRole('button', { name: 'Saltar descanso' })).toBeInTheDocument();
+        expect(screen.getByText('Sentí dolor')).toBeInTheDocument();
+      });
+
       it('Saltar descanso vuelve al registro de la siguiente serie', async () => {
         await iniciar();
         await guardarSinSaltar('Normal');
