@@ -245,3 +245,13 @@
 - Verificación: `npm test` (490 pruebas/55 archivos), `npm run build`, `tsc --noEmit` y `gradlew assembleDebug` aprobados; la APK incluye los permisos de alarma exacta.
 
 - Seguimiento (mismo día): en Android 14 seguía sin «saltar». En un emulador, con depuración remota del WebView, se comprobó que la notificación sí se publicaba a la hora exacta, pero por el canal `default` del plugin (importancia 3): solo un ícono en la barra de estado. Con un canal propio `descanso` de importancia 5 Android muestra la ventana emergente. `programarAvisoDescanso` crea ese canal y envía el aviso por él (commit `d1ec259`).
+
+### 2026-11-27 — Botón atrás físico de Android
+
+- Rama `fix/boton-atras-android` desde `develop` (con los PR #30 a #33).
+- Causa: sin `@capacitor/app` el botón físico no llegaba a Ionic y Android cerraba la app desde cualquier pantalla. La nota del 2026-11-13 («lo gestiona `IonRouterOutlet`») era incorrecta.
+- Se instaló `@capacitor/app` 7.1.1 (commit chore con las líneas del plugin en los dos `.gradle`; desde entonces esos archivos ya no aparecen modificados por finales de línea).
+- Añadidos `src/utils/botonAtras.ts` (`decidirBotonAtras`, `RUTA_PADRE`), `src/services/botonAtras.ts` (`activarBotonAtras`, `salirDeLaApp`) y `ManejadorBotonAtras` en `App.tsx`. Decisión del usuario: Hoy y Login cierran la app, el flujo inicial no se sale y las demás pantallas retroceden.
+- Pruebas: `botonAtras.test.ts` y `ManejadorBotonAtras.test.tsx` simulan el evento `ionBackButton`.
+- Se subió `testTimeout` de Vitest a 15 s: la suite completa fallaba de forma intermitente por tiempo en pruebas con el router de Ionic, también en `develop` sin cambios (comprobado en un worktree temporal). Un commit de esta rama (`3b5a490`) se subió con una de esas fallas intermitentes; las ejecuciones posteriores pasaron 5 de 5.
+- Pendiente: probar el botón físico en el celular.

@@ -158,7 +158,11 @@ Toda pantalla **secundaria** usa el encabezado con el botón atrás nativo de Io
 - Ionic adapta el estilo a la plataforma: solo flecha en Android (modo `md`) y «‹ Atrás» en iOS. No se fuerza un modo.
 - Es transparente, sin borde ni sombra, con la flecha en el color de texto del tema. Tiene la etiqueta «Volver» para lectores de pantalla y una zona táctil mínima de 44×44 px.
 - El toolbar reserva el área segura superior; la clase `sj-con-encabezado` reduce el margen del contenido para no duplicarla.
-- El botón físico de Android y el gesto de deslizar en iOS los gestiona `IonRouterOutlet`; no hay manejadores propios.
+- **Botón atrás físico de Android:** sin el plugin `@capacitor/app` (7.1.1) Android cerraba la app con cualquier pulsación. Con el plugin, `activarBotonAtras` (`src/services/botonAtras.ts`) escucha su evento `backButton` para que Ionic reciba el botón, y `ManejadorBotonAtras` (dentro de `IonReactRouter`, prioridad 10: por debajo de los diálogos de Ionic y por encima del router) aplica `decidirBotonAtras` (`src/utils/botonAtras.ts`):
+  - Con un diálogo propio abierto (glosario, ajuste de peso) lo cierra; con un diálogo de Ionic obligatorio («Sentí dolor», permiso del aviso) no hace nada.
+  - En Hoy y Login cierra la app; en `/aviso-medico` y `/salud` no hace nada para no salir a mitad del registro.
+  - En las demás pantallas vuelve a la anterior o, si no hay historial, a su pantalla padre (`RUTA_PADRE`, las mismas rutas que la flecha del encabezado). Una pantalla secundaria nueva debe añadirse a `RUTA_PADRE`.
+- El gesto de deslizar en iOS lo gestiona `IonRouterOutlet`.
 - `defaultHref` solo se usa si no hay historial (por ejemplo, al abrir la app en esa pantalla); si lo hay, se vuelve a la pantalla anterior.
 
 | Pantalla | Ruta | `atras` |
