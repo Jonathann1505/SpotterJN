@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { IonIcon, IonInput } from '@ionic/react';
 import {
   barbellOutline,
@@ -54,7 +54,7 @@ function FilaMenu({ icono, titulo, detalle, onClick }: PropiedadesFilaMenu) {
 }
 
 function Perfil() {
-  const { perfil, guardarPerfil } = usePerfil();
+  const { perfil, cargando: cargandoPerfil, guardarPerfil } = usePerfil();
   const [nombre, setNombre] = useState(perfil.nombre);
   const [meta, setMeta] = useState<MetaPrincipal>(perfil.meta);
   const [nombreTocado, setNombreTocado] = useState(false);
@@ -64,6 +64,14 @@ function Perfil() {
   const [sesionesHechas, setSesionesHechas] = useState<number | null>(null);
   // El bloque de edición empieza abierto si aún no hay nombre, para invitar a completarlo.
   const [editando, setEditando] = useState(perfil.nombre.trim() === '');
+  // Si la pantalla se monta antes de que cargue el perfil, se decide al terminar de cargarlo (una sola vez).
+  const editandoDecidido = useRef(!cargandoPerfil);
+  useEffect(() => {
+    if (!cargandoPerfil && !editandoDecidido.current) {
+      editandoDecidido.current = true;
+      setEditando(perfil.nombre.trim() === '');
+    }
+  }, [cargandoPerfil, perfil.nombre]);
   const history = useHistory();
   const { sesion } = useSesion();
   const usuarioId = sesion?.user.id ?? null;
