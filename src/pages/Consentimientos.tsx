@@ -4,7 +4,6 @@ import {
   IonButton,
   IonCheckbox,
   IonItem,
-  IonLabel,
 } from '@ionic/react';
 import { Link, useHistory } from 'react-router-dom';
 import { MarcoAccesoSJ } from '../components/PantallaSJ';
@@ -71,30 +70,46 @@ function Consentimientos() {
       <div className="sj-acceso-checks">
         <IonItem className="sj-check-row" lines="none">
           <IonCheckbox
+            labelPlacement="end"
+            justify="start"
+            alignment="start"
             checked={mayorEdad}
             onIonChange={(evento) => setMayorEdad(evento.detail.checked === true)}
             aria-label="Soy mayor de 18 años"
-          />
-          <IonLabel>Soy mayor de 18 años</IonLabel>
+          >
+            Soy mayor de 18 años
+          </IonCheckbox>
         </IonItem>
-        <IonItem className="sj-check-row" lines="none">
-          <IonCheckbox
-            checked={terminosAceptados}
-            onIonChange={(evento) => setTerminosAceptados(evento.detail.checked === true)}
-            aria-label="Acepto los términos y la política de privacidad"
-          />
-          <IonLabel>
-            Acepto los <Link to="/terminos">términos</Link> y la{' '}
+        <div className="sj-check-grupo">
+          <IonItem className="sj-check-row" lines="none">
+            <IonCheckbox
+              labelPlacement="end"
+              justify="start"
+              alignment="start"
+              checked={terminosAceptados}
+              onIonChange={(evento) => setTerminosAceptados(evento.detail.checked === true)}
+              aria-label="Acepto los términos y la política de privacidad"
+            >
+              Acepto los términos y la política de privacidad
+            </IonCheckbox>
+          </IonItem>
+          {/* Los enlaces van fuera de la casilla: si estuvieran dentro, tocarlos también la marcaría. */}
+          <p className="sj-check-enlaces">
+            Leer los <Link to="/terminos">términos</Link> y la{' '}
             <Link to="/privacidad">política de privacidad</Link>
-          </IonLabel>
-        </IonItem>
+          </p>
+        </div>
         <IonItem className="sj-check-row" lines="none">
           <IonCheckbox
+            labelPlacement="end"
+            justify="start"
+            alignment="start"
             checked={datosSaludAutorizados}
             onIonChange={(evento) => setDatosSaludAutorizados(evento.detail.checked === true)}
             aria-label="Autorizo el uso de mis datos de salud"
-          />
-          <IonLabel>Autorizo el uso de mis datos de salud (opcional)</IonLabel>
+          >
+            Autorizo el uso de mis datos de salud (opcional)
+          </IonCheckbox>
         </IonItem>
       </div>
       <IonButton
