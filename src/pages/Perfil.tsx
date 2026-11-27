@@ -6,6 +6,7 @@ import BorrarDatos from '../components/BorrarDatos';
 import CerrarSesion from '../components/CerrarSesion';
 import { usePerfil } from '../context/PerfilContext';
 import { useSesion } from '../context/SesionContext';
+import { useRecargaAlVolver } from '../hooks/useRecargaAlVolver';
 import { rutinaLocal } from '../repositories/local';
 import { METAS_PRINCIPALES, type MetaPrincipal, type RutinaAsignada, type UnidadPeso } from '../types/perfil';
 import { ETIQUETAS_EQUIPO, ETIQUETAS_EXPERIENCIA, ETIQUETAS_META } from '../utils/etiquetasRutina';
@@ -25,6 +26,8 @@ function Perfil() {
   const { sesion } = useSesion();
   const usuarioId = sesion?.user.id ?? null;
   const nombreValido = esNombreValido(nombre);
+  // Al volver de cambiar la rutina, Perfil sigue montado en la pila de Ionic: recarga «Tu rutina actual».
+  const recarga = useRecargaAlVolver('/perfil');
 
   useEffect(() => {
     if (usuarioId === null) {
@@ -44,7 +47,7 @@ function Perfil() {
     return () => {
       activo = false;
     };
-  }, [usuarioId]);
+  }, [usuarioId, recarga]);
 
   useEffect(() => {
     setNombre(perfil.nombre);
