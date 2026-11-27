@@ -1,6 +1,7 @@
 import { act, cleanup, renderHook } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { PRIORIDAD_DIALOGO, PRIORIDAD_NAVEGACION } from '../services/botonAtras';
+import { PRIORIDAD_BOTON_ATRAS } from '../components/ManejadorBotonAtras';
+import { PRIORIDAD_DIALOGO } from '../services/botonAtras';
 import { useCerrarConBotonAtras } from './useCerrarConBotonAtras';
 
 interface Registro {
@@ -30,7 +31,7 @@ describe('useCerrarConBotonAtras', () => {
     const registros = pulsarAtras();
     expect(registros).toHaveLength(1);
     expect(registros[0].prioridad).toBe(PRIORIDAD_DIALOGO);
-    expect(PRIORIDAD_DIALOGO).toBeGreaterThan(PRIORIDAD_NAVEGACION);
+    expect(PRIORIDAD_DIALOGO).toBeGreaterThan(PRIORIDAD_BOTON_ATRAS);
 
     act(() => registros[0].manejador());
     expect(cerrar).toHaveBeenCalledTimes(1);

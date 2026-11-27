@@ -1,6 +1,12 @@
 import { App } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
 
+/**
+ * Prioridad de los diálogos propios (useCerrarConBotonAtras): por encima de ManejadorBotonAtras (10) y del
+ * router de Ionic (0), para que el botón atrás cierre primero el diálogo abierto.
+ */
+export const PRIORIDAD_DIALOGO = 100;
+
 function esNativo(): boolean {
   try {
     return Capacitor.isNativePlatform();
