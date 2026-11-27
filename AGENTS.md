@@ -265,3 +265,4 @@
 - Nota: el PR #35 (`fix/boton-atras-android`) quedó con las dos versiones del botón atrás tras fusionar `develop` en él desde GitHub; en una copia temporal no compilaba (8 errores de `tsc`, 24 pruebas fallando). No se fusiona sin revisarlo.
 - Pendiente: revisar el perfil en el celular.
 - Verificación: `npm test` (553 pruebas), `npm run build` y `tsc --noEmit` aprobados.
+- Ajustes tras revisarlo en el celular: barra «Esta semana: X de Y sesiones» en la cabecera (reutiliza `estadoDeLaSemana`), experiencia en lenguaje natural, equipo resumido («Equipo: N tipos») y «Aún no registras sesiones» con cero (`describirExperiencia`, `resumirEquipo`, `describirSesiones` en `src/utils/perfil.ts`).

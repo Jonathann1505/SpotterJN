@@ -196,9 +196,9 @@ Ionic conserva en la pila las pantallas anteriores: al volver a ellas (con el bo
 
 El perfil sigue el patrón de las apps de entrenamiento más usadas (cabecera de resumen y listas de ajustes), con los colores, la tipografía, las esquinas rectas y los botones del tema:
 
-- **Cabecera** (`sj-tarjeta`): avatar cuadrado con las iniciales del nombre (`inicialesDe`, `src/utils/perfil.ts`; sin nombre muestra un ícono y «Completa tu perfil»), la meta principal y tres cifras: días por semana de la rutina, sesiones registradas (`contarSesiones`: fechas distintas con series completadas de un día de la rutina) y la unidad de peso.
+- **Cabecera** (`sj-tarjeta`): avatar cuadrado con las iniciales del nombre (`inicialesDe`, `src/utils/perfil.ts`; sin nombre muestra un ícono y «Completa tu perfil»), la meta principal y tres cifras: días por semana de la rutina, sesiones registradas (`contarSesiones`: fechas distintas con series completadas de un día de la rutina) y la unidad de peso. Con rutina, debajo muestra «Esta semana: X de Y sesiones» con una barra de avance (`role="progressbar"`), calculada con `estadoDeLaSemana`.
 - **Editar perfil**: bloque plegable (`aria-expanded`) con el nombre, la meta y «Guardar cambios». Empieza abierto solo si aún no hay nombre.
-- **Secciones** con filas de ícono, título, detalle y flecha (`sj-menu`, `sj-fila-menu`): «Tu entrenamiento» (Mi rutina con días, experiencia y equipo; Mi progreso con las sesiones; Biblioteca), «Preferencias» (unidad de peso con su selector kg/lb, Recordatorios, Mis respuestas de salud) y «Ayuda» (Glosario). «Borrar datos» y «Cerrar sesión» siguen al final.
+- **Secciones** con filas de ícono, título, detalle y flecha (`sj-menu`, `sj-fila-menu`): «Tu entrenamiento» (Mi rutina con días, experiencia en lenguaje natural —«Sin experiencia previa»— y el equipo resumido —«Equipo: 4 tipos»—; Mi progreso con las sesiones o «Aún no registras sesiones»; Biblioteca), «Preferencias» (unidad de peso con su selector kg/lb, Recordatorios, Mis respuestas de salud) y «Ayuda» (Glosario). «Borrar datos» y «Cerrar sesión» siguen al final.
 - Las filas se oscurecen al tocarlas (`microinteracciones.css`) y recargan sus datos al volver al perfil (`useRecargaAlVolver`).
 
 ### Animaciones y microinteracciones
