@@ -299,7 +299,7 @@ La ruta protegida `/sesion`, accesible desde «Empezar entrenamiento» en Hoy, c
 
 - Después de guardar una serie que **no** es la última del ejercicio, el registro se reemplaza por el bloque «Descanso», que se muestra arriba, antes de la tarjeta del ejercicio: el temporizador de 90 segundos (círculo compacto que se achica en pantallas bajas; −30 s, +30 s y «Saltar descanso», más ancho, en una sola fila) y la referencia de la serie anterior («Serie anterior: N repeticiones · peso» o «peso corporal»). Así sus botones no quedan tapados por el pie fijo de «Sentí dolor». La tarjeta ya indica la serie siguiente.
 - Al llegar a cero o con «Saltar descanso» vuelve el registro de la siguiente serie, con la autoevaluación sin elegir. Las repeticiones y el peso se conservan dentro del mismo ejercicio.
-- No hay descanso tras la última serie de un ejercicio (se pasa al siguiente) ni tras la última de la sesión.
+- Al cambiar de ejercicio también hay descanso de 90 segundos, para preparar la máquina: la tarjeta ya muestra el próximo ejercicio y el bloque añade «Prepárate para …»; el aviso en segundo plano dice «Descanso terminado. Sigue …». Solo no hay descanso tras la última serie de la sesión.
 - «Sentí dolor» sigue visible durante el descanso; al confirmarlo se cierra el descanso y se pasa al siguiente ejercicio.
 
 #### Aviso de fin de descanso (RF-11)

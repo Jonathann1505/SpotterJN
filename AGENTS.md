@@ -285,3 +285,8 @@
 
 - Pedido del usuario: la tarjeta del ejercicio era muy grande (en el registro y en el descanso). Ahora es compacta: `MiniaturaEjercicio` + «Ejercicio N de M» + nombre en una fila; «Serie X de Y» con cuadros por serie y el chip «Objetivo N reps»; barra de avance de la sesión en el borde superior. Mismos colores y formas cuadradas.
 - Se conservan los textos «Ejercicio N de M» y «Serie X de Y» y el `aria-live` de la serie, de los que dependen las pruebas.
+
+### 2026-11-27 — Descanso también al cambiar de ejercicio
+
+- Decisión del usuario («Sí, 90 s igual»): tras la última serie de un ejercicio también se descansa 90 s antes del siguiente, con los mismos controles y aviso. El estado `descanso` tiene `proximoEjercicio` (solo entre ejercicios) para mostrar «Prepárate para …». No hay descanso tras la última serie de la sesión.
+- Las pruebas que recorren varios ejercicios usan `guardarCon`, que salta el descanso si aparece; la prueba «no muestra descanso tras la última serie del ejercicio» se reemplazó por una que exige el descanso entre ejercicios.
