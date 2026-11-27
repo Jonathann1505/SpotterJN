@@ -532,13 +532,37 @@ describe('SesionEntrenamiento', () => {
         expect(estaDeshabilitado(botonGuardar())).toBe(true);
       });
 
-      it('no muestra descanso después de la última serie del ejercicio ni de la sesión', async () => {
+      it('al cambiar de ejercicio también descansa y muestra el próximo ejercicio', async () => {
         await iniciar();
         await guardarCon('Fácil');
         await guardarSinSaltar('Normal');
 
-        expect(await screen.findByRole('heading', { name: 'Flexiones' })).toBeInTheDocument();
-        expect(screen.queryByRole('heading', { name: 'Descanso' })).not.toBeInTheDocument();
+        expect(await screen.findByRole('heading', { name: 'Descanso' })).toBeInTheDocument();
+        expect(screen.getByRole('timer')).toBeInTheDocument();
+        expect(screen.getByText('Flexiones', { selector: 'strong' })).toBeInTheDocument();
+        expect(screen.getByText(/Prepárate para/)).toHaveTextContent('Prepárate para Flexiones');
+        expect(screen.getByRole('heading', { name: 'Flexiones' })).toBeInTheDocument();
+        expect(screen.getByText('Ejercicio 2 de 2')).toBeInTheDocument();
+        expect(screen.queryByText('Guardar serie')).not.toBeInTheDocument();
+
+        fireEvent.click(screen.getByRole('button', { name: 'Saltar descanso' }));
+        expect(await screen.findByText('Guardar serie')).toBeInTheDocument();
+        expect(screen.getByText('Serie 1 de 1')).toBeInTheDocument();
+      });
+
+      it('entre series del mismo ejercicio no anuncia otro ejercicio', async () => {
+        await iniciar();
+        await guardarSinSaltar('Normal');
+
+        await screen.findByRole('heading', { name: 'Descanso' });
+        expect(screen.queryByText(/Prepárate para/)).not.toBeInTheDocument();
+      });
+
+      it('no muestra descanso después de la última serie de la sesión', async () => {
+        await iniciar();
+        await guardarCon('Fácil');
+        await guardarCon('Normal');
+        await screen.findByRole('heading', { name: 'Flexiones' });
 
         await guardarSinSaltar('Difícil');
         expect(await screen.findByRole('heading', { name: 'Sesión completada' })).toBeInTheDocument();

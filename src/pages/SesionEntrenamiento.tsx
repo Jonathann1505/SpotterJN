@@ -58,7 +58,13 @@ function SesionEntrenamiento() {
   const [seriesDeLaSesion, setSeriesDeLaSesion] = useState<SerieRegistrada[]>([]);
   // Series y ajustes anteriores a esta sesión: dan el peso de partida de cada ejercicio (RF-15, RF-17).
   const [previas, setPrevias] = useState<{ series: SerieRegistrada[]; ajustes: AjustesPeso }>({ series: [], ajustes: {} });
-  const [descanso, setDescanso] = useState<{ repeticiones: number; peso: number | null; aviso: string } | null>(null);
+  // `proximoEjercicio` solo se llena cuando el descanso es entre dos ejercicios.
+  const [descanso, setDescanso] = useState<{
+    repeticiones: number;
+    peso: number | null;
+    aviso: string;
+    proximoEjercicio: string | null;
+  } | null>(null);
   // Hora real de fin del descanso en curso, para el aviso en segundo plano (RF-11).
   const [finDescanso, setFinDescanso] = useState<number | null>(null);
   const [preguntarAviso, setPreguntarAviso] = useState(false);
@@ -304,15 +310,22 @@ function SesionEntrenamiento() {
       setGuardando(false);
     }
     const siguiente = avanzarSerie(progreso, dia);
-    if (siguiente.indiceEjercicio !== progreso.indiceEjercicio) {
+    const proximo = dia.ejercicios[siguiente.indiceEjercicio];
+    const cambiaDeEjercicio = siguiente.indiceEjercicio !== progreso.indiceEjercicio;
+    if (cambiaDeEjercicio) {
       setRepeticiones(null);
       setPeso(null);
-    } else if (!siguiente.completada) {
-      // Quedan series de este ejercicio: se descansa antes de la siguiente.
+    }
+    if (!siguiente.completada && proximo) {
+      // Se descansa antes de cada serie, también al cambiar de ejercicio (para preparar la máquina);
+      // tras la última serie de la sesión no hay descanso.
       setDescanso({
         repeticiones: repeticionesActuales,
         peso: pesoCorporal ? null : pesoActual,
-        aviso: `Descanso terminado. Vamos con la serie ${siguiente.serie} de ${ejercicio.series}.`,
+        aviso: cambiaDeEjercicio
+          ? `Descanso terminado. Sigue ${proximo.nombre}.`
+          : `Descanso terminado. Vamos con la serie ${siguiente.serie} de ${ejercicio.series}.`,
+        proximoEjercicio: cambiaDeEjercicio ? proximo.nombre : null,
       });
     }
     setProgreso(siguiente);
@@ -349,6 +362,11 @@ function SesionEntrenamiento() {
             Serie anterior: {descanso.repeticiones} repeticiones ·{' '}
             {descanso.peso === null ? 'peso corporal' : `${descanso.peso} ${perfil.unidadPeso}`}
           </p>
+          {descanso.proximoEjercicio === null ? null : (
+            <p className="sj-texto">
+              Prepárate para <strong>{descanso.proximoEjercicio}</strong>
+            </p>
+          )}
         </section>
       ) : null}
       <section className="sj-tarjeta sj-ejercicio-actual" aria-labelledby="ejercicio-actual">
