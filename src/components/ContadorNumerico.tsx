@@ -70,7 +70,11 @@ function ContadorNumerico({
   };
 
   const corregirBorrador = (): void => {
-    const valorCorregido = limitarValor(numeroBorrador, minimo, maximo);
+    // Un campo vacío o ilegible no es un cero: se recupera el último valor válido para no guardar
+    // en silencio un dato que el usuario no escribió. Fuera de rango, se ajusta al límite visible.
+    const valorCorregido = Number.isFinite(numeroBorrador)
+      ? limitarValor(numeroBorrador, minimo, maximo)
+      : limitarValor(valor, minimo, maximo);
     setBorrador(formatearValor(valorCorregido));
     if (!Number.isFinite(numeroBorrador) || numeroBorrador !== valorCorregido) {
       onChange(valorCorregido);

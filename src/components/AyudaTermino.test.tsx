@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render } from '@testing-library/react';
+import { act, cleanup, fireEvent, render } from '@testing-library/react';
 import { IonApp } from '@ionic/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import { AyudaTermino } from './AyudaTermino';
@@ -25,6 +25,23 @@ describe('AyudaTermino', () => {
     const dialogo = getByRole('dialog');
     expect(dialogo).toHaveTextContent('Serie');
     expect(dialogo).toHaveTextContent(/grupo de repeticiones/i);
+  });
+
+  it('se cierra con el botón atrás de Android', () => {
+    const { getByRole, queryByRole } = renderizar('fallo', 'fallo');
+    fireEvent.click(getByRole('button', { name: '¿Qué es fallo?' }));
+    expect(getByRole('dialog')).toBeInTheDocument();
+
+    const manejadores: Array<{ prioridad: number; manejador: () => void }> = [];
+    document.dispatchEvent(
+      new CustomEvent('ionBackButton', {
+        detail: { register: (prioridad: number, manejador: () => void) => manejadores.push({ prioridad, manejador }) },
+      }),
+    );
+    const [masPrioritario] = manejadores.sort((a, b) => b.prioridad - a.prioridad);
+    act(() => masPrioritario.manejador());
+
+    expect(queryByRole('dialog')).not.toBeInTheDocument();
   });
 
   it('se cierra con el botón Entendido, con Escape y tocando el fondo', () => {

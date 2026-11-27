@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { IonIcon } from '@ionic/react';
 import { createOutline } from 'ionicons/icons';
 import type { UnidadPeso } from '../types/perfil';
+import { useCerrarConBotonAtras } from '../hooks/useCerrarConBotonAtras';
 import { PESO_MAXIMO_MANUAL, esPesoManualValido } from '../utils/progresion';
 import ContadorNumerico from './ContadorNumerico';
 import { BotonSJ } from './PantallaSJ';
@@ -32,6 +33,13 @@ export function PesoAjustable({ nombreEjercicio, peso, unidad, alGuardar }: Prop
     // Devuelve el foco al peso que abrió el diálogo.
     window.setTimeout(() => disparador.current?.focus(), 0);
   };
+
+  // El botón atrás de Android cierra el diálogo (salvo mientras guarda) en vez de cambiar de pantalla.
+  useCerrarConBotonAtras(abierto, () => {
+    if (!guardando) {
+      cerrar();
+    }
+  });
 
   useEffect(() => {
     if (!abierto) {

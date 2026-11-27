@@ -6,7 +6,7 @@ import {
   IonSpinner,
 } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
-import type { PropsWithChildren } from 'react';
+import { useEffect, type PropsWithChildren } from 'react';
 import { Redirect, Route } from 'react-router-dom';
 import BannerSinConexion from './components/BannerSinConexion';
 import ManejadorBotonAtras from './components/ManejadorBotonAtras';
@@ -31,6 +31,7 @@ import RutinaAsignada from './pages/RutinaAsignada';
 import SesionEntrenamiento from './pages/SesionEntrenamiento';
 import { ProveedorPerfil } from './context/PerfilContext';
 import { ProveedorSesion, useSesion } from './context/SesionContext';
+import { activarBotonAtrasAndroid } from './services/botonAtras';
 
 function RutaInvitado({ children }: PropsWithChildren) {
   const { sesion } = useSesion();
@@ -160,9 +161,16 @@ function RutasAplicacion() {
   );
 }
 
+/** En Android, el botón atrás físico vuelve como el de la pantalla y nunca cierra la app. */
+function BotonAtrasAndroid() {
+  useEffect(() => activarBotonAtrasAndroid(), []);
+  return null;
+}
+
 function App() {
   return (
     <IonApp>
+      <BotonAtrasAndroid />
       <BannerSinConexion />
       <ProveedorSesion>
         <ProveedorPerfil>
