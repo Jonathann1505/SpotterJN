@@ -269,7 +269,7 @@ La ruta protegida `/sesion`, accesible desde «Empezar entrenamiento» en Hoy, c
 
 ### Registro de serie y autoevaluación (RF-10)
 
-- Para el ejercicio actual se muestran «Ejercicio N de M» y «Serie X de Y» según la rutina, con el objetivo de repeticiones.
+- El ejercicio actual va en una tarjeta compacta: miniatura animada, «Ejercicio N de M» y el nombre; debajo, «Serie X de Y» con un cuadro por serie (hechas en negro, la actual en azul, las que faltan vacías) y el chip «Objetivo N reps». Una barra fina en el borde superior muestra el avance de toda la sesión en series (`progressbar` «Avance de la sesión»).
 - `ContadorNumerico` de repeticiones (0 a 50, paso 1) y de peso en la unidad del perfil (paso de 0,5 kg o 1 lb). En ejercicios de peso corporal (equipo `peso-corporal` del catálogo o sin carga inicial) no se muestra el contador de peso.
 - Autoevaluación de selección única Fácil, Normal o Difícil (`role="radiogroup"` con botones `role="radio"` y la clase `sj-segmento`).
 - «Guardar serie» está deshabilitado hasta elegir una autoevaluación. Al guardar avanza a la siguiente serie y reinicia la autoevaluación; tras la última serie pasa al siguiente ejercicio (serie 1), y tras el último ejercicio muestra «Sesión completada» con «Volver a Hoy».

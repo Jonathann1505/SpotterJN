@@ -280,3 +280,8 @@
 - Pedido de Nayeli: en Crear cuenta el texto quedaba lejos de la casilla. Causa: dentro de `IonItem`, `ion-checkbox` ocupa todo el ancho (`flex: 1`) y la `IonLabel` hermana quedaba al otro lado. Ahora el texto va dentro de `IonCheckbox` (`labelPlacement="end"`, `justify="start"`, `alignment="start"`) y `::part(label)` permite varias líneas. Los enlaces a términos y privacidad van fuera de la casilla porque, dentro, tocarlos también la marcaría.
 - Se mantienen los `aria-label` de cada casilla para no cambiar los nombres accesibles.
 - Descanso: los botones −30 s, +30 s y «Saltar descanso» quedaban bajo el pie fijo de «Sentí dolor» y había que desplazar. El bloque «Descanso» va ahora antes de la tarjeta del ejercicio, el círculo usa `min(12rem, 55vw, 30vh)` y los tres botones van en una fila. «Sentí dolor» sigue en el pie fijo (RF-13).
+
+### 2026-11-27 — Tarjeta compacta del ejercicio en la sesión
+
+- Pedido del usuario: la tarjeta del ejercicio era muy grande (en el registro y en el descanso). Ahora es compacta: `MiniaturaEjercicio` + «Ejercicio N de M» + nombre en una fila; «Serie X de Y» con cuadros por serie y el chip «Objetivo N reps»; barra de avance de la sesión en el borde superior. Mismos colores y formas cuadradas.
+- Se conservan los textos «Ejercicio N de M» y «Serie X de Y» y el `aria-live` de la serie, de los que dependen las pruebas.
