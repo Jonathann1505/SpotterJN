@@ -144,7 +144,7 @@ Tokens principales:
 
 Para nuevas pantallas autenticadas o de entrenamiento, usa `PantallaSJ` y `BotonSJ` desde `src/components/PantallaSJ.tsx`. `PantallaSJ` ofrece el encabezado y el marco con áreas seguras; `BotonSJ` expone las variantes `principal`, `secundario` y `texto`. Para acceso, `MarcoAccesoSJ`, `LogoSJ` y `PestanasAccesoSJ` comparten el diseño del logo y las pestañas. Estas navegan por las rutas existentes y mantienen el paso obligatorio de Consentimientos antes del registro.
 
-Los campos Ionic usan la clase `sj-campo` y una etiqueta visible; las casillas de acceso reciben el estilo compartido por `.sj-acceso`. `sj-tarjeta` sirve para superficies con borde, los estados usan `sj-error` y `sj-ok`, y las cargas de contenido usan `CargandoSJ` (skeletons con la forma de la pantalla); `sj-cargando` queda solo para la verificación inicial de sesión. Las alertas, cargas, toast y modales de Ionic reciben colores, tipografía y bordes del tema global. No dupliques valores de color, radios, espacios o tamaños en hojas de estilo de páginas; usa los tokens o las clases compartidas. Las pantallas respetan las áreas seguras con `env(safe-area-inset-*)`.
+Los campos Ionic usan la clase `sj-campo` y una etiqueta visible; las casillas de acceso reciben el estilo compartido por `.sj-acceso` y llevan el texto dentro de `IonCheckbox` (`labelPlacement="end"`, `justify="start"`), pegado al cuadro; tocar el texto también marca la casilla. Los enlaces a términos y privacidad van en una línea aparte, fuera de la casilla, para que tocarlos no la marque. `sj-tarjeta` sirve para superficies con borde, los estados usan `sj-error` y `sj-ok`, y las cargas de contenido usan `CargandoSJ` (skeletons con la forma de la pantalla); `sj-cargando` queda solo para la verificación inicial de sesión. Las alertas, cargas, toast y modales de Ionic reciben colores, tipografía y bordes del tema global. No dupliques valores de color, radios, espacios o tamaños en hojas de estilo de páginas; usa los tokens o las clases compartidas. Las pantallas respetan las áreas seguras con `env(safe-area-inset-*)`.
 
 ### Navegación hacia atrás
 
@@ -297,7 +297,7 @@ La ruta protegida `/sesion`, accesible desde «Empezar entrenamiento» en Hoy, c
 
 ### Descanso entre series (RF-11)
 
-- Después de guardar una serie que **no** es la última del ejercicio, el registro se reemplaza por el bloque «Descanso»: la referencia de la serie anterior («Serie anterior: N repeticiones · peso» o «peso corporal») y el temporizador de 90 segundos. La tarjeta ya indica la serie siguiente.
+- Después de guardar una serie que **no** es la última del ejercicio, el registro se reemplaza por el bloque «Descanso», que se muestra arriba, antes de la tarjeta del ejercicio: el temporizador de 90 segundos (círculo compacto que se achica en pantallas bajas; −30 s, +30 s y «Saltar descanso», más ancho, en una sola fila) y la referencia de la serie anterior («Serie anterior: N repeticiones · peso» o «peso corporal»). Así sus botones no quedan tapados por el pie fijo de «Sentí dolor». La tarjeta ya indica la serie siguiente.
 - Al llegar a cero o con «Saltar descanso» vuelve el registro de la siguiente serie, con la autoevaluación sin elegir. Las repeticiones y el peso se conservan dentro del mismo ejercicio.
 - No hay descanso tras la última serie de un ejercicio (se pasa al siguiente) ni tras la última de la sesión.
 - «Sentí dolor» sigue visible durante el descanso; al confirmarlo se cierra el descanso y se pasa al siguiente ejercicio.

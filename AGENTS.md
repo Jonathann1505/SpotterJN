@@ -274,3 +274,9 @@
 - La tarjeta «Tu sesión» lleva el saludo, chips (`partesDeLaSesion` en `utils/rutina.ts`; `describirSesion` las une con « · ») y «Empezar entrenamiento». El pie queda con Perfil y Cerrar sesión.
 - No se cambiaron colores ni la forma de los botones; el CSS está junto a las reglas de Hoy en `spotter-ui.css`.
 - Ojo en pruebas: `CargandoSJ` también tiene `role="status"`; el aviso de faltas se busca por su texto.
+
+### 2026-11-27 — Casillas de consentimiento y descanso sin desplazarse
+
+- Pedido de Nayeli: en Crear cuenta el texto quedaba lejos de la casilla. Causa: dentro de `IonItem`, `ion-checkbox` ocupa todo el ancho (`flex: 1`) y la `IonLabel` hermana quedaba al otro lado. Ahora el texto va dentro de `IonCheckbox` (`labelPlacement="end"`, `justify="start"`, `alignment="start"`) y `::part(label)` permite varias líneas. Los enlaces a términos y privacidad van fuera de la casilla porque, dentro, tocarlos también la marcaría.
+- Se mantienen los `aria-label` de cada casilla para no cambiar los nombres accesibles.
+- Descanso: los botones −30 s, +30 s y «Saltar descanso» quedaban bajo el pie fijo de «Sentí dolor» y había que desplazar. El bloque «Descanso» va ahora antes de la tarjeta del ejercicio, el círculo usa `min(12rem, 55vw, 30vh)` y los tres botones van en una fila. «Sentí dolor» sigue en el pie fijo (RF-13).
