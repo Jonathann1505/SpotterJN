@@ -8,15 +8,8 @@ import { usePerfil } from '../context/PerfilContext';
 import { useSesion } from '../context/SesionContext';
 import { rutinaLocal } from '../repositories/local';
 import { METAS_PRINCIPALES, type MetaPrincipal, type RutinaAsignada, type UnidadPeso } from '../types/perfil';
-import { ETIQUETAS_EQUIPO, ETIQUETAS_EXPERIENCIA } from '../utils/etiquetasRutina';
+import { ETIQUETAS_EQUIPO, ETIQUETAS_EXPERIENCIA, ETIQUETAS_META } from '../utils/etiquetasRutina';
 import { LONGITUD_MAXIMA_NOMBRE, esNombreValido } from '../utils/validaciones';
-
-const ETIQUETAS_META: Record<MetaPrincipal, string> = {
-  fuerza: 'Ganar fuerza',
-  'perder-peso': 'Perder peso',
-  tonificar: 'Tonificar',
-  resistencia: 'Resistencia',
-};
 
 const UNIDADES: readonly UnidadPeso[] = ['kg', 'lb'];
 
