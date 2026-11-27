@@ -22,6 +22,8 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
+    // Las pruebas con el router de Ionic son pesadas: con la suite completa en paralelo superaban a veces 5 s.
+    testTimeout: 15_000,
     include: ['src/**/*.test.{ts,tsx}', 'scripts/**/*.test.{ts,mjs}'],
   },
   server: {

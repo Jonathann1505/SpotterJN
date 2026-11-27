@@ -1,141 +1,76 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const app = vi.hoisted(() => ({
+  esNativo: vi.fn(() => true),
   addListener: vi.fn(),
-  exitApp: vi.fn(),
-  minimizeApp: vi.fn(),
-  remove: vi.fn(),
+  exitApp: vi.fn(async () => undefined),
+  remove: vi.fn(async () => undefined),
 }));
+
+vi.mock('@capacitor/core', async (importOriginal) => {
+  const real = await importOriginal<typeof import('@capacitor/core')>();
+  return { ...real, Capacitor: { isNativePlatform: app.esNativo } };
+});
 
 vi.mock('@capacitor/app', () => ({
-  App: {
-    addListener: app.addListener,
-    exitApp: app.exitApp,
-    minimizeApp: app.minimizeApp,
-  },
+  App: { addListener: app.addListener, exitApp: app.exitApp },
 }));
 
-import {
-  PRIORIDAD_NAVEGACION,
-  activarBotonAtrasAndroid,
-  botonAtrasVisible,
-  volverComoEnPantalla,
-} from './botonAtras';
+import { PRIORIDAD_DIALOGO, activarBotonAtras, salirDeLaApp } from './botonAtras';
 
-interface Registro {
-  prioridad: number;
-  manejador: () => void;
-}
-
-/** Simula la pulsación del botón atrás tal como la despacha Ionic y devuelve lo registrado. */
-function pulsarAtras(): Registro[] {
-  const registros: Registro[] = [];
-  document.dispatchEvent(
-    new CustomEvent('ionBackButton', {
-      detail: {
-        register: (prioridad: number, manejador: () => void) => registros.push({ prioridad, manejador }),
-      },
-    }),
-  );
-  return registros;
-}
-
-/** Ejecuta el manejador de mayor prioridad, como hace Ionic. */
-function ejecutarElPrioritario(registros: Registro[]): void {
-  const [primero] = [...registros].sort((a, b) => b.prioridad - a.prioridad);
-  primero?.manejador();
-}
-
-function pagina(clase: string, conBotonAtras: boolean): { pagina: HTMLElement; boton: HTMLElement | null } {
-  const elemento = document.createElement('div');
-  elemento.className = clase;
-  let boton: HTMLElement | null = null;
-  if (conBotonAtras) {
-    boton = document.createElement('ion-back-button');
-    elemento.appendChild(boton);
-  }
-  document.body.appendChild(elemento);
-  return { pagina: elemento, boton };
-}
-
-describe('botón atrás de Android', () => {
+describe('servicio del botón atrás de Android', () => {
   beforeEach(() => {
-    document.body.innerHTML = '';
-    app.addListener.mockReset().mockResolvedValue({ remove: app.remove });
-    app.remove.mockReset().mockResolvedValue(undefined);
-    app.exitApp.mockReset();
-    app.minimizeApp.mockReset();
+    vi.clearAllMocks();
+    app.esNativo.mockReturnValue(true);
+    app.addListener.mockResolvedValue({ remove: app.remove });
   });
 
-  afterEach(() => {
-    document.body.innerHTML = '';
-  });
-
-  it('toma el botón atrás de la página visible e ignora las ocultas por Ionic', () => {
-    const oculta = pagina('ion-page ion-page-hidden', true);
-    const visible = pagina('ion-page', true);
-
-    expect(botonAtrasVisible()).toBe(visible.boton);
-    expect(botonAtrasVisible()).not.toBe(oculta.boton);
-  });
-
-  it('vuelve pulsando el botón atrás de la pantalla', () => {
-    const { boton } = pagina('ion-page', true);
-    const clic = vi.fn();
-    boton?.addEventListener('click', clic);
-
-    expect(volverComoEnPantalla()).toBe(true);
-    expect(clic).toHaveBeenCalledTimes(1);
-  });
-
-  it('en una pantalla sin botón atrás no hace nada', () => {
-    pagina('ion-page', false);
-
-    expect(volverComoEnPantalla()).toBe(false);
-  });
-
-  it('en Android escucha el botón y vuelve como en pantalla, por encima del router', async () => {
-    const desactivar = activarBotonAtrasAndroid(true);
-    const { boton } = pagina('ion-page', true);
-    const clic = vi.fn();
-    boton?.addEventListener('click', clic);
+  it('en Android escucha el botón físico para que llegue a Ionic', () => {
+    activarBotonAtras();
 
     expect(app.addListener).toHaveBeenCalledWith('backButton', expect.any(Function));
-    const registros = pulsarAtras();
-    expect(registros.map((r) => r.prioridad)).toEqual([PRIORIDAD_NAVEGACION]);
-    // Ionic React registra el router con prioridad 0: este manejo debe ganarle.
-    expect(PRIORIDAD_NAVEGACION).toBeGreaterThan(0);
+  });
 
-    ejecutarElPrioritario(registros);
-    expect(clic).toHaveBeenCalledTimes(1);
+  it('al desactivarlo deja de escuchar el botón', async () => {
+    const desactivar = activarBotonAtras();
+    await vi.waitFor(() => expect(app.addListener).toHaveBeenCalled());
+    await Promise.resolve();
 
     desactivar();
+
     await vi.waitFor(() => expect(app.remove).toHaveBeenCalled());
   });
 
-  it('en una pantalla raíz nunca cierra ni minimiza la app', () => {
-    const desactivar = activarBotonAtrasAndroid(true);
-    pagina('ion-page', false);
+  it('si se desactiva antes de registrarse, retira el oyente en cuanto llega', async () => {
+    let entregar: (valor: { remove: () => Promise<void> }) => void = () => undefined;
+    app.addListener.mockReturnValue(new Promise((resolver) => (entregar = resolver)));
 
-    ejecutarElPrioritario(pulsarAtras());
-
-    expect(app.exitApp).not.toHaveBeenCalled();
-    expect(app.minimizeApp).not.toHaveBeenCalled();
+    const desactivar = activarBotonAtras();
     desactivar();
+    entregar({ remove: app.remove });
+
+    await vi.waitFor(() => expect(app.remove).toHaveBeenCalled());
   });
 
-  it('al desactivarlo deja de manejar el botón', () => {
-    const desactivar = activarBotonAtrasAndroid(true);
-    desactivar();
+  it('salirDeLaApp cierra la app en Android y no lanza errores si falla', async () => {
+    await salirDeLaApp();
+    expect(app.exitApp).toHaveBeenCalledTimes(1);
 
-    expect(pulsarAtras()).toEqual([]);
+    app.exitApp.mockRejectedValueOnce(new Error('fallo'));
+    await expect(salirDeLaApp()).resolves.toBeUndefined();
   });
 
-  it('en la web no registra nada', () => {
-    const desactivar = activarBotonAtrasAndroid(false);
+  it('en la web no escucha el botón ni cierra nada', async () => {
+    app.esNativo.mockReturnValue(false);
+
+    activarBotonAtras()();
+    await salirDeLaApp();
 
     expect(app.addListener).not.toHaveBeenCalled();
-    expect(pulsarAtras()).toEqual([]);
-    desactivar();
+    expect(app.exitApp).not.toHaveBeenCalled();
+  });
+
+  it('los diálogos propios tienen prioridad sobre la navegación', () => {
+    expect(PRIORIDAD_DIALOGO).toBe(100);
   });
 });
