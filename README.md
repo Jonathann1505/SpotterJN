@@ -162,6 +162,7 @@ Toda pantalla **secundaria** usa el encabezado con el botón atrás nativo de Io
   - Con un diálogo propio abierto (glosario, ajuste de peso) lo cierra; con un diálogo de Ionic obligatorio («Sentí dolor», permiso del aviso) no hace nada.
   - En Hoy y Login cierra la app; en `/aviso-medico` y `/salud` no hace nada para no salir a mitad del registro.
   - En las demás pantallas vuelve a la anterior o, si no hay historial, a su pantalla padre (`RUTA_PADRE`, las mismas rutas que la flecha del encabezado). Una pantalla secundaria nueva debe añadirse a `RUTA_PADRE`.
+- Los diálogos propios (glosario y ajuste de peso) se cierran con el botón físico mediante `useCerrarConBotonAtras` (`src/hooks/`), con `PRIORIDAD_DIALOGO` (100), por encima de `ManejadorBotonAtras`.
 - El gesto de deslizar en iOS lo gestiona `IonRouterOutlet`.
 - `defaultHref` solo se usa si no hay historial (por ejemplo, al abrir la app en esa pantalla); si lo hay, se vuelve a la pantalla anterior.
 
@@ -187,7 +188,7 @@ Sin botón atrás: `/login`, `/consentimientos` y `/registro` (pestañas de acce
 
 `@ionic/react-router` debe tener **la misma versión** que `@ionic/react`: la primera fija exactamente su versión de `@ionic/react`, y si no coinciden se empaquetan dos copias de Ionic y el router deja de compartir su contexto (el botón atrás recargaría la página en lugar de navegar). Al actualizar Ionic, actualiza ambos paquetes juntos y comprueba con `npm ls @ionic/react` que aparezca `deduped`.
 
-Pendiente de probar en dispositivo: el botón atrás en Android (flecha) y en iOS («‹ Atrás»), el botón físico de Android (volver en pantallas secundarias, no hacer nada en Hoy y en el login, cerrar diálogos abiertos), el gesto de deslizar en iOS y el área segura con notch.
+Pendiente de probar en dispositivo: el botón atrás en Android (flecha) y en iOS («‹ Atrás»), el botón físico de Android (volver en pantallas secundarias, cerrar la app en Hoy y en el login, cerrar diálogos abiertos), el gesto de deslizar en iOS y el área segura con notch.
 
 #### Recarga al volver a una pantalla
 

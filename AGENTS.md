@@ -255,3 +255,10 @@
 - Pruebas: `botonAtras.test.ts` y `ManejadorBotonAtras.test.tsx` simulan el evento `ionBackButton`.
 - Se subió `testTimeout` de Vitest a 15 s: la suite completa fallaba de forma intermitente por tiempo en pruebas con el router de Ionic, también en `develop` sin cambios (comprobado en un worktree temporal). Un commit de esta rama (`3b5a490`) se subió con una de esas fallas intermitentes; las ejecuciones posteriores pasaron 5 de 5.
 - Pendiente: probar el botón físico en el celular.
+
+### 2026-11-27 — develop volvió a compilar (botón atrás duplicado)
+
+- Tras fusionar el PR #35, `develop` tenía dos manejos del botón atrás: `ManejadorBotonAtras` (PR #35) y `BotonAtrasAndroid`/`activarBotonAtrasAndroid` (PR #34), pero `services/botonAtras.ts` solo tenía la versión del PR #35. Resultado: `tsc` con errores, 24 pruebas fallando y sin poder compilar la APK.
+- Decisión del usuario: se deja la versión que probó en el celular (Hoy y Login cierran la app; el resto retrocede) y se conserva `useCerrarConBotonAtras` del PR #34 para los diálogos, con `PRIORIDAD_DIALOGO` (100) en `services/botonAtras.ts`. Se quitó `BotonAtrasAndroid` de `App.tsx` y se reescribieron las pruebas del servicio para la versión que queda.
+- Regla: antes de fusionar un PR, comprobar `npx tsc --noEmit`, `npm test` y `npm run build` sobre el resultado de la fusión; que GitHub diga «sin conflictos» no garantiza que compile.
+- Verificación: `tsc --noEmit`, `npm test` (557 pruebas, 3 de 3 ejecuciones) y `npm run build` aprobados.
