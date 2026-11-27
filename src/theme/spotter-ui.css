@@ -647,6 +647,152 @@ ion-content {
   font-size: var(--sj-fuente-base);
 }
 
+/* Hoy: tira de la semana, tarjeta de la sesión y aviso de sesiones que faltaron */
+.sj-hoy-semana .sj-subtitulo {
+  margin-top: 0;
+}
+
+.sj-tira-semana {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  border: var(--sj-linea);
+  background: var(--sj-color-blanco);
+}
+
+.sj-tira-dia {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.125rem;
+  min-width: 0;
+  min-height: 4.25rem;
+  padding: var(--sj-espacio-2) 0;
+  border: 0;
+  background: transparent;
+  color: var(--sj-ink);
+  font: inherit;
+}
+
+.sj-tira-dia + .sj-tira-dia {
+  border-left: 1px solid rgb(26 26 26 / 28%);
+}
+
+button.sj-tira-dia {
+  cursor: pointer;
+}
+
+.sj-tira-inicial {
+  color: var(--sj-muted);
+  font-size: var(--sj-fuente-xs);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.sj-tira-numero {
+  font-size: var(--sj-fuente-lg);
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.sj-tira-marca {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 1rem;
+  font-size: var(--sj-fuente-xs);
+  font-weight: 800;
+}
+
+.sj-tira-punto {
+  width: 0.375rem;
+  height: 0.375rem;
+  background: currentcolor;
+}
+
+.sj-tira-descanso {
+  background: var(--sj-color-campo);
+  color: var(--sj-muted);
+}
+
+.sj-tira-descanso .sj-tira-numero {
+  font-weight: 600;
+}
+
+.sj-tira-hecho .sj-tira-marca {
+  color: var(--sj-color-exito);
+}
+
+.sj-tira-falto .sj-tira-marca {
+  color: var(--sj-color-error);
+}
+
+.sj-tira-hoy {
+  box-shadow: inset 0 -4px 0 var(--sj-color-primario);
+}
+
+.sj-tira-dia[aria-checked='true'] {
+  background: var(--sj-ink);
+  color: var(--sj-color-blanco);
+}
+
+.sj-tira-dia[aria-checked='true'] .sj-tira-inicial,
+.sj-tira-dia[aria-checked='true'] .sj-tira-marca {
+  color: var(--sj-color-blanco);
+}
+
+.sj-tira-dia:focus-visible {
+  position: relative;
+  z-index: 1;
+  outline: 3px solid var(--sj-blue);
+  outline-offset: 2px;
+}
+
+.sj-hoy-aviso {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sj-espacio-2);
+  margin: var(--sj-espacio-3) 0 0;
+  padding: var(--sj-espacio-3);
+  border: var(--sj-linea);
+  background: var(--sj-color-aviso);
+  font-size: var(--sj-fuente-sm);
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.sj-hoy-aviso ion-icon {
+  flex: 0 0 auto;
+  font-size: 1.25rem;
+}
+
+.sj-hoy-tarjeta {
+  display: grid;
+  gap: var(--sj-espacio-3);
+  margin-top: var(--sj-espacio-5);
+}
+
+.sj-hoy-tarjeta .sj-texto {
+  margin: 0;
+}
+
+.sj-hoy-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sj-espacio-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sj-hoy-chips li {
+  padding: var(--sj-espacio-1) var(--sj-espacio-3);
+  border: var(--sj-linea);
+  background: var(--sj-color-blanco);
+  font-size: var(--sj-fuente-xs);
+  font-weight: 700;
+}
+
 .sj-peso {
   margin: 0;
   font-size: var(--sj-fuente-peso);

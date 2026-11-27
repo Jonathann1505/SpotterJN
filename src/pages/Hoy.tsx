@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
+import { Weekday } from '@capacitor/local-notifications';
 import { IonIcon } from '@ionic/react';
-import { helpCircleOutline } from 'ionicons/icons';
+import { alertCircleOutline, checkmark, helpCircleOutline } from 'ionicons/icons';
 import { Redirect, useHistory } from 'react-router-dom';
 import { MiniaturaEjercicio } from '../components/MiniaturaEjercicio';
 import { CargandoSJ } from '../components/CargandoSJ';
@@ -11,8 +12,8 @@ import type { RespuestasSalud, RutinaAsignada } from '../types/perfil';
 import type { SerieRegistrada } from '../types/series';
 import { recomendarParaEjercicio } from '../utils/progresion';
 import { describirDias } from '../utils/recordatorios';
-import { describirSesion } from '../utils/rutina';
-import { estadoDeLaSemana, sesionParaFecha, type EstadoDiaSemana } from '../utils/semana';
+import { partesDeLaSesion } from '../utils/rutina';
+import { diasDeLaSemanaActual, estadoDeLaSemana, sesionParaFecha, type EstadoDiaSemana } from '../utils/semana';
 import { useSesion } from '../context/SesionContext';
 import CerrarSesion from '../components/CerrarSesion';
 import { PesoAjustable } from '../components/PesoAjustable';
@@ -33,6 +34,27 @@ const ETIQUETAS_ESTADO: Record<EstadoDiaSemana, string> = {
   falto: 'Te faltó',
   pendiente: '',
 };
+
+const INICIALES_DIAS: Readonly<Record<Weekday, string>> = {
+  [Weekday.Monday]: 'L',
+  [Weekday.Tuesday]: 'M',
+  [Weekday.Wednesday]: 'X',
+  [Weekday.Thursday]: 'J',
+  [Weekday.Friday]: 'V',
+  [Weekday.Saturday]: 'S',
+  [Weekday.Sunday]: 'D',
+};
+
+/** Marca visual del estado de un día en la tira semanal; el texto accesible va en la etiqueta. */
+function MarcaEstado({ estado }: { estado: EstadoDiaSemana }) {
+  if (estado === 'hecho') {
+    return <IonIcon icon={checkmark} />;
+  }
+  if (estado === 'falto') {
+    return <>!</>;
+  }
+  return <span className="sj-tira-punto" />;
+}
 
 function Hoy() {
   const [datos, setDatos] = useState<DatosHoy | null>(null);
@@ -107,7 +129,9 @@ function Hoy() {
     return <Redirect to="/cuestionario-rutina" />;
   }
 
-  const semana = estadoDeLaSemana(datos.rutina, datos.series, new Date());
+  const ahora = new Date();
+  const semana = estadoDeLaSemana(datos.rutina, datos.series, ahora);
+  const calendario = diasDeLaSemanaActual(ahora);
   const indiceActivo =
     indiceElegido !== null && datos.rutina.dias[indiceElegido] !== undefined ? indiceElegido : sesionDelDia.indice;
   const eligioOtroDia = indiceActivo !== sesionDelDia.indice;
@@ -125,7 +149,7 @@ function Hoy() {
       ? null
       : `${faltaron.length === 1 ? 'Te faltó' : 'Te faltaron'} ${faltaron
           .map((entrada) => `${entrada.dia.nombre} (${describirDias([entrada.diaSemana])})`)
-          .join(' y ')}. Puedes hacer${faltaron.length === 1 ? 'la' : 'las'} hoy: elige el día abajo.`;
+          .join(' y ')}. Puedes hacer${faltaron.length === 1 ? 'la hoy: elígela' : 'las hoy: elígelas'} en tu semana.`;
 
   return (
     <PantallaSJ
@@ -135,35 +159,68 @@ function Hoy() {
       reglaBajoTitulo
       pie={
         <>
-          <BotonSJ onClick={() => history.push('/sesion', { indiceDia: indiceActivo })}>Empezar entrenamiento</BotonSJ>
           <BotonSJ variante="secundario" onClick={() => history.push('/perfil')}>Perfil</BotonSJ>
           <CerrarSesion />
         </>
       }
     >
-      <p className="sj-texto">{nombrePerfil !== '' ? `Hola, ${nombrePerfil}. ${saludo}` : saludo}</p>
-      <p className="sj-texto sj-suave">{describirSesion(proximaSesion)}</p>
-      {avisoFaltas === null ? null : <p className="sj-texto" role="status">{avisoFaltas}</p>}
-      <h2 className="sj-subtitulo" id="elegir-dia">Elegir otro día</h2>
-      <div className="sj-segmentos sj-segmentos-columna" role="radiogroup" aria-labelledby="elegir-dia">
-        {semana.map((entrada) => {
-          const etiqueta = ETIQUETAS_ESTADO[entrada.estado];
-          return (
-            <button
-              key={entrada.indice}
-              type="button"
-              role="radio"
-              aria-checked={indiceActivo === entrada.indice}
-              className="sj-segmento"
-              onClick={() => setIndiceElegido(entrada.indice)}
-            >
-              {entrada.dia.nombre} · {describirDias([entrada.diaSemana])}
-              {etiqueta === '' ? '' : ` — ${etiqueta}`}
-            </button>
-          );
-        })}
-      </div>
-      <ul className="sj-lista sj-lista-hoy">
+      <section className="sj-hoy-semana" aria-labelledby="hoy-semana">
+        <h2 className="sj-subtitulo" id="hoy-semana">Tu semana</h2>
+        {/* Solo los días de entrenamiento se pueden elegir; los de descanso se ven atenuados. */}
+        <div className="sj-tira-semana" role="radiogroup" aria-label="Elegir otro día">
+          {calendario.map((celda) => {
+            const entrada = semana.find((candidata) => candidata.diaSemana === celda.diaSemana);
+            const contenido = (
+              <>
+                <span className="sj-tira-inicial">{INICIALES_DIAS[celda.diaSemana]}</span>
+                <span className="sj-tira-numero">{celda.fecha.getDate()}</span>
+                <span className="sj-tira-marca" aria-hidden="true">
+                  {entrada === undefined ? null : <MarcaEstado estado={entrada.estado} />}
+                </span>
+              </>
+            );
+            const hoy = celda.esHoy ? ' sj-tira-hoy' : '';
+            if (entrada === undefined) {
+              return (
+                <span key={celda.diaSemana} className={`sj-tira-dia sj-tira-descanso${hoy}`} aria-hidden="true">
+                  {contenido}
+                </span>
+              );
+            }
+            const etiqueta = ETIQUETAS_ESTADO[entrada.estado];
+            return (
+              <button
+                key={celda.diaSemana}
+                type="button"
+                role="radio"
+                aria-checked={indiceActivo === entrada.indice}
+                aria-label={`${entrada.dia.nombre} · ${describirDias([entrada.diaSemana])}${etiqueta === '' ? '' : ` — ${etiqueta}`}`}
+                className={`sj-tira-dia sj-tira-${entrada.estado}${hoy}`}
+                onClick={() => setIndiceElegido(entrada.indice)}
+              >
+                {contenido}
+              </button>
+            );
+          })}
+        </div>
+        {avisoFaltas === null ? null : (
+          <p className="sj-hoy-aviso" role="status">
+            <IonIcon icon={alertCircleOutline} aria-hidden="true" />
+            <span>{avisoFaltas}</span>
+          </p>
+        )}
+      </section>
+      <section className="sj-tarjeta sj-hoy-tarjeta" aria-label="Tu sesión">
+        <p className="sj-texto">{nombrePerfil !== '' ? `Hola, ${nombrePerfil}. ${saludo}` : saludo}</p>
+        <ul className="sj-hoy-chips" aria-label="Resumen de la sesión">
+          {partesDeLaSesion(proximaSesion).map((parte) => (
+            <li key={parte}>{parte}</li>
+          ))}
+        </ul>
+        <BotonSJ onClick={() => history.push('/sesion', { indiceDia: indiceActivo })}>Empezar entrenamiento</BotonSJ>
+      </section>
+      <h2 className="sj-subtitulo" id="hoy-ejercicios">Ejercicios</h2>
+      <ul className="sj-lista sj-lista-hoy" aria-labelledby="hoy-ejercicios">
         {proximaSesion.ejercicios.map((ejercicio) => {
           // Peso recomendado por la progresión (RF-15 a RF-17); sin series es el peso inicial.
           const recomendacion = recomendarParaEjercicio(
