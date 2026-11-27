@@ -4,6 +4,7 @@ import { alertCircleOutline } from 'ionicons/icons';
 import { Redirect, useHistory, useLocation } from 'react-router-dom';
 import { CargandoSJ } from '../components/CargandoSJ';
 import ContadorNumerico from '../components/ContadorNumerico';
+import { MiniaturaEjercicio } from '../components/MiniaturaEjercicio';
 import { ResumenSesion } from '../components/ResumenSesion';
 import TemporizadorDescanso from '../components/TemporizadorDescanso';
 import { BotonSJ, PantallaSJ } from '../components/PantallaSJ';
@@ -318,6 +319,16 @@ function SesionEntrenamiento() {
     setAutoevaluacion(null);
   };
 
+  // Avance de toda la sesión, contado en series: las de ejercicios anteriores más las ya hechas de este.
+  const totalSeries = Math.max(
+    1,
+    dia.ejercicios.reduce((total, actual) => total + actual.series, 0),
+  );
+  const seriesHechas =
+    dia.ejercicios.slice(0, progreso.indiceEjercicio).reduce((total, actual) => total + actual.series, 0) +
+    progreso.serie -
+    1;
+
   return (
     <PantallaSJ atras="/hoy" etiqueta="Sesión de entrenamiento" titulo={dia.nombre} reglaBajoTitulo pie={pie} pieFijo>
       {/* En el descanso el temporizador va arriba para que sus botones no queden bajo «Sentí dolor». */}
@@ -340,18 +351,44 @@ function SesionEntrenamiento() {
           </p>
         </section>
       ) : null}
-      <section className="sj-tarjeta" aria-labelledby="ejercicio-actual">
-        <p className="sj-eyebrow">
-          Ejercicio {progreso.indiceEjercicio + 1} de {dia.ejercicios.length}
-        </p>
-        <h2 className="sj-subtitulo" id="ejercicio-actual">{ejercicio.nombre}</h2>
-        <p className="sj-texto" aria-live="polite">
+      <section className="sj-tarjeta sj-ejercicio-actual" aria-labelledby="ejercicio-actual">
+        <div
+          className="sj-ejercicio-avance"
+          role="progressbar"
+          aria-label="Avance de la sesión"
+          aria-valuemin={0}
+          aria-valuemax={totalSeries}
+          aria-valuenow={seriesHechas}
+          aria-valuetext={`${seriesHechas} de ${totalSeries} series hechas`}
+        >
+          <span style={{ width: `${Math.round((seriesHechas / totalSeries) * 100)}%` }} />
+        </div>
+        <div className="sj-ejercicio-cabeza">
+          <MiniaturaEjercicio idEjercicio={ejercicio.id} nombre={ejercicio.nombre} />
+          <div>
+            <p className="sj-eyebrow">
+              Ejercicio {progreso.indiceEjercicio + 1} de {dia.ejercicios.length}
+            </p>
+            <h2 className="sj-ejercicio-nombre" id="ejercicio-actual">{ejercicio.nombre}</h2>
+          </div>
+        </div>
+        <div className="sj-ejercicio-series" aria-live="polite">
           <strong>Serie {progreso.serie} de {ejercicio.series}</strong>
-          <small className="sj-suave sj-bloque">
-            Objetivo: {ejercicio.repeticiones} repeticiones
-            {pesoCorporal ? ' · Peso corporal' : ''}
-          </small>
-        </p>
+          {/* Un cuadro por serie: hechas en negro, la actual en azul y las que faltan vacías. */}
+          <span className="sj-series-puntos" aria-hidden="true">
+            {Array.from({ length: ejercicio.series }, (_, posicion) => (
+              <span
+                key={posicion}
+                className={
+                  posicion + 1 < progreso.serie ? 'sj-punto-hecho' : posicion + 1 === progreso.serie ? 'sj-punto-actual' : ''
+                }
+              />
+            ))}
+          </span>
+          <span className="sj-ejercicio-objetivo">
+            Objetivo {ejercicio.repeticiones} reps{pesoCorporal ? ' · Peso corporal' : ''}
+          </span>
+        </div>
       </section>
 
       {descanso ? null : (

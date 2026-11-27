@@ -195,6 +195,29 @@ describe('SesionEntrenamiento', () => {
       }
     }
 
+    it('la tarjeta del ejercicio muestra la miniatura, un cuadro por serie y el avance de la sesión', async () => {
+      await iniciar();
+
+      const tarjeta = screen.getByRole('heading', { name: 'Press de pecho en máquina' }).closest('section') as HTMLElement;
+      expect(tarjeta.querySelector('.sj-miniatura')).not.toBeNull();
+      expect(within(tarjeta).getByText('Objetivo 12 reps')).toBeInTheDocument();
+      const cuadros = Array.from(tarjeta.querySelectorAll('.sj-series-puntos > span'));
+      expect(cuadros.map((cuadro) => cuadro.className)).toEqual(['sj-punto-actual', '']);
+      const avance = within(tarjeta).getByRole('progressbar', { name: 'Avance de la sesión' });
+      expect(avance).toHaveAttribute('aria-valuenow', '0');
+      expect(avance).toHaveAttribute('aria-valuemax', '3');
+
+      await guardarCon('Normal');
+
+      expect(await screen.findByText('Serie 2 de 2')).toBeInTheDocument();
+      expect(Array.from(tarjeta.querySelectorAll('.sj-series-puntos > span')).map((cuadro) => cuadro.className)).toEqual([
+        'sj-punto-hecho',
+        'sj-punto-actual',
+      ]);
+      expect(avance).toHaveAttribute('aria-valuenow', '1');
+      expect((avance.firstElementChild as HTMLElement).style.width).toBe('33%');
+    });
+
     it('deshabilita Guardar serie hasta elegir una autoevaluación', async () => {
       await iniciar();
 

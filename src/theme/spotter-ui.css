@@ -298,6 +298,99 @@ ion-content {
   cursor: pointer;
 }
 
+/* Sesión: tarjeta compacta del ejercicio actual, con el avance de la sesión en el borde superior */
+.sj-ejercicio-actual {
+  position: relative;
+  display: grid;
+  gap: var(--sj-espacio-3);
+  overflow: hidden;
+  padding: calc(var(--sj-espacio-4) + 0.375rem) var(--sj-espacio-4) var(--sj-espacio-3);
+}
+
+.sj-ejercicio-avance {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 0.375rem;
+  background: var(--sj-color-campo);
+}
+
+.sj-ejercicio-avance > span {
+  display: block;
+  height: 100%;
+  background: var(--sj-color-primario);
+  transition: width 0.3s ease;
+}
+
+.sj-ejercicio-cabeza {
+  display: flex;
+  align-items: center;
+  gap: var(--sj-espacio-3);
+  min-width: 0;
+}
+
+.sj-ejercicio-cabeza > div {
+  min-width: 0;
+}
+
+.sj-ejercicio-cabeza .sj-eyebrow {
+  margin-bottom: 0.125rem;
+}
+
+.sj-ejercicio-nombre {
+  margin: 0;
+  font-size: var(--sj-fuente-lg);
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.sj-ejercicio-series {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sj-espacio-2) var(--sj-espacio-3);
+  padding-top: var(--sj-espacio-3);
+  border-top: 1px solid rgb(26 26 26 / 28%);
+}
+
+.sj-ejercicio-series strong {
+  font-weight: 800;
+}
+
+.sj-series-puntos {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.sj-series-puntos > span {
+  width: 0.75rem;
+  height: 0.75rem;
+  border: 2px solid var(--sj-ink);
+}
+
+.sj-series-puntos > .sj-punto-hecho {
+  background: var(--sj-ink);
+}
+
+.sj-series-puntos > .sj-punto-actual {
+  border-color: var(--sj-color-primario);
+  background: var(--sj-color-primario);
+}
+
+.sj-ejercicio-objetivo {
+  margin-left: auto;
+  padding: 0.125rem var(--sj-espacio-2);
+  border: var(--sj-linea);
+  background: var(--sj-color-blanco);
+  font-size: var(--sj-fuente-xs);
+  font-weight: 700;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sj-ejercicio-avance > span {
+    transition: none;
+  }
+}
+
 /* «Saltar descanso» es la acción más usada: ocupa más que −30 s y +30 s. */
 .sj-descanso-controles button:last-child {
   flex-grow: 2;
