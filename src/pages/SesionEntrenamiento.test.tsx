@@ -353,6 +353,22 @@ describe('SesionEntrenamiento', () => {
         expect(Number.isNaN(Date.parse(serie.registradaEn))).toBe(false);
       });
 
+      it('con el peso vaciado guarda el peso que se ve, no un cero', async () => {
+        await iniciar();
+        const peso = screen.getByLabelText('Peso');
+        fireEvent.change(peso, { target: { value: '' } });
+        // En el celular, tocar Guardar quita primero el foco del campo.
+        fireEvent.blur(peso);
+        expect(screen.getByLabelText('Peso')).toHaveValue(15);
+
+        fireEvent.click(screen.getByRole('radio', { name: 'Normal' }));
+        fireEvent.click(botonGuardar());
+
+        expect(await screen.findByText('Serie 2 de 2')).toBeInTheDocument();
+        const [serie] = await seriesLocal.listar('usuario-prueba');
+        expect(serie.peso).toBe(15);
+      });
+
       it('guarda peso null en los ejercicios de peso corporal', async () => {
         await iniciar();
         await guardarCon('Fácil');
