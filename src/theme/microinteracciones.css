@@ -130,6 +130,16 @@
   opacity: 0.7;
 }
 
+/* Filas del perfil: se oscurecen un poco al tocarlas, como una lista de ajustes */
+button.sj-fila-menu {
+  transition: background-color var(--sj-duracion-rapida) var(--sj-easing-estandar);
+  -webkit-tap-highlight-color: transparent;
+}
+
+button.sj-fila-menu:active {
+  background-color: rgb(26 26 26 / 6%);
+}
+
 .sj-fila-ejercicio:active .sj-miniatura {
   transform: scale(0.94);
 }
