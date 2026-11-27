@@ -246,12 +246,12 @@
 
 - Seguimiento (mismo día): en Android 14 seguía sin «saltar». En un emulador, con depuración remota del WebView, se comprobó que la notificación sí se publicaba a la hora exacta, pero por el canal `default` del plugin (importancia 3): solo un ícono en la barra de estado. Con un canal propio `descanso` de importancia 5 Android muestra la ventana emergente. `programarAvisoDescanso` crea ese canal y envía el aviso por él (commit `d1ec259`).
 
-### 2026-11-26 — Errores finales y botón atrás de Android
+### 2026-11-27 — Botón atrás físico de Android
 
-- Rama `fix/errores-finales` desde `develop` (`bbfa552`, PR #33).
-- #5 (Media) corregido: Perfil recarga «Tu rutina actual» al volver de cambiar la rutina con `useRecargaAlVolver('/perfil')`. Prueba en `RecargaAlVolver.test.tsx`, verificada fallando sin el arreglo.
-- #6 (Media) confirmado y corregido: al vaciar el peso o las repeticiones y salir del campo, `ContadorNumerico` ponía el mínimo (0) y la serie se guardaba con 0. Ahora un campo vacío recupera el último valor válido; fuera de rango se sigue ajustando al límite. Prueba en `SesionEntrenamiento.test.tsx`, verificada fallando sin el arreglo; se actualizó la prueba del contador que esperaba 0.
-- Botón atrás físico de Android: sin `@capacitor/app`, Capacitor cerraba la app cuando el WebView no tenía historial. Se añadió `@capacitor/app` 7.1.2 (cambian de verdad `capacitor.build.gradle` y `capacitor.settings.gradle`, solo con las líneas del plugin) y `src/services/botonAtras.ts`: el botón físico pulsa el botón atrás de la pantalla visible y, en pantallas sin él, no hace nada (nunca cierra ni minimiza). Los diálogos propios se cierran con `useCerrarConBotonAtras`.
-- Teclado: no se cambió nada sin probarlo en un dispositivo. Con `targetSdkVersion` 35, Android 15 obliga el modo de borde a borde y el ajuste automático del teclado puede no reducir la vista; si en el celular el teclado tapa campos, la opción a evaluar es `android.adjustMarginsForEdgeToEdge` en `capacitor.config.ts`.
-- Pendientes sin cambios: #7 (kg un instante con perfil en lb) y #8 («Reintentar» en Mi progreso).
-- Verificación: `npm test` (544 pruebas/57 archivos), `npm run build` y `tsc --noEmit` aprobados. Pendiente: APK y prueba en un celular real del botón atrás y del teclado.
+- Rama `fix/boton-atras-android` desde `develop` (con los PR #30 a #33).
+- Causa: sin `@capacitor/app` el botón físico no llegaba a Ionic y Android cerraba la app desde cualquier pantalla. La nota del 2026-11-13 («lo gestiona `IonRouterOutlet`») era incorrecta.
+- Se instaló `@capacitor/app` 7.1.1 (commit chore con las líneas del plugin en los dos `.gradle`; desde entonces esos archivos ya no aparecen modificados por finales de línea).
+- Añadidos `src/utils/botonAtras.ts` (`decidirBotonAtras`, `RUTA_PADRE`), `src/services/botonAtras.ts` (`activarBotonAtras`, `salirDeLaApp`) y `ManejadorBotonAtras` en `App.tsx`. Decisión del usuario: Hoy y Login cierran la app, el flujo inicial no se sale y las demás pantallas retroceden.
+- Pruebas: `botonAtras.test.ts` y `ManejadorBotonAtras.test.tsx` simulan el evento `ionBackButton`.
+- Se subió `testTimeout` de Vitest a 15 s: la suite completa fallaba de forma intermitente por tiempo en pruebas con el router de Ionic, también en `develop` sin cambios (comprobado en un worktree temporal). Un commit de esta rama (`3b5a490`) se subió con una de esas fallas intermitentes; las ejecuciones posteriores pasaron 5 de 5.
+- Pendiente: probar el botón físico en el celular.

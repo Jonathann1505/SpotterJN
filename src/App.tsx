@@ -9,6 +9,7 @@ import { IonReactRouter } from '@ionic/react-router';
 import { useEffect, type PropsWithChildren } from 'react';
 import { Redirect, Route } from 'react-router-dom';
 import BannerSinConexion from './components/BannerSinConexion';
+import ManejadorBotonAtras from './components/ManejadorBotonAtras';
 import { BotonSJ, PantallaSJ } from './components/PantallaSJ';
 import Ajustes from './pages/Ajustes';
 import AvisoMedico from './pages/AvisoMedico';
@@ -83,6 +84,7 @@ function RutasAplicacion() {
 
   return (
     <IonReactRouter>
+      <ManejadorBotonAtras />
       <IonRouterOutlet>
         <Route exact path="/">
           <Redirect to={sesion ? '/hoy' : '/login'} />
