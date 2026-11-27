@@ -266,3 +266,11 @@
 - Pendiente: revisar el perfil en el celular.
 - Verificación: `npm test` (553 pruebas), `npm run build` y `tsc --noEmit` aprobados.
 - Ajustes tras revisarlo en el celular: barra «Esta semana: X de Y sesiones» en la cabecera (reutiliza `estadoDeLaSemana`), experiencia en lenguaje natural, equipo resumido («Equipo: N tipos») y «Aún no registras sesiones» con cero (`describirExperiencia`, `resumirEquipo`, `describirSesiones` en `src/utils/perfil.ts`).
+
+### 2026-11-27 — Rediseño de Hoy (tira semanal y tarjeta)
+
+- Opción elegida por el usuario: «Tira semanal + tarjeta». La columna «Elegir otro día» pasa a ser una tira de siete días (L a D con la fecha, `diasDeLaSemanaActual` en `utils/semana.ts`); solo los días de entrenamiento son `radio`, los de descanso van con `aria-hidden`.
+- El grupo conserva el nombre accesible «Elegir otro día» y cada día la etiqueta «Día · lunes — Hoy toca», así que las pruebas de elegir día de Nayeli siguen sin cambios.
+- La tarjeta «Tu sesión» lleva el saludo, chips (`partesDeLaSesion` en `utils/rutina.ts`; `describirSesion` las une con « · ») y «Empezar entrenamiento». El pie queda con Perfil y Cerrar sesión.
+- No se cambiaron colores ni la forma de los botones; el CSS está junto a las reglas de Hoy en `spotter-ui.css`.
+- Ojo en pruebas: `CargandoSJ` también tiene `role="status"`; el aviso de faltas se busca por su texto.
