@@ -255,3 +255,13 @@
 - Teclado: no se cambió nada sin probarlo en un dispositivo. Con `targetSdkVersion` 35, Android 15 obliga el modo de borde a borde y el ajuste automático del teclado puede no reducir la vista; si en el celular el teclado tapa campos, la opción a evaluar es `android.adjustMarginsForEdgeToEdge` en `capacitor.config.ts`.
 - Pendientes sin cambios: #7 (kg un instante con perfil en lb) y #8 («Reintentar» en Mi progreso).
 - Verificación: `npm test` (544 pruebas/57 archivos), `npm run build` y `tsc --noEmit` aprobados. Pendiente: APK y prueba en un celular real del botón atrás y del teclado.
+
+### 2026-11-27 — Rediseño del perfil
+
+- Rama `style/rediseno-perfil` desde `develop` (con el PR #34). Pedido del usuario: un perfil más atractivo, al estilo de las apps de referencia, sin cambiar colores ni la forma de los botones.
+- Opción elegida: «Tarjeta + secciones». Cabecera con avatar de iniciales, meta y cifras (días por semana, sesiones, unidad); «Editar perfil» plegable; secciones Tu entrenamiento, Preferencias y Ayuda con filas ícono + título + detalle + flecha; Borrar datos y Cerrar sesión al final.
+- Añadido `src/utils/perfil.ts` (`inicialesDe`, `contarSesiones`) y estilos `sj-perfil-*`, `sj-menu` y `sj-fila-menu` en `spotter-ui.css`. Se conservaron los textos que comprueban las pruebas existentes (todas siguen pasando sin cambios).
+- Corregido durante el trabajo: el bloque de edición decidía si abrirse antes de cargar el perfil; ahora lo decide al terminar de cargar.
+- Nota: el PR #35 (`fix/boton-atras-android`) quedó con las dos versiones del botón atrás tras fusionar `develop` en él desde GitHub; en una copia temporal no compilaba (8 errores de `tsc`, 24 pruebas fallando). No se fusiona sin revisarlo.
+- Pendiente: revisar el perfil en el celular.
+- Verificación: `npm test` (553 pruebas), `npm run build` y `tsc --noEmit` aprobados.
