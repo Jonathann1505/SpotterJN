@@ -1,5 +1,6 @@
 import { Weekday } from '@capacitor/local-notifications';
 import type { DiaRutina, RutinaAsignada } from '../types/perfil';
+import type { SerieRegistrada } from '../types/series';
 import { diasDeEntrenamiento } from './recordatorios';
 
 export interface SesionDelDia {
@@ -40,4 +41,60 @@ export function sesionParaFecha(rutina: RutinaAsignada, ahora: Date = new Date()
   }
 
   return { indice: 0, dia: rutina.dias[0], esHoy: false, diaSemana: entrenamiento[0] };
+}
+
+export type EstadoDiaSemana = 'hecho' | 'hoy' | 'falto' | 'pendiente';
+
+export interface DiaDeLaSemana {
+  /** Posición del día dentro de `rutina.dias`. */
+  indice: number;
+  dia: DiaRutina;
+  /** Día de la semana en que toca esta sesión. */
+  diaSemana: Weekday;
+  estado: EstadoDiaSemana;
+}
+
+/** Lunes a las 00:00 de la semana de `ahora` (la semana va de lunes a domingo). */
+function inicioDeSemana(ahora: Date): Date {
+  const inicio = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate());
+  inicio.setDate(inicio.getDate() - ((ahora.getDay() + 6) % 7));
+  return inicio;
+}
+
+/**
+ * Estado de cada sesión de la rutina en la semana actual (de lunes a domingo): «hecho» si ya hay series
+ * completadas de ese día, «hoy» si toca hoy y no se hizo, «falto» si su día ya pasó sin hacerse y
+ * «pendiente» si aún no llega. Se apoya en el nombre del día guardado en cada serie.
+ */
+export function estadoDeLaSemana(
+  rutina: RutinaAsignada,
+  series: readonly SerieRegistrada[],
+  ahora: Date = new Date(),
+): DiaDeLaSemana[] {
+  const entrenamiento = diasDeEntrenamiento(rutina.dias.length);
+  const inicio = inicioDeSemana(ahora).getTime();
+  const fin = inicio + 7 * 24 * 60 * 60 * 1000;
+  const hechos = new Set(
+    series
+      .filter((serie) => {
+        const momento = Date.parse(serie.registradaEn);
+        return serie.estado === 'completada' && momento >= inicio && momento < fin;
+      })
+      .map((serie) => serie.dia),
+  );
+  const desdeLunesHoy = (ahora.getDay() + 6) % 7;
+
+  return rutina.dias.map((dia, indice) => {
+    const diaSemana = entrenamiento[Math.min(indice, entrenamiento.length - 1)];
+    const desdeLunes = (diaSemana + 5) % 7;
+    let estado: EstadoDiaSemana = 'pendiente';
+    if (hechos.has(dia.nombre)) {
+      estado = 'hecho';
+    } else if (desdeLunes === desdeLunesHoy) {
+      estado = 'hoy';
+    } else if (desdeLunes < desdeLunesHoy) {
+      estado = 'falto';
+    }
+    return { indice, dia, diaSemana, estado };
+  });
 }

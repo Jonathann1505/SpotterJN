@@ -12,7 +12,7 @@ import type { SerieRegistrada } from '../types/series';
 import { recomendarParaEjercicio } from '../utils/progresion';
 import { describirDias } from '../utils/recordatorios';
 import { describirSesion } from '../utils/rutina';
-import { sesionParaFecha } from '../utils/semana';
+import { estadoDeLaSemana, sesionParaFecha, type EstadoDiaSemana } from '../utils/semana';
 import { useSesion } from '../context/SesionContext';
 import CerrarSesion from '../components/CerrarSesion';
 import { PesoAjustable } from '../components/PesoAjustable';
@@ -27,14 +27,28 @@ interface DatosHoy {
   ajustes: AjustesPeso;
 }
 
+const ETIQUETAS_ESTADO: Record<EstadoDiaSemana, string> = {
+  hecho: 'Hecho',
+  hoy: 'Hoy toca',
+  falto: 'Te faltó',
+  pendiente: '',
+};
+
 function Hoy() {
   const [datos, setDatos] = useState<DatosHoy | null>(null);
+  // Día de la rutina elegido a mano; null mientras se usa el que toca por la fecha.
+  const [indiceElegido, setIndiceElegido] = useState<number | null>(null);
   const { perfil } = usePerfil();
   const { sesion } = useSesion();
   const usuarioId = sesion?.user.id ?? null;
   const history = useHistory();
   // Ionic conserva Hoy en la pila: al volver (por ejemplo tras una sesión) se recargan los datos.
   const recarga = useRecargaAlVolver('/hoy');
+
+  // Al volver a Hoy (por ejemplo tras una sesión) se vuelve a sugerir el día que toca.
+  useEffect(() => {
+    setIndiceElegido(null);
+  }, [recarga]);
 
   useEffect(() => {
     let activo = true;
@@ -93,22 +107,35 @@ function Hoy() {
     return <Redirect to="/cuestionario-rutina" />;
   }
 
-  const proximaSesion = sesionDelDia.dia;
+  const semana = estadoDeLaSemana(datos.rutina, datos.series, new Date());
+  const indiceActivo =
+    indiceElegido !== null && datos.rutina.dias[indiceElegido] !== undefined ? indiceElegido : sesionDelDia.indice;
+  const eligioOtroDia = indiceActivo !== sesionDelDia.indice;
+  const proximaSesion = datos.rutina.dias[indiceActivo];
   const nombreDia = describirDias([sesionDelDia.diaSemana]);
   const nombrePerfil = perfil.nombre.trim();
-  const saludo = sesionDelDia.esHoy
-    ? 'Esta es tu sesión de hoy.'
-    : `Hoy descansas. Tu próxima sesión es el ${nombreDia}.`;
+  const faltaron = semana.filter((entrada) => entrada.estado === 'falto');
+  const saludo = eligioOtroDia
+    ? 'Elegiste esta sesión.'
+    : sesionDelDia.esHoy
+      ? 'Esta es tu sesión de hoy.'
+      : `Hoy descansas. Tu próxima sesión es el ${nombreDia}.`;
+  const avisoFaltas =
+    faltaron.length === 0
+      ? null
+      : `${faltaron.length === 1 ? 'Te faltó' : 'Te faltaron'} ${faltaron
+          .map((entrada) => `${entrada.dia.nombre} (${describirDias([entrada.diaSemana])})`)
+          .join(' y ')}. Puedes hacer${faltaron.length === 1 ? 'la' : 'las'} hoy: elige el día abajo.`;
 
   return (
     <PantallaSJ
       mostrarLogo
-      etiqueta={sesionDelDia.esHoy ? 'Hoy toca' : `Próxima sesión · ${nombreDia}`}
+      etiqueta={eligioOtroDia ? 'Sesión elegida' : sesionDelDia.esHoy ? 'Hoy toca' : `Próxima sesión · ${nombreDia}`}
       titulo={proximaSesion.nombre}
       reglaBajoTitulo
       pie={
         <>
-          <BotonSJ onClick={() => history.push('/sesion', { indiceDia: sesionDelDia.indice })}>Empezar entrenamiento</BotonSJ>
+          <BotonSJ onClick={() => history.push('/sesion', { indiceDia: indiceActivo })}>Empezar entrenamiento</BotonSJ>
           <BotonSJ variante="secundario" onClick={() => history.push('/perfil')}>Perfil</BotonSJ>
           <CerrarSesion />
         </>
@@ -116,6 +143,26 @@ function Hoy() {
     >
       <p className="sj-texto">{nombrePerfil !== '' ? `Hola, ${nombrePerfil}. ${saludo}` : saludo}</p>
       <p className="sj-texto sj-suave">{describirSesion(proximaSesion)}</p>
+      {avisoFaltas === null ? null : <p className="sj-texto" role="status">{avisoFaltas}</p>}
+      <h2 className="sj-subtitulo" id="elegir-dia">Elegir otro día</h2>
+      <div className="sj-segmentos sj-segmentos-columna" role="radiogroup" aria-labelledby="elegir-dia">
+        {semana.map((entrada) => {
+          const etiqueta = ETIQUETAS_ESTADO[entrada.estado];
+          return (
+            <button
+              key={entrada.indice}
+              type="button"
+              role="radio"
+              aria-checked={indiceActivo === entrada.indice}
+              className="sj-segmento"
+              onClick={() => setIndiceElegido(entrada.indice)}
+            >
+              {entrada.dia.nombre} · {describirDias([entrada.diaSemana])}
+              {etiqueta === '' ? '' : ` — ${etiqueta}`}
+            </button>
+          );
+        })}
+      </div>
       <ul className="sj-lista sj-lista-hoy">
         {proximaSesion.ejercicios.map((ejercicio) => {
           // Peso recomendado por la progresión (RF-15 a RF-17); sin series es el peso inicial.
