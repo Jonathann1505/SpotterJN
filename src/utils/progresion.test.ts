@@ -85,6 +85,21 @@ describe('calcularProgresion', () => {
     expect(resultado.explicacion).toBe('Te sobró fuerza: sube a 95 lb.');
   });
 
+  it('no recomienda subir cuando el peso ya llegó al máximo admitido', () => {
+    const series = sesion('2026-11-20', [{ peso: 300 }, { peso: 300 }, { peso: 300 }]);
+    const resultado = calcularProgresion({ series, objetivo: OBJETIVO, pesoActual: 300, unidad: 'kg' });
+
+    expect(resultado).toMatchObject({ accion: 'mantiene', motivo: 'peso-maximo', peso: 300 });
+    expect(resultado.explicacion).toBe('Llegaste al peso máximo que admite la app: mantén 300 kg.');
+  });
+
+  it('con un peso guardado fuera de rango recomienda el máximo en vez de subir', () => {
+    const series = sesion('2026-11-20', [{ peso: 9999.999 }, { peso: 9999.999 }, { peso: 9999.999 }]);
+    const resultado = calcularProgresion({ series, objetivo: OBJETIVO, pesoActual: 40, unidad: 'kg' });
+
+    expect(resultado).toMatchObject({ accion: 'mantiene', motivo: 'peso-maximo', peso: PESO_MAXIMO_MANUAL.kg });
+  });
+
   it('respeta el tope de subida aunque la sesión anterior haya sido muy fácil', () => {
     const series = sesion('2026-11-20', [
       { autoevaluacion: 'facil', repeticiones: 20 },
