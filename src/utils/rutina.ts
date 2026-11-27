@@ -111,13 +111,18 @@ export function resumirSesion(dia: DiaRutina): ResumenSesion {
   return { ejercicios: dia.ejercicios.length, series, minutos };
 }
 
-export function describirSesion(dia: DiaRutina): string {
+/** Piezas del resumen de una sesión, como "3 ejercicios", "9 series" y "≈ 20 min". */
+export function partesDeLaSesion(dia: DiaRutina): [string, string, string] {
   const { ejercicios, series, minutos } = resumirSesion(dia);
 
   const nombreEjercicios = ejercicios === 1 ? 'ejercicio' : 'ejercicios';
   const nombreSeries = series === 1 ? 'serie' : 'series';
 
-  return `${ejercicios} ${nombreEjercicios} · ${series} ${nombreSeries} · ≈ ${minutos} min`;
+  return [`${ejercicios} ${nombreEjercicios}`, `${series} ${nombreSeries}`, `≈ ${minutos} min`];
+}
+
+export function describirSesion(dia: DiaRutina): string {
+  return partesDeLaSesion(dia).join(' · ');
 }
 
 export interface ResumenSemana {

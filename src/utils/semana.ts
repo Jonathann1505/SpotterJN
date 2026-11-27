@@ -98,3 +98,20 @@ export function estadoDeLaSemana(
     return { indice, dia, diaSemana, estado };
   });
 }
+
+export interface DiaDelCalendario {
+  fecha: Date;
+  diaSemana: Weekday;
+  esHoy: boolean;
+}
+
+/** Los siete días de la semana de `ahora`, de lunes a domingo, para la tira semanal de Hoy. */
+export function diasDeLaSemanaActual(ahora: Date = new Date()): DiaDelCalendario[] {
+  const inicio = inicioDeSemana(ahora);
+  const posicionHoy = (ahora.getDay() + 6) % 7;
+
+  return Array.from({ length: 7 }, (_, posicion) => {
+    const fecha = new Date(inicio.getFullYear(), inicio.getMonth(), inicio.getDate() + posicion);
+    return { fecha, diaSemana: diaDeLaSemana(fecha), esHoy: posicion === posicionHoy };
+  });
+}
