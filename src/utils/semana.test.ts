@@ -1,7 +1,8 @@
 import { Weekday } from '@capacitor/local-notifications';
 import { describe, expect, it } from 'vitest';
 import type { RutinaAsignada } from '../types/perfil';
-import { sesionParaFecha } from './semana';
+import type { SerieRegistrada } from '../types/series';
+import { estadoDeLaSemana, sesionParaFecha } from './semana';
 
 function rutinaDe(dias: number): RutinaAsignada {
   return {
@@ -56,5 +57,77 @@ describe('sesionParaFecha', () => {
 
   it('devuelve null si la rutina no tiene días', () => {
     expect(sesionParaFecha({ ...rutinaDe(3), dias: [] }, fecha(16))).toBeNull();
+  });
+});
+
+function serieDe(dia: string, momento: Date, cambios: Partial<SerieRegistrada> = {}): SerieRegistrada {
+  return {
+    id: `${dia}-${momento.getTime()}`,
+    registradaEn: momento.toISOString(),
+    idEjercicio: 'press-banca',
+    nombreEjercicio: 'Press de banca',
+    dia,
+    numeroSerie: 1,
+    peso: 40,
+    unidad: 'kg',
+    repeticiones: 12,
+    autoevaluacion: 'normal',
+    estado: 'completada',
+    ...cambios,
+  };
+}
+
+const estados = (rutina: RutinaAsignada, series: SerieRegistrada[], ahora: Date) =>
+  estadoDeLaSemana(rutina, series, ahora).map((entrada) => entrada.estado);
+
+describe('estadoDeLaSemana', () => {
+  const rutina = rutinaDe(3);
+
+  it('el lunes sin series marca hoy el día 1 y pendientes los demás', () => {
+    expect(estados(rutina, [], fecha(16))).toEqual(['hoy', 'pendiente', 'pendiente']);
+  });
+
+  it('el viernes marca como faltó los días anteriores sin series y hoy el del viernes', () => {
+    expect(estados(rutina, [], fecha(20))).toEqual(['falto', 'falto', 'hoy']);
+  });
+
+  it('marca hecho el día con series completadas esta semana', () => {
+    const series = [serieDe('Día 1 – Cuerpo completo', fecha(16))];
+
+    expect(estados(rutina, series, fecha(20))).toEqual(['hecho', 'falto', 'hoy']);
+  });
+
+  it('un día hecho el mismo día que toca aparece como hecho y no como hoy', () => {
+    const series = [serieDe('Día 3 – Cuerpo completo', fecha(20))];
+
+    expect(estados(rutina, series, fecha(20))).toEqual(['falto', 'falto', 'hecho']);
+  });
+
+  it('permite haber hecho antes de tiempo un día que aún no llega', () => {
+    const series = [serieDe('Día 3 – Cuerpo completo', fecha(17))];
+
+    expect(estados(rutina, series, fecha(17))).toEqual(['falto', 'pendiente', 'hecho']);
+  });
+
+  it('ignora las series de la semana anterior y las interrumpidas por molestia', () => {
+    const series = [
+      serieDe('Día 1 – Cuerpo completo', fecha(13)),
+      serieDe('Día 2 – Cuerpo completo', fecha(18), { estado: 'interrumpida-por-molestia' }),
+    ];
+
+    expect(estados(rutina, series, fecha(20))).toEqual(['falto', 'falto', 'hoy']);
+  });
+
+  it('la semana va de lunes a domingo: el domingo aún cuenta los días desde el lunes', () => {
+    expect(estados(rutinaDe(2), [], fecha(22))).toEqual(['falto', 'falto']);
+    expect(estados(rutinaDe(2), [serieDe('Día 1 – Cuerpo completo', fecha(21))], fecha(22))).toEqual(['hecho', 'falto']);
+  });
+
+  it('devuelve el día de la semana de cada sesión', () => {
+    expect(estadoDeLaSemana(rutina, [], fecha(16)).map((entrada) => entrada.diaSemana)).toEqual([
+      Weekday.Monday,
+      Weekday.Wednesday,
+      Weekday.Friday,
+    ]);
   });
 });
