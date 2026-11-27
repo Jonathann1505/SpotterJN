@@ -5,7 +5,7 @@ import { Preferences } from '@capacitor/preferences';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ProveedorPerfil } from '../context/PerfilContext';
 import { ajustesPesoLocal, perfilLocal, rutinaLocal, saludLocal, seriesLocal } from '../repositories/local';
-import { asignarRutina, describirSesion } from '../utils/rutina';
+import { asignarRutina, partesDeLaSesion } from '../utils/rutina';
 import Hoy from './Hoy';
 
 vi.mock('../services/auth', () => ({ cerrarSesion: vi.fn() }));
@@ -91,9 +91,23 @@ describe('Hoy', () => {
   it('resume la sesión con ejercicios, series y minutos aproximados', async () => {
     await saludLocal.guardar('usuario-prueba', salud);
     await rutinaLocal.guardar('usuario-prueba', rutina);
-    const { findByText } = renderizar();
+    const { findByRole } = renderizar();
 
-    expect(await findByText(describirSesion(rutina.dias[0]))).toBeInTheDocument();
+    const chips = await findByRole('list', { name: 'Resumen de la sesión' });
+    expect(within(chips).getAllByRole('listitem').map((chip) => chip.textContent)).toEqual(
+      partesDeLaSesion(rutina.dias[0]),
+    );
+  });
+
+  it('pone «Empezar entrenamiento» dentro de la tarjeta de la sesión, antes de los ejercicios', async () => {
+    await saludLocal.guardar('usuario-prueba', salud);
+    await rutinaLocal.guardar('usuario-prueba', rutina);
+    const { findByRole, getByRole } = renderizar();
+
+    const tarjeta = await findByRole('region', { name: 'Tu sesión' });
+    expect(within(tarjeta).getByText('Empezar entrenamiento')).toBeInTheDocument();
+    const ejercicios = getByRole('list', { name: 'Ejercicios' });
+    expect(tarjeta.compareDocumentPosition(ejercicios) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it('muestra los pesos en libras si el perfil usa lb', async () => {
@@ -234,6 +248,41 @@ describe('Hoy', () => {
 
       expect(opcion(new RegExp(`${rutina.dias[0].nombre} · lunes — Hecho`))).toBeInTheDocument();
       expect(queryByRole('status')).toBeNull();
+    });
+
+    it('la tira muestra los siete días de lunes a domingo con su fecha', async () => {
+      const { findByRole } = renderizar();
+      const tira = await findByRole('radiogroup', { name: 'Elegir otro día' });
+
+      const celdas = Array.from(tira.children);
+      expect(celdas.map((celda) => celda.querySelector('.sj-tira-inicial')?.textContent)).toEqual([
+        'L', 'M', 'X', 'J', 'V', 'S', 'D',
+      ]);
+      expect(celdas.map((celda) => celda.querySelector('.sj-tira-numero')?.textContent)).toEqual([
+        '16', '17', '18', '19', '20', '21', '22',
+      ]);
+    });
+
+    it('solo deja elegir los días de entrenamiento y marca el de hoy', async () => {
+      simularFecha(17);
+      const { findByRole } = renderizar();
+      const tira = await findByRole('radiogroup', { name: 'Elegir otro día' });
+
+      expect(within(tira).getAllByRole('radio')).toHaveLength(rutina.dias.length);
+      const hoy = tira.querySelector('.sj-tira-hoy') as HTMLElement;
+      expect(hoy.querySelector('.sj-tira-numero')).toHaveTextContent('17');
+      expect(hoy).toHaveClass('sj-tira-descanso');
+      expect(hoy).toHaveAttribute('aria-hidden', 'true');
+    });
+
+    it('el aviso de faltas indica que se elige en la semana', async () => {
+      simularFecha(18);
+      const { findByText } = renderizar();
+
+      const aviso = await findByText(/Te faltó/);
+      expect(aviso.closest('[role="status"]')).toHaveTextContent(
+        `Te faltó ${rutina.dias[0].nombre} (lunes). Puedes hacerla hoy: elígela en tu semana.`,
+      );
     });
 
     it('sin días pasados sin hacer no muestra el aviso', async () => {

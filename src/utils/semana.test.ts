@@ -2,7 +2,7 @@ import { Weekday } from '@capacitor/local-notifications';
 import { describe, expect, it } from 'vitest';
 import type { RutinaAsignada } from '../types/perfil';
 import type { SerieRegistrada } from '../types/series';
-import { estadoDeLaSemana, sesionParaFecha } from './semana';
+import { diasDeLaSemanaActual, estadoDeLaSemana, sesionParaFecha } from './semana';
 
 function rutinaDe(dias: number): RutinaAsignada {
   return {
@@ -129,5 +129,30 @@ describe('estadoDeLaSemana', () => {
       Weekday.Wednesday,
       Weekday.Friday,
     ]);
+  });
+});
+
+describe('diasDeLaSemanaActual', () => {
+  it('devuelve de lunes a domingo y marca hoy, aunque hoy sea domingo', () => {
+    const dias = diasDeLaSemanaActual(new Date(2026, 10, 22, 20, 0));
+
+    expect(dias.map((dia) => dia.fecha.getDate())).toEqual([16, 17, 18, 19, 20, 21, 22]);
+    expect(dias.map((dia) => dia.diaSemana)).toEqual([
+      Weekday.Monday,
+      Weekday.Tuesday,
+      Weekday.Wednesday,
+      Weekday.Thursday,
+      Weekday.Friday,
+      Weekday.Saturday,
+      Weekday.Sunday,
+    ]);
+    expect(dias.filter((dia) => dia.esHoy).map((dia) => dia.fecha.getDate())).toEqual([22]);
+  });
+
+  it('cruza el cambio de mes', () => {
+    const dias = diasDeLaSemanaActual(new Date(2026, 11, 2, 9, 0));
+
+    expect(dias.map((dia) => dia.fecha.getDate())).toEqual([30, 1, 2, 3, 4, 5, 6]);
+    expect(dias[2].esHoy).toBe(true);
   });
 });

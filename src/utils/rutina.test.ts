@@ -1,7 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import { EJERCICIOS } from '../data/ejercicios';
 import type { CuestionarioRutina } from '../types/perfil';
-import { asignarRutina, describirRutina, describirSemana, describirSesion, resumirSemana, resumirSesion, tipoDeSesion } from './rutina';
+import {
+  asignarRutina,
+  describirRutina,
+  describirSemana,
+  describirSesion,
+  partesDeLaSesion,
+  resumirSemana,
+  resumirSesion,
+  tipoDeSesion,
+} from './rutina';
 
 const base: CuestionarioRutina = { experiencia: 'ninguna', diasPorSemana: 3, equipo: ['maquinas', 'mancuernas'] };
 
@@ -107,5 +116,23 @@ describe('resumirSemana', () => {
     expect(describirSemana(rutina([dia(12), dia(12), dia(12)]))).toBe(
       'Cada semana: 3 sesiones · 36 series · ≈ 1 h 15 min en total',
     );
+  });
+});
+
+describe('partesDeLaSesion', () => {
+  const ejercicioDe = (series: number) => ({ ...asignarRutina({ experiencia: 'ninguna', diasPorSemana: 3, equipo: ['maquinas'] }).dias[0].ejercicios[0], series });
+
+  it('separa ejercicios, series y minutos para los chips de Hoy', () => {
+    expect(partesDeLaSesion({ nombre: 'Día 1', ejercicios: [ejercicioDe(3), ejercicioDe(3)] })).toEqual([
+      '2 ejercicios',
+      '6 series',
+      '≈ 15 min',
+    ]);
+    expect(partesDeLaSesion({ nombre: 'Día 1', ejercicios: [ejercicioDe(1)] })).toEqual(['1 ejercicio', '1 serie', '≈ 5 min']);
+  });
+
+  it('coincide con el resumen en una línea', () => {
+    const dia = { nombre: 'Día 1', ejercicios: [ejercicioDe(4), ejercicioDe(2)] };
+    expect(partesDeLaSesion(dia).join(' · ')).toBe(describirSesion(dia));
   });
 });
