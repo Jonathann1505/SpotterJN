@@ -158,7 +158,9 @@ Toda pantalla **secundaria** usa el encabezado con el botón atrás nativo de Io
 - Ionic adapta el estilo a la plataforma: solo flecha en Android (modo `md`) y «‹ Atrás» en iOS. No se fuerza un modo.
 - Es transparente, sin borde ni sombra, con la flecha en el color de texto del tema. Tiene la etiqueta «Volver» para lectores de pantalla y una zona táctil mínima de 44×44 px.
 - El toolbar reserva el área segura superior; la clase `sj-con-encabezado` reduce el margen del contenido para no duplicarla.
-- El botón físico de Android y el gesto de deslizar en iOS los gestiona `IonRouterOutlet`; no hay manejadores propios.
+- El gesto de deslizar en iOS lo gestiona `IonRouterOutlet`.
+- **Botón atrás físico de Android** (`src/services/botonAtras.ts`, activado en `App.tsx`): con el plugin `@capacitor/app` se escucha `backButton`, así Capacitor ya no cierra la app cuando el WebView no tiene historial. Cada pulsación hace lo mismo que el botón atrás de la pantalla visible (lo pulsa, con su `defaultHref`); en las pantallas sin botón atrás (las raíz y el flujo inicial obligatorio) **no hace nada: la app nunca se cierra ni se minimiza con el botón atrás**. Se registra con prioridad 1, por encima del router de Ionic React (0, que siempre haría `history.back()`), y por debajo de los diálogos (100).
+- Los diálogos propios (ajuste de peso y ayuda de términos) se cierran con el botón atrás mediante `useCerrarConBotonAtras` (`src/hooks`); los de Ionic (`IonAlert`) ya lo hacen solos. Todo diálogo propio nuevo debe usar ese hook.
 - `defaultHref` solo se usa si no hay historial (por ejemplo, al abrir la app en esa pantalla); si lo hay, se vuelve a la pantalla anterior.
 
 | Pantalla | Ruta | `atras` |
@@ -183,11 +185,11 @@ Sin botón atrás: `/login`, `/consentimientos` y `/registro` (pestañas de acce
 
 `@ionic/react-router` debe tener **la misma versión** que `@ionic/react`: la primera fija exactamente su versión de `@ionic/react`, y si no coinciden se empaquetan dos copias de Ionic y el router deja de compartir su contexto (el botón atrás recargaría la página en lugar de navegar). Al actualizar Ionic, actualiza ambos paquetes juntos y comprueba con `npm ls @ionic/react` que aparezca `deduped`.
 
-Pendiente de probar en dispositivo: el botón atrás en Android (flecha) y en iOS («‹ Atrás»), el botón físico de Android, el gesto de deslizar en iOS y el área segura con notch.
+Pendiente de probar en dispositivo: el botón atrás en Android (flecha) y en iOS («‹ Atrás»), el botón físico de Android (volver en pantallas secundarias, no hacer nada en Hoy y en el login, cerrar diálogos abiertos), el gesto de deslizar en iOS y el área segura con notch.
 
 #### Recarga al volver a una pantalla
 
-Ionic conserva en la pila las pantallas anteriores: al volver a ellas (con el botón atrás o con `history.replace`) no se montan de nuevo y sus efectos de carga no se repiten. `useRecargaAlVolver(ruta)` (`src/hooks/useRecargaAlVolver.ts`) devuelve un número que aumenta cada vez que se vuelve a esa ruta; se usa como dependencia del efecto de carga. Lo usan **Hoy** (tras terminar una sesión, cambiar un ejercicio o borrar los datos) y **Mi rutina** (tras cambiar la rutina). Durante la recarga se mantienen los datos visibles, sin volver al skeleton. Cualquier pantalla nueva que lea datos y pueda quedar debajo en la pila debe usarlo.
+Ionic conserva en la pila las pantallas anteriores: al volver a ellas (con el botón atrás o con `history.replace`) no se montan de nuevo y sus efectos de carga no se repiten. `useRecargaAlVolver(ruta)` (`src/hooks/useRecargaAlVolver.ts`) devuelve un número que aumenta cada vez que se vuelve a esa ruta; se usa como dependencia del efecto de carga. Lo usan **Hoy** (tras terminar una sesión, cambiar un ejercicio o borrar los datos), **Mi rutina** (tras cambiar la rutina) y **Perfil** («Tu rutina actual», tras cambiar la rutina). Durante la recarga se mantienen los datos visibles, sin volver al skeleton. Cualquier pantalla nueva que lea datos y pueda quedar debajo en la pila debe usarlo.
 
 ### Animaciones y microinteracciones
 
@@ -347,7 +349,7 @@ Pendientes: recomendaciones con IA real, sincronización con Supabase y cifrado 
 />
 ```
 
-Los valores editados temporalmente vacíos o fuera de rango se corrigen al salir del campo; los valores válidos se notifican mediante `onChange`. Las flechas arriba/abajo ajustan el valor por teclado; la etiqueta está asociada a la entrada y los botones tienen nombres accesibles. Los estilos usan los tokens del tema, con contraste medido de 4,74:1 incluso en los botones deshabilitados. Las operaciones numéricas y el paso por unidad están en `src/utils/contadorNumerico.ts`. El contador se usa en `/sesion` para repeticiones y peso; no guarda series ni modifica el peso recomendado del catálogo.
+Al salir del campo, un valor fuera de rango se ajusta al límite más cercano y un campo vacío o ilegible recupera el **último valor válido** (no el mínimo): así nunca se guarda en silencio un cero que el usuario no escribió. Los valores válidos se notifican mediante `onChange`. Las flechas arriba/abajo ajustan el valor por teclado; la etiqueta está asociada a la entrada y los botones tienen nombres accesibles. Los estilos usan los tokens del tema, con contraste medido de 4,74:1 incluso en los botones deshabilitados. Las operaciones numéricas y el paso por unidad están en `src/utils/contadorNumerico.ts`. El contador se usa en `/sesion` para repeticiones y peso; no guarda series ni modifica el peso recomendado del catálogo.
 
 ## Supabase y variables de entorno
 
