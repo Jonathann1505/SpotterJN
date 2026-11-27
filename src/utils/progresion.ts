@@ -27,7 +27,8 @@ export type MotivoProgresion =
   | 'incompleta'
   | 'molestia'
   | 'tres-fallos'
-  | 'ajuste-manual';
+  | 'ajuste-manual'
+  | 'peso-maximo';
 
 export interface ObjetivoEjercicio {
   series: number;
@@ -150,6 +151,8 @@ export const explicarProgresion: Explicador = ({ motivo, peso, repeticiones, uni
       return `Llevas 3 sesiones difíciles con este peso: baja a ${carga} y vuelve a subir.`;
     case 'ajuste-manual':
       return `Ajustado por ti: empieza con ${carga}.`;
+    case 'peso-maximo':
+      return `Llegaste al peso máximo que admite la app: mantén ${carga}.`;
   }
 };
 
@@ -207,6 +210,16 @@ export function calcularProgresion(
         motivo: 'todo-bien',
         peso: null,
         repeticiones: maximoRepeticiones(ultima) + INCREMENTO_REPETICIONES,
+      });
+    }
+    // Un peso fuera del rango admitido nunca se recomienda subir (p. ej. datos guardados con un error de captura).
+    const pesoMaximo = PESO_MAXIMO_MANUAL[unidad];
+    if (pesoBase + INCREMENTO_PESO[unidad] > pesoMaximo) {
+      return terminar({
+        accion: 'mantiene',
+        motivo: 'peso-maximo',
+        peso: Math.min(pesoBase, pesoMaximo),
+        repeticiones: objetivo.repeticiones,
       });
     }
     // RF-17: la subida nunca supera 2,5 kg o 5 lb por sesión.

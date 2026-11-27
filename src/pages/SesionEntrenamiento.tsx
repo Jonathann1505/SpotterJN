@@ -11,7 +11,7 @@ import { usePerfil } from '../context/PerfilContext';
 import { useSesion } from '../context/SesionContext';
 import { ajustesPesoLocal, rutinaLocal, seriesLocal } from '../repositories/local';
 import type { AjustesPeso } from '../types/ajustesPeso';
-import { recomendarParaEjercicio } from '../utils/progresion';
+import { PESO_MAXIMO_MANUAL, recomendarParaEjercicio } from '../utils/progresion';
 import {
   cancelarAvisoDescanso,
   estadoAvisoDescanso,
@@ -368,6 +368,7 @@ function SesionEntrenamiento() {
           valor={pesoActual}
           onChange={setPeso}
           minimo={0}
+          maximo={PESO_MAXIMO_MANUAL[perfil.unidadPeso]}
           unidad={perfil.unidadPeso}
         />
       )}

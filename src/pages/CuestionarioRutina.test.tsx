@@ -4,6 +4,8 @@ import { MemoryRouter, Route } from 'react-router-dom';
 import { Preferences } from '@capacitor/preferences';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import CuestionarioRutina from './CuestionarioRutina';
+import { ProveedorPerfil } from '../context/PerfilContext';
+import { perfilLocal } from '../repositories/local';
 import { recordatoriosLocal, rutinaLocal } from '../repositories/local';
 import { asignarRutina } from '../utils/rutina';
 
@@ -19,12 +21,14 @@ vi.mock('../context/SesionContext', () => ({
 async function renderizar() {
   const resultado = render(
     <IonApp>
-      <MemoryRouter initialEntries={['/cuestionario-rutina']}>
-        <Route path="/cuestionario-rutina" component={CuestionarioRutina} />
-        <Route path="/rutina">
-          <p>rutina asignada</p>
-        </Route>
-      </MemoryRouter>
+      <ProveedorPerfil>
+        <MemoryRouter initialEntries={['/cuestionario-rutina']}>
+          <Route path="/cuestionario-rutina" component={CuestionarioRutina} />
+          <Route path="/rutina">
+            <p>rutina asignada</p>
+          </Route>
+        </MemoryRouter>
+      </ProveedorPerfil>
     </IonApp>,
   );
   await resultado.findByRole('radiogroup', { name: 'Experiencia previa' });
@@ -40,10 +44,15 @@ describe('CuestionarioRutina', () => {
     vi.clearAllMocks();
   });
 
-  it('habilita "Ver mi rutina" solo con experiencia y equipo respondidos', async () => {
+  it('habilita "Ver mi rutina" solo con meta, experiencia y equipo respondidos', async () => {
     const { container, getByRole } = await renderizar();
     const boton = container.querySelector('ion-button.sj-boton');
 
+    expect(boton).toHaveAttribute('disabled');
+    for (const opcion of ['Ganar fuerza', 'Perder peso', 'Tonificar', 'Resistencia']) {
+      expect(getByRole('radio', { name: opcion })).toHaveAttribute('aria-checked', 'false');
+    }
+    fireEvent.click(getByRole('radio', { name: 'Tonificar' }));
     expect(boton).toHaveAttribute('disabled');
     fireEvent.click(getByRole('radio', { name: 'Ninguna' }));
     expect(boton).toHaveAttribute('disabled');
@@ -56,8 +65,10 @@ describe('CuestionarioRutina', () => {
       'usuario-prueba',
       asignarRutina({ experiencia: 'mas-6-meses', diasPorSemana: 5, equipo: ['barra', 'poleas'] }),
     );
+    await perfilLocal.guardar('usuario-prueba', { nombre: 'Nayeli', meta: 'resistencia', unidadPeso: 'kg' });
     const { findByRole, getByRole } = await renderizar();
 
+    await waitFor(() => expect(getByRole('radio', { name: 'Resistencia' })).toHaveAttribute('aria-checked', 'true'));
     await waitFor(() => expect(getByRole('radio', { name: 'Más de 6 meses' })).toHaveAttribute('aria-checked', 'true'));
     expect(getByRole('checkbox', { name: /Barra y discos/ })).toHaveAttribute('aria-checked', 'true');
     expect(getByRole('checkbox', { name: /Poleas/ })).toHaveAttribute('aria-checked', 'true');
@@ -84,6 +95,7 @@ describe('CuestionarioRutina', () => {
   it('asigna, guarda la rutina y avanza', async () => {
     const { container, getByRole, findByText } = await renderizar();
 
+    fireEvent.click(getByRole('radio', { name: 'Perder peso' }));
     fireEvent.click(getByRole('radio', { name: 'Menos de 6 meses' }));
     fireEvent.click(getByRole('checkbox', { name: 'Máquinas guiadas' }));
     fireEvent.click(container.querySelector('ion-button.sj-boton') as Element);
@@ -94,6 +106,20 @@ describe('CuestionarioRutina', () => {
       expect(rutina?.cuestionario).toEqual({ experiencia: 'menos-6-meses', diasPorSemana: 3, equipo: ['maquinas'] });
       expect(rutina?.dias).toHaveLength(3);
     });
+    expect(await perfilLocal.obtener('usuario-prueba')).toMatchObject({ meta: 'perder-peso' });
+  });
+
+  it('conserva el nombre y la unidad del perfil al guardar la meta', async () => {
+    await perfilLocal.guardar('usuario-prueba', { nombre: 'Nayeli', meta: 'fuerza', unidadPeso: 'lb' });
+    const { container, getByRole, findByText } = await renderizar();
+
+    fireEvent.click(getByRole('radio', { name: 'Tonificar' }));
+    fireEvent.click(getByRole('radio', { name: 'Ninguna' }));
+    fireEvent.click(getByRole('checkbox', { name: 'Mancuernas' }));
+    fireEvent.click(container.querySelector('ion-button.sj-boton') as Element);
+
+    expect(await findByText('rutina asignada')).toBeInTheDocument();
+    expect(await perfilLocal.obtener('usuario-prueba')).toEqual({ nombre: 'Nayeli', meta: 'tonificar', unidadPeso: 'lb' });
   });
 
   it('reprograma los recordatorios activos con los días de la nueva rutina', async () => {
@@ -101,6 +127,7 @@ describe('CuestionarioRutina', () => {
     await recordatoriosLocal.guardar('usuario-prueba', { activo: true, hora: '07:00' });
     const { container, getByRole, findByText } = await renderizar();
 
+    fireEvent.click(getByRole('radio', { name: 'Ganar fuerza' }));
     fireEvent.click(getByRole('radio', { name: 'Ninguna' }));
     fireEvent.click(getByRole('checkbox', { name: 'Mancuernas' }));
     fireEvent.click(container.querySelector('ion-button.sj-boton') as Element);

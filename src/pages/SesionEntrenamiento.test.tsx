@@ -221,6 +221,17 @@ describe('SesionEntrenamiento', () => {
       expect(estaDeshabilitado(botonGuardar())).toBe(true);
     });
 
+    it('limita el peso al máximo admitido y no deja capturar 9999.999', async () => {
+      await iniciar();
+      const peso = screen.getByLabelText('Peso');
+
+      expect(peso).toHaveAttribute('max', '300');
+      fireEvent.change(peso, { target: { value: '9999.999' } });
+      fireEvent.blur(peso);
+
+      await waitFor(() => expect(Number((screen.getByLabelText('Peso') as HTMLInputElement).value)).toBeLessThanOrEqual(300));
+    });
+
     it('muestra el contador de peso solo en ejercicios con carga', async () => {
       await iniciar();
       expect(screen.getByLabelText('Repeticiones logradas')).toBeInTheDocument();

@@ -5,13 +5,15 @@ import { BotonSJ, PantallaSJ } from '../components/PantallaSJ';
 import { recordatoriosLocal, rutinaLocal } from '../repositories/local';
 import { sincronizarRecordatorios } from '../services/recordatorios';
 import { DIAS_MAXIMOS, DIAS_MINIMOS, asignarRutina } from '../utils/rutina';
-import { EQUIPOS, EXPERIENCIAS, type EquipoGimnasio, type Experiencia } from '../types/perfil';
-import { ETIQUETAS_EQUIPO, ETIQUETAS_EXPERIENCIA } from '../utils/etiquetasRutina';
+import { EQUIPOS, EXPERIENCIAS, METAS_PRINCIPALES, type EquipoGimnasio, type Experiencia, type MetaPrincipal } from '../types/perfil';
+import { ETIQUETAS_EQUIPO, ETIQUETAS_EXPERIENCIA, ETIQUETAS_META } from '../utils/etiquetasRutina';
+import { usePerfil } from '../context/PerfilContext';
 import { useSesion } from '../context/SesionContext';
 
 const DIAS_PREDETERMINADOS = 3;
 
 function CuestionarioRutina() {
+  const [meta, setMeta] = useState<MetaPrincipal | null>(null);
   const [experiencia, setExperiencia] = useState<Experiencia | null>(null);
   const [dias, setDias] = useState(DIAS_PREDETERMINADOS);
   const [equipo, setEquipo] = useState<EquipoGimnasio[]>([]);
@@ -21,7 +23,8 @@ function CuestionarioRutina() {
   const [tieneRutina, setTieneRutina] = useState<boolean | null>(null);
   const history = useHistory();
   const { sesion } = useSesion();
-  const completo = experiencia !== null && equipo.length > 0;
+  const { perfil, cargando: cargandoPerfil, guardarPerfil } = usePerfil();
+  const completo = meta !== null && experiencia !== null && equipo.length > 0;
   const usuarioId = sesion?.user.id ?? null;
 
   // Al cambiar de rutina se parte de las respuestas anteriores, sin pisar lo que ya se haya tocado.
@@ -57,12 +60,19 @@ function CuestionarioRutina() {
     };
   }, [usuarioId]);
 
+  // Al cambiar de rutina se parte de la meta ya guardada; en el flujo inicial hay que elegirla.
+  useEffect(() => {
+    if (tieneRutina === true && !cargandoPerfil) {
+      setMeta((actual) => actual ?? perfil.meta);
+    }
+  }, [tieneRutina, cargandoPerfil, perfil.meta]);
+
   const alternarEquipo = (item: EquipoGimnasio): void => {
     setEquipo((actual) => (actual.includes(item) ? actual.filter((e) => e !== item) : [...actual, item]));
   };
 
   const verRutina = async (): Promise<void> => {
-    if (experiencia === null || equipo.length === 0 || guardando) {
+    if (meta === null || experiencia === null || equipo.length === 0 || guardando) {
       return;
     }
     if (!sesion) {
@@ -75,6 +85,7 @@ function CuestionarioRutina() {
     try {
       const usuarioId = sesion.user.id;
       const rutina = asignarRutina({ experiencia, diasPorSemana: dias, equipo });
+      await guardarPerfil({ ...perfil, meta });
       await rutinaLocal.guardar(usuarioId, rutina);
       // Si ya había recordatorios activos, se ajustan a los días de la nueva rutina.
       void recordatoriosLocal
@@ -108,6 +119,22 @@ function CuestionarioRutina() {
         </BotonSJ>
       }
     >
+      <h2 className="sj-subtitulo" id="pregunta-meta">Meta principal</h2>
+      <div className="sj-segmentos sj-segmentos-columna" role="radiogroup" aria-labelledby="pregunta-meta">
+        {METAS_PRINCIPALES.map((opcion) => (
+          <button
+            key={opcion}
+            type="button"
+            role="radio"
+            aria-checked={meta === opcion}
+            className="sj-segmento"
+            onClick={() => setMeta(opcion)}
+          >
+            {ETIQUETAS_META[opcion]}
+          </button>
+        ))}
+      </div>
+
       <h2 className="sj-subtitulo" id="pregunta-experiencia">Experiencia previa</h2>
       <div className="sj-segmentos sj-segmentos-columna" role="radiogroup" aria-labelledby="pregunta-experiencia">
         {EXPERIENCIAS.map((opcion) => (

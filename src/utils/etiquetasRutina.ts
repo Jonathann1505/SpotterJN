@@ -1,4 +1,4 @@
-import type { EquipoGimnasio, Experiencia } from '../types/perfil';
+import type { EquipoGimnasio, Experiencia, MetaPrincipal } from '../types/perfil';
 
 export const ETIQUETAS_EXPERIENCIA: Record<Experiencia, string> = {
   ninguna: 'Ninguna',
@@ -12,4 +12,11 @@ export const ETIQUETAS_EQUIPO: Record<EquipoGimnasio, string> = {
   maquinas: 'Máquinas guiadas',
   poleas: 'Poleas',
   'peso-corporal': 'Solo peso corporal',
+};
+
+export const ETIQUETAS_META: Record<MetaPrincipal, string> = {
+  fuerza: 'Ganar fuerza',
+  'perder-peso': 'Perder peso',
+  tonificar: 'Tonificar',
+  resistencia: 'Resistencia',
 };
