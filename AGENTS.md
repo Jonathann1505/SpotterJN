@@ -290,3 +290,12 @@
 
 - Decisión del usuario («Sí, 90 s igual»): tras la última serie de un ejercicio también se descansa 90 s antes del siguiente, con los mismos controles y aviso. El estado `descanso` tiene `proximoEjercicio` (solo entre ejercicios) para mostrar «Prepárate para …». No hay descanso tras la última serie de la sesión.
 - Las pruebas que recorren varios ejercicios usan `guardarCon`, que salta el descanso si aparece; la prueba «no muestra descanso tras la última serie del ejercicio» se reemplazó por una que exige el descanso entre ejercicios.
+
+### 2026-11-27 — Sesión retomable, «Hecho» solo completo y repeticiones desde 1
+
+- Bug 1 (alta): salir a mitad de la sesión hacía empezar de cero y repetir series. En vez de un aviso de confirmación, la sesión se retoma: `retomarSesion(dia, series, ahora)` mira las series guardadas hoy de esa jornada y devuelve dónde seguir. No cambia la forma de `SerieRegistrada`. Las series de hoy se excluyen de `previas` para no cambiar el peso de partida.
+- Bug 2 (alta): Hoy seguía sugiriendo la sesión ya hecha. Si la de hoy está «Hecho», se sugiere la próxima (`sesionParaFecha` con la fecha de mañana).
+- Bug 9 (baja): «Hecho» exigía solo una serie. Ahora usa `jornadaCompleta`: cada ejercicio completo o detenido por molestia, y al menos una serie completada.
+- Bug 8 (baja): las repeticiones van de 1 a 50; si no se pudo hacer ninguna, está «Sentí dolor».
+- Ojo al editar con scripts de Node: en `String.replace`, los signos de dólar seguidos de comilla invertida o de apóstrofo en el texto de reemplazo son patrones especiales (insertan el texto de antes o de después); usar `replace(a, () => b)`.
+- La barra «Esta semana: X de Y» del Perfil usa `estadoDeLaSemana`, así que sigue la misma regla (su prueba ahora guarda la sesión completa). El total «N sesiones registradas» (`contarSesiones`) no cambia.

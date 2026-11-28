@@ -239,7 +239,7 @@ La compilación estática se genera en `dist/`.
 
 ## Perfil y rutina (M2)
 
-El flujo de primera vez, tras iniciar sesión, es: `Hoy` redirige a `/aviso-medico` si no hay respuestas de salud (RF-05), después a `/cuestionario-rutina` si no hay rutina (RF-06), que asigna una rutina predefinida y la muestra en `/rutina`. `/perfil` permite editar nombre (1 a 40 caracteres), meta principal y unidad de peso kg/lb (RF-07); la unidad se aplica de inmediato en `Hoy` y en la rutina. `Hoy` saluda por el nombre del perfil y muestra la próxima sesión con sus ejercicios, series y repeticiones (RF-08), con una tira «Tu semana» de lunes a domingo (L a D, con la fecha) para entrenar cualquier día de la rutina: solo se eligen los días de entrenamiento, los de descanso se ven atenuados, el día actual lleva una línea azul y cada día marca Hecho, Hoy toca o Te faltó según las series guardadas de la semana; un aviso compacto recuerda las sesiones que faltaron y al volver a Hoy se sugiere otra vez la del día. La tarjeta de la sesión reúne el saludo, chips con ejercicios, series y minutos aproximados (unos 2,25 min por serie, redondeados a múltiplos de 5; es una estimación). La rutina muestra el mismo resumen en cada día, y desde `Hoy`, la rutina y la ficha se llega a la ayuda de cada ejercicio; el perfil tiene el acceso «Mi rutina» y un resumen de la rutina actual (días, experiencia y equipo). La rutina incluye un resumen semanal (sesiones, series y tiempo aproximado) y el botón «Cambiar mi rutina», que reabre el cuestionario con las respuestas anteriores ya marcadas.
+El flujo de primera vez, tras iniciar sesión, es: `Hoy` redirige a `/aviso-medico` si no hay respuestas de salud (RF-05), después a `/cuestionario-rutina` si no hay rutina (RF-06), que asigna una rutina predefinida y la muestra en `/rutina`. `/perfil` permite editar nombre (1 a 40 caracteres), meta principal y unidad de peso kg/lb (RF-07); la unidad se aplica de inmediato en `Hoy` y en la rutina. `Hoy` saluda por el nombre del perfil y muestra la próxima sesión con sus ejercicios, series y repeticiones (RF-08), con una tira «Tu semana» de lunes a domingo (L a D, con la fecha) para entrenar cualquier día de la rutina: solo se eligen los días de entrenamiento, los de descanso se ven atenuados, el día actual lleva una línea azul y cada día marca Hecho, Hoy toca o Te faltó según las series guardadas de la semana. «Hecho» exige la sesión completa: cada ejercicio con todas sus series completadas o detenido por molestia, y al menos una serie completada; una sesión a medias no cuenta. Un aviso compacto recuerda las sesiones que faltaron y al volver a Hoy se sugiere otra vez la del día; si la de hoy ya está hecha, se sugiere la próxima («Ya completaste la sesión de hoy…») para no repetirla sin querer. La tarjeta de la sesión reúne el saludo, chips con ejercicios, series y minutos aproximados (unos 2,25 min por serie, redondeados a múltiplos de 5; es una estimación). La rutina muestra el mismo resumen en cada día, y desde `Hoy`, la rutina y la ficha se llega a la ayuda de cada ejercicio; el perfil tiene el acceso «Mi rutina» y un resumen de la rutina actual (días, experiencia y equipo). La rutina incluye un resumen semanal (sesiones, series y tiempo aproximado) y el botón «Cambiar mi rutina», que reabre el cuestionario con las respuestas anteriores ya marcadas.
 
 Desde el perfil se pueden **editar las respuestas de salud** (`/editar-salud`, RF-05), que reutiliza las mismas condiciones del cuestionario inicial y actualiza la fecha de respuesta, y **borrar los datos de este dispositivo** con confirmación: elimina perfil, salud, rutina, fichas vistas, recordatorios e historial de series (`borrarDatosLocales`), cancela los recordatorios programados y reinicia el flujo desde el aviso médico. No elimina la cuenta ni cierra la sesión (RF-04 sigue pendiente).
 
@@ -270,7 +270,8 @@ La ruta protegida `/sesion`, accesible desde «Empezar entrenamiento» en Hoy, c
 ### Registro de serie y autoevaluación (RF-10)
 
 - El ejercicio actual va en una tarjeta compacta: miniatura animada, «Ejercicio N de M» y el nombre; debajo, «Serie X de Y» con un cuadro por serie (hechas en negro, la actual en azul, las que faltan vacías) y el chip «Objetivo N reps». Una barra fina en el borde superior muestra el avance de toda la sesión en series (`progressbar` «Avance de la sesión»).
-- `ContadorNumerico` de repeticiones (0 a 50, paso 1) y de peso en la unidad del perfil (paso de 0,5 kg o 1 lb). En ejercicios de peso corporal (equipo `peso-corporal` del catálogo o sin carga inicial) no se muestra el contador de peso.
+- Si hoy se salió a mitad de una sesión, al volver a entrar se retoma donde quedó (`retomarSesion` en `utils/sesion.ts`, a partir de las series guardadas hoy de esa jornada) con el aviso «Seguimos donde la dejaste hoy.»; se mantienen las repeticiones y el peso de la última serie y el resumen final incluye las series de antes. Si la sesión de hoy ya está completa, empieza de nuevo.
+- `ContadorNumerico` de repeticiones (1 a 50, paso 1; una serie completada tiene al menos una repetición) y de peso en la unidad del perfil (paso de 0,5 kg o 1 lb). En ejercicios de peso corporal (equipo `peso-corporal` del catálogo o sin carga inicial) no se muestra el contador de peso.
 - Autoevaluación de selección única Fácil, Normal o Difícil (`role="radiogroup"` con botones `role="radio"` y la clase `sj-segmento`).
 - «Guardar serie» está deshabilitado hasta elegir una autoevaluación. Al guardar avanza a la siguiente serie y reinicia la autoevaluación; tras la última serie pasa al siguiente ejercicio (serie 1), y tras el último ejercicio muestra «Sesión completada» con «Volver a Hoy».
 - Las repeticiones y el peso se conservan entre series del mismo ejercicio y vuelven a los valores de la rutina al cambiar de ejercicio.
@@ -341,14 +342,14 @@ Pendientes: recomendaciones con IA real, sincronización con Supabase y cifrado 
 
 ### Contador numérico (RF-10)
 
-`ContadorNumerico` (`src/components/ContadorNumerico.tsx`) es un control reutilizable y controlado; recibe la etiqueta, el valor, `onChange` y límites/paso opcionales. Para repeticiones, configura `minimo={0}`, `maximo={50}` y `paso={1}`. Para peso, pasa `unidad="kg"` o `unidad="lb"`: el componente aplica automáticamente incrementos de 0,5 kg o 1 lb y no impone un máximo arbitrario. Ejemplo:
+`ContadorNumerico` (`src/components/ContadorNumerico.tsx`) es un control reutilizable y controlado; recibe la etiqueta, el valor, `onChange` y límites/paso opcionales. Para repeticiones, configura `minimo={1}`, `maximo={50}` y `paso={1}`. Para peso, pasa `unidad="kg"` o `unidad="lb"`: el componente aplica automáticamente incrementos de 0,5 kg o 1 lb y no impone un máximo arbitrario. Ejemplo:
 
 ```tsx
 <ContadorNumerico
   etiqueta="Repeticiones logradas"
   valor={repeticiones}
   onChange={setRepeticiones}
-  minimo={0}
+  minimo={1}
   maximo={50}
   paso={1}
 />
