@@ -1,6 +1,9 @@
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { Preferences } from '@capacitor/preferences';
+import type { Session } from '@supabase/supabase-js';
 import App from './App';
+import { escucharSesion, iniciarSesion, registrar } from './services/auth';
 import { botonAtras } from './test/navegacion';
 
 vi.mock('./services/auth', () => ({
@@ -167,5 +170,98 @@ describe('App', () => {
 
     const recuperar = await paginaActiva('Olvidé mi contraseña');
     expect(botonAtras(recuperar)).toHaveAttribute('default-href', '/login');
+  });
+
+  it('al crear la cuenta llega al aviso médico sin pasar por Hoy', async () => {
+    await Preferences.clear();
+    // Como Supabase en el celular: avisa la sesión nueva antes de que termine el registro.
+    let avisarSesion: (sesion: Session | null) => void = () => undefined;
+    vi.mocked(escucharSesion).mockImplementation((alCambiar) => {
+      avisarSesion = alCambiar;
+      return () => undefined;
+    });
+    vi.mocked(registrar).mockImplementation(async () => {
+      avisarSesion({ user: { id: 'cuenta-nueva' } } as unknown as Session);
+      return { ok: true, sesionIniciada: true };
+    });
+    const rutas: string[] = [];
+    const cambiar = window.history.replaceState.bind(window.history);
+    const empujar = window.history.pushState.bind(window.history);
+    const espiaReemplazo = vi.spyOn(window.history, 'replaceState').mockImplementation((estado, titulo, url) => {
+      rutas.push(String(url));
+      cambiar(estado, titulo, url);
+    });
+    const espiaEmpuje = vi.spyOn(window.history, 'pushState').mockImplementation((estado, titulo, url) => {
+      rutas.push(String(url));
+      empujar(estado, titulo, url);
+    });
+
+    try {
+      render(<App />);
+      const login = await paginaActiva('Iniciar sesión');
+      fireEvent.click(pestanas(login).getByRole('link', { name: 'Crear cuenta' }));
+      const consentimientos = await paginaActiva('Antes de crear tu cuenta');
+      const [mayorEdad, terminos] = consentimientos.querySelectorAll('ion-checkbox');
+      fireEvent(mayorEdad, new CustomEvent('ionChange', { bubbles: true, detail: { checked: true } }));
+      fireEvent(terminos, new CustomEvent('ionChange', { bubbles: true, detail: { checked: true } }));
+      const continuar = consentimientos.querySelector('ion-button.sj-acceso-submit') as HTMLElement;
+      await waitFor(() => expect(continuar).toHaveAttribute('disabled', 'false'));
+      fireEvent.click(continuar);
+
+      const registro = await paginaActiva('Crear cuenta');
+      const [correo, contrasena] = registro.querySelectorAll('ion-input');
+      fireEvent(correo, new CustomEvent('ionInput', { bubbles: true, detail: { value: 'nueva@dominio.com' } }));
+      fireEvent(contrasena, new CustomEvent('ionInput', { bubbles: true, detail: { value: 'valida123' } }));
+      fireEvent.submit(registro.querySelector('form') as HTMLFormElement);
+
+      const aviso = await paginaActiva('Aviso médico');
+      // Ionic marca la página como invisible solo durante la transición; debe quedar visible y quedarse ahí.
+      await waitFor(() => expect(aviso).not.toHaveClass('ion-page-invisible'), { timeout: 3000 });
+      await new Promise((resolver) => setTimeout(resolver, 800));
+      expect(aviso).not.toHaveClass('ion-page-invisible');
+      expect(aviso).not.toHaveClass('ion-page-hidden');
+      expect(window.location.pathname).toBe('/aviso-medico');
+      // Una sola navegación tras el registro. Antes eran /hoy tres veces y luego /aviso-medico: en el celular
+      // esas transiciones cruzadas dejaban la pantalla en azul.
+      expect(rutas.slice(rutas.lastIndexOf('/registro') + 1)).toEqual(['/aviso-medico']);
+    } finally {
+      espiaReemplazo.mockRestore();
+      espiaEmpuje.mockRestore();
+      vi.mocked(escucharSesion).mockImplementation(() => () => undefined);
+      vi.mocked(registrar).mockReset();
+    }
+  });
+
+  it('al iniciar sesión con una cuenta sin datos en el dispositivo llega al aviso médico visible', async () => {
+    await Preferences.clear();
+    let avisarSesion: (sesion: Session | null) => void = () => undefined;
+    vi.mocked(escucharSesion).mockImplementation((alCambiar) => {
+      avisarSesion = alCambiar;
+      return () => undefined;
+    });
+    vi.mocked(iniciarSesion).mockImplementation(async () => {
+      avisarSesion({ user: { id: 'cuenta-sin-datos' } } as unknown as Session);
+      return { ok: true };
+    });
+
+    try {
+      render(<App />);
+      const login = await paginaActiva('Iniciar sesión');
+      const [correo, contrasena] = login.querySelectorAll('ion-input');
+      fireEvent(correo, new CustomEvent('ionInput', { bubbles: true, detail: { value: 'persona@dominio.com' } }));
+      fireEvent(contrasena, new CustomEvent('ionInput', { bubbles: true, detail: { value: 'valida123' } }));
+      fireEvent.submit(login.querySelector('form') as HTMLFormElement);
+
+      const aviso = await paginaActiva('Aviso médico');
+      // Ionic marca la página como invisible solo durante la transición; debe quedar visible y quedarse ahí.
+      await waitFor(() => expect(aviso).not.toHaveClass('ion-page-invisible'), { timeout: 3000 });
+      await new Promise((resolver) => setTimeout(resolver, 800));
+      expect(aviso).not.toHaveClass('ion-page-invisible');
+      expect(aviso).not.toHaveClass('ion-page-hidden');
+      expect(window.location.pathname).toBe('/aviso-medico');
+    } finally {
+      vi.mocked(escucharSesion).mockImplementation(() => () => undefined);
+      vi.mocked(iniciarSesion).mockReset();
+    }
   });
 });

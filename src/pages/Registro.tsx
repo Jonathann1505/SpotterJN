@@ -43,7 +43,9 @@ function obtenerConsentimientos(estado: unknown): ConsentimientosAceptados | nul
 
 function Registro() {
   const location = useLocation<EstadoNavegacionRegistro | undefined>();
-  const consentimientos = obtenerConsentimientos(location.state);
+  // Se leen al abrir la pantalla: Ionic la mantiene montada tras navegar, y con la ruta nueva (sin este
+  // estado) redirigía a Consentimientos en vez de dejar avanzar al aviso médico.
+  const [consentimientos] = useState(() => obtenerConsentimientos(location.state));
   const [correo, setCorreo] = useState('');
   const [contrasena, setContrasena] = useState('');
   const [mostrarContrasena, setMostrarContrasena] = useState(false);
@@ -81,7 +83,8 @@ function Registro() {
         return;
       }
       if (resultado.sesionIniciada) {
-        history.replace('/hoy');
+        // Una cuenta nueva aún no tiene respuestas de salud: empieza directo por el aviso médico.
+        history.replace('/aviso-medico');
         return;
       }
       setMensaje(resultado.mensaje ?? 'Revisa tu correo para continuar.');

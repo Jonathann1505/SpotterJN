@@ -6,7 +6,7 @@ import {
   IonSpinner,
 } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
-import type { PropsWithChildren } from 'react';
+import { useState, type PropsWithChildren } from 'react';
 import { Redirect, Route } from 'react-router-dom';
 import BannerSinConexion from './components/BannerSinConexion';
 import ManejadorBotonAtras from './components/ManejadorBotonAtras';
@@ -32,9 +32,16 @@ import SesionEntrenamiento from './pages/SesionEntrenamiento';
 import { ProveedorPerfil } from './context/PerfilContext';
 import { ProveedorSesion, useSesion } from './context/SesionContext';
 
+/**
+ * Pantallas de acceso: si se llega a ellas con la sesión ya iniciada, se va a Hoy. Si la sesión aparece
+ * estando en ellas (al iniciar sesión o crear la cuenta), navega la propia pantalla: redirigir también
+ * desde aquí, incluso en las páginas que Ionic guarda ocultas en la pila, cruzaba varias navegaciones y
+ * dejaba la siguiente pantalla invisible.
+ */
 function RutaInvitado({ children }: PropsWithChildren) {
   const { sesion } = useSesion();
-  return sesion ? <Redirect to="/hoy" /> : children;
+  const [conSesionAlEntrar] = useState(() => sesion !== null);
+  return conSesionAlEntrar ? <Redirect to="/hoy" /> : children;
 }
 
 function EstadoInicialSesion() {
