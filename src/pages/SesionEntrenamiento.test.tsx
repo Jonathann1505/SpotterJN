@@ -259,6 +259,17 @@ describe('SesionEntrenamiento', () => {
       expect(screen.queryByText('Seguimos donde la dejaste hoy.')).not.toBeInTheDocument();
     });
 
+    it('no deja registrar una serie con 0 repeticiones', async () => {
+      await iniciar();
+      const campo = screen.getByRole('spinbutton', { name: 'Repeticiones logradas' });
+
+      fireEvent.change(campo, { target: { value: '0' } });
+      fireEvent.blur(campo);
+
+      expect(campo).toHaveValue(1);
+      expect(campo).toHaveAttribute('min', '1');
+    });
+
     it('deshabilita Guardar serie hasta elegir una autoevaluación', async () => {
       await iniciar();
 

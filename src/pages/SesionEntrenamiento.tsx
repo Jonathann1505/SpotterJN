@@ -452,7 +452,8 @@ function SesionEntrenamiento() {
         etiqueta="Repeticiones logradas"
         valor={repeticionesActuales}
         onChange={setRepeticiones}
-        minimo={0}
+        // Una serie completada tiene al menos una repetición; si no se pudo, existe «Sentí dolor».
+        minimo={1}
         maximo={50}
         paso={1}
       />
