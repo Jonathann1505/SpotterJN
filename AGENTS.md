@@ -299,3 +299,11 @@
 - Bug 8 (baja): las repeticiones van de 1 a 50; si no se pudo hacer ninguna, está «Sentí dolor».
 - Ojo al editar con scripts de Node: en `String.replace`, los signos de dólar seguidos de comilla invertida o de apóstrofo en el texto de reemplazo son patrones especiales (insertan el texto de antes o de después); usar `replace(a, () => b)`.
 - La barra «Esta semana: X de Y» del Perfil usa `estadoDeLaSemana`, así que sigue la misma regla (su prueba ahora guarda la sesión completa). El total «N sesiones registradas» (`contarSesiones`) no cambia.
+
+### 2026-11-27 — Pantalla azul al crear una cuenta
+
+- Síntoma (reportado en el celular): tras crear la cuenta la app quedaba en azul y solo cargaba al cerrarla y abrirla.
+- Causa: al aparecer la sesión se cruzaban navegaciones: `/registro → /hoy → /hoy → /hoy → /aviso-medico` (Registro, `RutaInvitado` en la página visible y en la de login que Ionic guarda oculta, y el `<Redirect>` de Hoy). En el celular esas transiciones cruzadas dejaban la página final invisible. En jsdom no se ve porque no hay animaciones; la prueba de `App.test.tsx` exige una sola navegación tras el registro.
+- Arreglo: Registro va directo a `/aviso-medico`; `RutaInvitado` solo redirige si se entra con la sesión ya iniciada; Registro lee los consentimientos al abrirse (con la ruta nueva redirigía a Consentimientos); Hoy navega al primer uso desde un efecto sin desmontar su `IonPage`.
+- Regla: en páginas dentro de `IonRouterOutlet`, no cambiar el `IonPage` por un `<Redirect>` después de montarlo, y recordar que las páginas ocultas de la pila siguen re-renderizando.
+- Pendiente de confirmar en el celular.
