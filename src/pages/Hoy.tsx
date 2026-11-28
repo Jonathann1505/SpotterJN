@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Weekday } from '@capacitor/local-notifications';
 import { IonIcon } from '@ionic/react';
 import { alertCircleOutline, checkmark, helpCircleOutline } from 'ionicons/icons';
-import { Redirect, useHistory } from 'react-router-dom';
+import { useHistory } from 'react-router-dom';
 import { MiniaturaEjercicio } from '../components/MiniaturaEjercicio';
 import { CargandoSJ } from '../components/CargandoSJ';
 import { BotonSJ, PantallaSJ } from '../components/PantallaSJ';
@@ -107,26 +107,41 @@ function Hoy() {
     };
   }, [usuarioId, recarga]);
 
-  if (datos === null || !sesion || datos.usuarioId !== sesion.user.id) {
-    return (
-      <PantallaSJ titulo="Hoy">
-        <CargandoSJ etiqueta="Cargando tu sesión" />
-      </PantallaSJ>
-    );
+  // Primer uso: falta la salud o la rutina. Se navega desde un efecto y la página de carga sigue montada:
+  // cambiarla por un <Redirect> en plena transición de Ionic dejaba la página siguiente invisible
+  // (pantalla azul al crear una cuenta).
+  const datosListos = datos !== null && datos.usuarioId === usuarioId;
+  const destinoPrimerUso = !datosListos
+    ? null
+    : datos.salud === null
+      ? '/aviso-medico'
+      : datos.rutina === null || datos.rutina.dias.length === 0
+        ? '/cuestionario-rutina'
+        : null;
+  useEffect(() => {
+    if (destinoPrimerUso !== null) {
+      history.replace(destinoPrimerUso);
+    }
+  }, [destinoPrimerUso, history]);
+
+  const cargandoHoy = (
+    <PantallaSJ titulo="Hoy">
+      <CargandoSJ etiqueta="Cargando tu sesión" />
+    </PantallaSJ>
+  );
+
+  if (datos === null || !sesion || datos.usuarioId !== sesion.user.id || destinoPrimerUso !== null) {
+    return cargandoHoy;
   }
 
-  if (datos.salud === null) {
-    return <Redirect to="/aviso-medico" />;
-  }
-
-  if (datos.rutina === null) {
-    return <Redirect to="/cuestionario-rutina" />;
+  if (datos.salud === null || datos.rutina === null) {
+    return cargandoHoy;
   }
 
   // Sin historial de sesiones (M3), la sesión que toca se calcula con el día de la semana.
   const sesionDelDia = sesionParaFecha(datos.rutina, new Date());
   if (sesionDelDia === null) {
-    return <Redirect to="/cuestionario-rutina" />;
+    return cargandoHoy;
   }
 
   const ahora = new Date();
