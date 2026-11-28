@@ -29,6 +29,7 @@ import {
   crearSerieRegistrada,
   esPesoCorporal,
   esUltimoEjercicio,
+  retomarSesion,
   saltarEjercicio,
   type Autoevaluacion,
   type ProgresoSesion,
@@ -38,6 +39,11 @@ import { pesoEnUnidad } from '../utils/unidades';
 interface EstadoSesion {
   /** Posición en `rutina.dias` de la sesión que se quiere hacer; sin indicarla se usa la primera. */
   indiceDia?: number;
+}
+
+function elegirDia(rutina: RutinaAsignada, estado: EstadoSesion | undefined): DiaRutina | undefined {
+  const indiceDia = Number.isInteger(estado?.indiceDia) ? (estado?.indiceDia ?? 0) : 0;
+  return rutina.dias[indiceDia] ?? rutina.dias[0];
 }
 
 function SesionEntrenamiento() {
@@ -53,6 +59,8 @@ function SesionEntrenamiento() {
   const [guardando, setGuardando] = useState(false);
   const [errorGuardado, setErrorGuardado] = useState<string | null>(null);
   const [avisoMolestia, setAvisoMolestia] = useState<string | null>(null);
+  // Verdadero si al entrar se siguió una sesión que hoy quedó a medias.
+  const [retomada, setRetomada] = useState(false);
   // Referencia de la serie anterior mientras se descansa antes de la siguiente (RF-11).
   // Series guardadas en esta sesión, para el resumen final (RF-19).
   const [seriesDeLaSesion, setSeriesDeLaSesion] = useState<SerieRegistrada[]>([]);
@@ -102,9 +110,33 @@ function SesionEntrenamiento() {
       ajustesPesoLocal.obtener(usuarioId).catch((): AjustesPeso => ({})),
     ])
       .then(([guardada, series, ajustes]) => {
-        if (activo) {
-          setRutina(guardada);
+        if (!activo) {
+          return;
+        }
+        setRutina(guardada);
+        const diaCargado = guardada === null ? undefined : elegirDia(guardada, estadoNavegacion);
+        const enCurso = diaCargado === undefined ? null : retomarSesion(diaCargado, series);
+        if (diaCargado === undefined || enCurso === null) {
           setPrevias({ series, ajustes });
+          return;
+        }
+        // Si hoy se salió a mitad de esta sesión, se sigue donde quedó en vez de empezar de cero
+        // (y repetir series). Las series de hoy no cambian el peso de partida, pero sí el resumen.
+        const deHoy = new Set(enCurso.seriesDeHoy.map((serie) => serie.id));
+        setPrevias({ series: series.filter((serie) => !deHoy.has(serie.id)), ajustes });
+        setSeriesDeLaSesion(enCurso.seriesDeHoy);
+        setProgreso(enCurso.progreso);
+        setRetomada(true);
+        // En un ejercicio a medias se mantienen las repeticiones y el peso de la última serie.
+        const actual = diaCargado.ejercicios[enCurso.progreso.indiceEjercicio];
+        const ultima = [...enCurso.seriesDeHoy]
+          .reverse()
+          .find((serie) => serie.idEjercicio === actual?.id && serie.estado === 'completada');
+        if (ultima) {
+          setRepeticiones(ultima.repeticiones);
+          if (ultima.peso !== null && ultima.unidad === perfil.unidadPeso) {
+            setPeso(ultima.peso);
+          }
         }
       })
       .catch(() => {
@@ -179,8 +211,7 @@ function SesionEntrenamiento() {
     return <Redirect to="/cuestionario-rutina" />;
   }
 
-  const indiceDia = Number.isInteger(estadoNavegacion?.indiceDia) ? (estadoNavegacion?.indiceDia ?? 0) : 0;
-  const dia: DiaRutina | undefined = rutina.dias[indiceDia] ?? rutina.dias[0];
+  const dia = elegirDia(rutina, estadoNavegacion);
 
   if (!dia) {
     return (
@@ -309,6 +340,7 @@ function SesionEntrenamiento() {
       guardadoEnCurso.current = false;
       setGuardando(false);
     }
+    setRetomada(false);
     const siguiente = avanzarSerie(progreso, dia);
     const proximo = dia.ejercicios[siguiente.indiceEjercicio];
     const cambiaDeEjercicio = siguiente.indiceEjercicio !== progreso.indiceEjercicio;
@@ -344,6 +376,11 @@ function SesionEntrenamiento() {
 
   return (
     <PantallaSJ atras="/hoy" etiqueta="Sesión de entrenamiento" titulo={dia.nombre} reglaBajoTitulo pie={pie} pieFijo>
+      {retomada ? (
+        <p className="sj-texto sj-suave" role="status">
+          Seguimos donde la dejaste hoy.
+        </p>
+      ) : null}
       {/* En el descanso el temporizador va arriba para que sus botones no queden bajo «Sentí dolor». */}
       {descanso ? (
         <section className="sj-descanso-bloque" aria-labelledby="descanso-titulo">

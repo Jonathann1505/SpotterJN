@@ -218,6 +218,47 @@ describe('SesionEntrenamiento', () => {
       expect((avance.firstElementChild as HTMLElement).style.width).toBe('33%');
     });
 
+    it('al volver a entrar el mismo día sigue donde quedó, sin repetir series', async () => {
+      await iniciar();
+      fireEvent.click(screen.getByRole('button', { name: 'Aumentar repeticiones' }));
+      await guardarCon('Normal');
+      expect(await screen.findByText('Serie 2 de 2')).toBeInTheDocument();
+      cleanup();
+
+      renderizar();
+
+      expect(await screen.findByText('Serie 2 de 2')).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Press de pecho en máquina' })).toBeInTheDocument();
+      expect(screen.getByText('Seguimos donde la dejaste hoy.')).toBeInTheDocument();
+      expect(screen.getByRole('spinbutton', { name: 'Repeticiones logradas' })).toHaveValue(13);
+      expect(screen.getByRole('progressbar', { name: 'Avance de la sesión' })).toHaveAttribute('aria-valuenow', '1');
+
+      await guardarCon('Normal');
+      await guardarCon('Normal');
+
+      expect(await screen.findByRole('heading', { name: 'Sesión completada' })).toBeInTheDocument();
+      const guardadas = await seriesLocal.listar('usuario-prueba');
+      expect(guardadas.map((serie) => `${serie.idEjercicio}#${serie.numeroSerie}`)).toEqual([
+        'press-pecho-maquina#1',
+        'press-pecho-maquina#2',
+        'flexiones#1',
+      ]);
+    });
+
+    it('si la sesión de hoy ya se terminó, al entrar empieza de nuevo', async () => {
+      await iniciar();
+      await guardarCon('Normal');
+      await guardarCon('Normal');
+      await guardarCon('Normal');
+      await screen.findByRole('heading', { name: 'Sesión completada' });
+      cleanup();
+
+      renderizar();
+
+      expect(await screen.findByText('Serie 1 de 2')).toBeInTheDocument();
+      expect(screen.queryByText('Seguimos donde la dejaste hoy.')).not.toBeInTheDocument();
+    });
+
     it('deshabilita Guardar serie hasta elegir una autoevaluación', async () => {
       await iniciar();
 
