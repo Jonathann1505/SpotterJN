@@ -183,21 +183,28 @@ describe('Hoy', () => {
   describe('elegir otro día', () => {
     const opcion = (nombre: RegExp | string) => screen.getByRole('radio', { name: nombre });
 
-    async function guardarSerieDelDia(indice: number, fecha: Date): Promise<void> {
-      const ejercicio = rutina.dias[indice].ejercicios[0];
-      await seriesLocal.guardar('usuario-prueba', {
-        id: `serie-dia-${indice}`,
-        registradaEn: fecha.toISOString(),
-        idEjercicio: ejercicio.id,
-        nombreEjercicio: ejercicio.nombre,
-        dia: rutina.dias[indice].nombre,
-        numeroSerie: 1,
-        peso: ejercicio.pesoInicialKg,
-        unidad: 'kg',
-        repeticiones: ejercicio.repeticiones,
-        autoevaluacion: 'normal',
-        estado: 'completada',
-      });
+    /** Guarda series del día: todas (sesión completa) o solo la primera (sesión a medias). */
+    async function guardarSesionDelDia(indice: number, fecha: Date, soloUna = false): Promise<void> {
+      for (const ejercicio of rutina.dias[indice].ejercicios) {
+        for (let numeroSerie = 1; numeroSerie <= ejercicio.series; numeroSerie += 1) {
+          await seriesLocal.guardar('usuario-prueba', {
+            id: `serie-dia-${indice}-${ejercicio.id}-${numeroSerie}`,
+            registradaEn: fecha.toISOString(),
+            idEjercicio: ejercicio.id,
+            nombreEjercicio: ejercicio.nombre,
+            dia: rutina.dias[indice].nombre,
+            numeroSerie,
+            peso: ejercicio.pesoInicialKg,
+            unidad: 'kg',
+            repeticiones: ejercicio.repeticiones,
+            autoevaluacion: 'normal',
+            estado: 'completada',
+          });
+          if (soloUna) {
+            return;
+          }
+        }
+      }
     }
 
     beforeEach(async () => {
@@ -242,7 +249,7 @@ describe('Hoy', () => {
 
     it('marca como hecho el día con series de esta semana y no avisa de él', async () => {
       simularFecha(18);
-      await guardarSerieDelDia(0, new Date(2026, 10, 16, 18, 0));
+      await guardarSesionDelDia(0, new Date(2026, 10, 16, 18, 0));
       const { findByRole, queryByRole } = renderizar();
       await findByRole('radiogroup', { name: 'Elegir otro día' });
 
@@ -283,6 +290,28 @@ describe('Hoy', () => {
       expect(aviso.closest('[role="status"]')).toHaveTextContent(
         `Te faltó ${rutina.dias[0].nombre} (lunes). Puedes hacerla hoy: elígela en tu semana.`,
       );
+    });
+
+    it('una sesión a medias no se marca como hecha', async () => {
+      simularFecha(18);
+      await guardarSesionDelDia(0, new Date(2026, 10, 16, 18, 0), true);
+      const { findByRole } = renderizar();
+      await findByRole('radiogroup', { name: 'Elegir otro día' });
+
+      expect(opcion(new RegExp(`${rutina.dias[0].nombre} · lunes — Te faltó`))).toBeInTheDocument();
+    });
+
+    it('con la sesión de hoy hecha sugiere la próxima en lugar de repetirla', async () => {
+      await guardarSesionDelDia(0, new Date(2026, 10, 16, 8, 0));
+      const { findByRole, findByText } = renderizar();
+      await findByRole('radiogroup', { name: 'Elegir otro día' });
+
+      expect(await findByText('Próxima sesión · miércoles')).toBeInTheDocument();
+      expect(await findByText(/Ya completaste la sesión de hoy\. Tu próxima sesión es el miércoles\./)).toBeInTheDocument();
+      expect(opcion(new RegExp(`${rutina.dias[0].nombre} · lunes — Hecho`))).toHaveAttribute('aria-checked', 'false');
+      expect(opcion(new RegExp(`${rutina.dias[1].nombre} · miércoles$`))).toHaveAttribute('aria-checked', 'true');
+      fireEvent.click(await findByText('Empezar entrenamiento'));
+      expect(await findByText('pantalla de sesión {"indiceDia":1}')).toBeInTheDocument();
     });
 
     it('sin días pasados sin hacer no muestra el aviso', async () => {

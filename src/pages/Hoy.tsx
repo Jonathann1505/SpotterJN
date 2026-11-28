@@ -132,18 +132,25 @@ function Hoy() {
   const ahora = new Date();
   const semana = estadoDeLaSemana(datos.rutina, datos.series, ahora);
   const calendario = diasDeLaSemanaActual(ahora);
+  // Si la sesión de hoy ya está hecha, se sugiere la siguiente para no repetirla sin querer.
+  const hoyHecho = sesionDelDia.esHoy && semana[sesionDelDia.indice]?.estado === 'hecho';
+  const manana = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate() + 1);
+  const siguienteSesion = hoyHecho ? sesionParaFecha(datos.rutina, manana) : null;
+  const sugerida = siguienteSesion === null ? sesionDelDia : { ...siguienteSesion, esHoy: false };
   const indiceActivo =
-    indiceElegido !== null && datos.rutina.dias[indiceElegido] !== undefined ? indiceElegido : sesionDelDia.indice;
-  const eligioOtroDia = indiceActivo !== sesionDelDia.indice;
+    indiceElegido !== null && datos.rutina.dias[indiceElegido] !== undefined ? indiceElegido : sugerida.indice;
+  const eligioOtroDia = indiceActivo !== sugerida.indice;
   const proximaSesion = datos.rutina.dias[indiceActivo];
-  const nombreDia = describirDias([sesionDelDia.diaSemana]);
+  const nombreDia = describirDias([sugerida.diaSemana]);
   const nombrePerfil = perfil.nombre.trim();
   const faltaron = semana.filter((entrada) => entrada.estado === 'falto');
   const saludo = eligioOtroDia
     ? 'Elegiste esta sesión.'
-    : sesionDelDia.esHoy
-      ? 'Esta es tu sesión de hoy.'
-      : `Hoy descansas. Tu próxima sesión es el ${nombreDia}.`;
+    : hoyHecho
+      ? `Ya completaste la sesión de hoy. Tu próxima sesión es el ${nombreDia}.`
+      : sugerida.esHoy
+        ? 'Esta es tu sesión de hoy.'
+        : `Hoy descansas. Tu próxima sesión es el ${nombreDia}.`;
   const avisoFaltas =
     faltaron.length === 0
       ? null
@@ -154,7 +161,7 @@ function Hoy() {
   return (
     <PantallaSJ
       mostrarLogo
-      etiqueta={eligioOtroDia ? 'Sesión elegida' : sesionDelDia.esHoy ? 'Hoy toca' : `Próxima sesión · ${nombreDia}`}
+      etiqueta={eligioOtroDia ? 'Sesión elegida' : sugerida.esHoy ? 'Hoy toca' : `Próxima sesión · ${nombreDia}`}
       titulo={proximaSesion.nombre}
       reglaBajoTitulo
       pie={

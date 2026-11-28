@@ -232,19 +232,24 @@ describe('Perfil', () => {
     it('muestra cuántas sesiones de la semana van hechas con una barra de avance', async () => {
       const rutina = asignarRutina({ experiencia: 'ninguna', diasPorSemana: 4, equipo: ['maquinas'] });
       await rutinaLocal.guardar('usuario-prueba', rutina);
-      await seriesLocal.guardar('usuario-prueba', {
-        id: 'serie-hoy',
-        registradaEn: new Date().toISOString(),
-        idEjercicio: rutina.dias[0].ejercicios[0].id,
-        nombreEjercicio: rutina.dias[0].ejercicios[0].nombre,
-        dia: rutina.dias[0].nombre,
-        numeroSerie: 1,
-        peso: 20,
-        unidad: 'kg',
-        repeticiones: 12,
-        autoevaluacion: 'normal',
-        estado: 'completada',
-      });
+      // Una sesión cuenta como hecha cuando está completa: se guardan todas sus series.
+      for (const ejercicio of rutina.dias[0].ejercicios) {
+        for (let numeroSerie = 1; numeroSerie <= ejercicio.series; numeroSerie += 1) {
+          await seriesLocal.guardar('usuario-prueba', {
+            id: `serie-${ejercicio.id}-${numeroSerie}`,
+            registradaEn: new Date().toISOString(),
+            idEjercicio: ejercicio.id,
+            nombreEjercicio: ejercicio.nombre,
+            dia: rutina.dias[0].nombre,
+            numeroSerie,
+            peso: 20,
+            unidad: 'kg',
+            repeticiones: 12,
+            autoevaluacion: 'normal',
+            estado: 'completada',
+          });
+        }
+      }
       const { findByRole } = renderizar();
 
       const barra = await findByRole('progressbar', { name: /Esta semana: 1 de 4 sesiones/ });

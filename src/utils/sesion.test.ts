@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { DiaRutina } from '../types/perfil';
+import type { SerieRegistrada } from '../types/series';
 import {
   PROGRESO_INICIAL,
   avanzarSerie,
@@ -7,6 +8,8 @@ import {
   esPesoCorporal,
   esUltimoEjercicio,
   generarIdSerie,
+  jornadaCompleta,
+  retomarSesion,
   saltarEjercicio,
 } from './sesion';
 
@@ -131,5 +134,71 @@ describe('crearSerieRegistrada', () => {
 
   it('genera identificadores distintos', () => {
     expect(generarIdSerie()).not.toBe(generarIdSerie());
+  });
+});
+
+describe('retomarSesion', () => {
+  const hoy = new Date(2026, 10, 18, 19, 0);
+  const serie = (idEjercicio: string, numeroSerie: number, cambios: Partial<SerieRegistrada> = {}): SerieRegistrada => ({
+    id: `${idEjercicio}-${numeroSerie}-${cambios.registradaEn ?? ''}`,
+    registradaEn: new Date(2026, 10, 18, 18, numeroSerie).toISOString(),
+    idEjercicio,
+    nombreEjercicio: idEjercicio,
+    dia: dia.nombre,
+    numeroSerie,
+    peso: 15,
+    unidad: 'kg',
+    repeticiones: 12,
+    autoevaluacion: 'normal',
+    estado: 'completada',
+    ...cambios,
+  });
+
+  it('sin series de hoy empieza desde el principio', () => {
+    expect(retomarSesion(dia, [], hoy)).toBeNull();
+  });
+
+  it('sigue en la serie que falta del mismo ejercicio', () => {
+    const guardadas = [serie('press-pecho-maquina', 1)];
+
+    expect(retomarSesion(dia, guardadas, hoy)).toEqual({
+      progreso: { indiceEjercicio: 0, serie: 2, completada: false },
+      seriesDeHoy: guardadas,
+    });
+  });
+
+  it('pasa al siguiente ejercicio si el anterior está terminado o se detuvo por molestia', () => {
+    expect(retomarSesion(dia, [serie('press-pecho-maquina', 1), serie('press-pecho-maquina', 2)], hoy)?.progreso).toEqual({
+      indiceEjercicio: 1,
+      serie: 1,
+      completada: false,
+    });
+    expect(
+      retomarSesion(dia, [serie('press-pecho-maquina', 1, { estado: 'interrumpida-por-molestia' })], hoy)?.progreso,
+    ).toEqual({ indiceEjercicio: 1, serie: 1, completada: false });
+  });
+
+  it('ignora las series de otros días y de otras jornadas', () => {
+    const ayer = serie('press-pecho-maquina', 1, { registradaEn: new Date(2026, 10, 17, 18, 0).toISOString() });
+    const otraJornada = serie('press-pecho-maquina', 1, { dia: 'Día 2 – Otra' });
+
+    expect(retomarSesion(dia, [ayer, otraJornada], hoy)).toBeNull();
+  });
+
+  it('si la jornada de hoy ya está completa, no la retoma', () => {
+    const completa = [serie('press-pecho-maquina', 1), serie('press-pecho-maquina', 2), serie('flexiones', 1)];
+
+    expect(retomarSesion(dia, completa, hoy)).toBeNull();
+    expect(jornadaCompleta(dia, completa)).toBe(true);
+  });
+
+  it('una jornada detenida por molestia sin series completadas no cuenta como hecha', () => {
+    const detenida = [
+      serie('press-pecho-maquina', 1, { estado: 'interrumpida-por-molestia' }),
+      serie('flexiones', 1, { estado: 'interrumpida-por-molestia' }),
+    ];
+
+    expect(retomarSesion(dia, detenida, hoy)).toBeNull();
+    expect(jornadaCompleta(dia, detenida)).toBe(false);
   });
 });

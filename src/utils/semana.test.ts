@@ -7,7 +7,11 @@ import { diasDeLaSemanaActual, estadoDeLaSemana, sesionParaFecha } from './seman
 function rutinaDe(dias: number): RutinaAsignada {
   return {
     cuestionario: { experiencia: 'ninguna', diasPorSemana: dias, equipo: ['maquinas'] },
-    dias: Array.from({ length: dias }, (_, i) => ({ nombre: `Día ${i + 1} – Cuerpo completo`, ejercicios: [] })),
+    // Un ejercicio de una serie: una serie completada basta para terminar la jornada.
+    dias: Array.from({ length: dias }, (_, i) => ({
+      nombre: `Día ${i + 1} – Cuerpo completo`,
+      ejercicios: [{ id: 'press-banca', nombre: 'Press de banca', series: 1, repeticiones: 12, pesoInicialKg: 40 }],
+    })),
     asignadaEn: '2026-11-16T10:00:00.000Z',
   };
 }
@@ -121,6 +125,43 @@ describe('estadoDeLaSemana', () => {
   it('la semana va de lunes a domingo: el domingo aún cuenta los días desde el lunes', () => {
     expect(estados(rutinaDe(2), [], fecha(22))).toEqual(['falto', 'falto']);
     expect(estados(rutinaDe(2), [serieDe('Día 1 – Cuerpo completo', fecha(21))], fecha(22))).toEqual(['hecho', 'falto']);
+  });
+
+  it('una sesión a medias no cuenta como hecha', () => {
+    const rutina2 = rutinaDe(3);
+    rutina2.dias[0].ejercicios = [
+      { id: 'press-banca', nombre: 'Press de banca', series: 2, repeticiones: 12, pesoInicialKg: 40 },
+      { id: 'remo', nombre: 'Remo', series: 1, repeticiones: 12, pesoInicialKg: 30 },
+    ];
+    const unaSerie = [serieDe('Día 1 – Cuerpo completo', fecha(16))];
+
+    expect(estados(rutina2, unaSerie, fecha(18))).toEqual(['falto', 'hoy', 'pendiente']);
+
+    const completa = [
+      ...unaSerie,
+      serieDe('Día 1 – Cuerpo completo', fecha(16), { id: 'b', numeroSerie: 2 }),
+      serieDe('Día 1 – Cuerpo completo', fecha(16), { id: 'c', idEjercicio: 'remo', nombreEjercicio: 'Remo' }),
+    ];
+    expect(estados(rutina2, completa, fecha(18))).toEqual(['hecho', 'hoy', 'pendiente']);
+  });
+
+  it('un ejercicio detenido por molestia cuenta como terminado si la sesión tiene series completadas', () => {
+    const rutina2 = rutinaDe(3);
+    rutina2.dias[0].ejercicios = [
+      { id: 'press-banca', nombre: 'Press de banca', series: 1, repeticiones: 12, pesoInicialKg: 40 },
+      { id: 'remo', nombre: 'Remo', series: 2, repeticiones: 12, pesoInicialKg: 30 },
+    ];
+    const series = [
+      serieDe('Día 1 – Cuerpo completo', fecha(16)),
+      serieDe('Día 1 – Cuerpo completo', fecha(16), {
+        id: 'b',
+        idEjercicio: 'remo',
+        nombreEjercicio: 'Remo',
+        estado: 'interrumpida-por-molestia',
+      }),
+    ];
+
+    expect(estados(rutina2, series, fecha(18))[0]).toBe('hecho');
   });
 
   it('devuelve el día de la semana de cada sesión', () => {

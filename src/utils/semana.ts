@@ -2,6 +2,7 @@ import { Weekday } from '@capacitor/local-notifications';
 import type { DiaRutina, RutinaAsignada } from '../types/perfil';
 import type { SerieRegistrada } from '../types/series';
 import { diasDeEntrenamiento } from './recordatorios';
+import { jornadaCompleta } from './sesion';
 
 export interface SesionDelDia {
   /** Posición del día dentro de `rutina.dias`. */
@@ -74,21 +75,17 @@ export function estadoDeLaSemana(
   const entrenamiento = diasDeEntrenamiento(rutina.dias.length);
   const inicio = inicioDeSemana(ahora).getTime();
   const fin = inicio + 7 * 24 * 60 * 60 * 1000;
-  const hechos = new Set(
-    series
-      .filter((serie) => {
-        const momento = Date.parse(serie.registradaEn);
-        return serie.estado === 'completada' && momento >= inicio && momento < fin;
-      })
-      .map((serie) => serie.dia),
-  );
+  const deLaSemana = series.filter((serie) => {
+    const momento = Date.parse(serie.registradaEn);
+    return momento >= inicio && momento < fin;
+  });
   const desdeLunesHoy = (ahora.getDay() + 6) % 7;
 
   return rutina.dias.map((dia, indice) => {
     const diaSemana = entrenamiento[Math.min(indice, entrenamiento.length - 1)];
     const desdeLunes = (diaSemana + 5) % 7;
     let estado: EstadoDiaSemana = 'pendiente';
-    if (hechos.has(dia.nombre)) {
+    if (jornadaCompleta(dia, deLaSemana)) {
       estado = 'hecho';
     } else if (desdeLunes === desdeLunesHoy) {
       estado = 'hoy';

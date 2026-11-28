@@ -101,3 +101,60 @@ export function crearSerieRegistrada(datos: DatosSerie): SerieRegistrada {
     estado: datos.estado,
   };
 }
+
+function mismoDiaLocal(a: Date, b: Date): boolean {
+  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+}
+
+/**
+ * Primer punto pendiente de una jornada según sus series guardadas. Un ejercicio está hecho si tiene todas
+ * sus series completadas o si se interrumpió por molestia (RF-13). Devuelve null si no queda nada pendiente.
+ */
+export function primerPendiente(dia: DiaRutina, series: readonly SerieRegistrada[]): ProgresoSesion | null {
+  for (let indice = 0; indice < dia.ejercicios.length; indice += 1) {
+    const ejercicio = dia.ejercicios[indice];
+    const propias = series.filter((serie) => serie.dia === dia.nombre && serie.idEjercicio === ejercicio.id);
+    if (propias.some((serie) => serie.estado === 'interrumpida-por-molestia')) {
+      continue;
+    }
+    const completadas = propias.filter((serie) => serie.estado === 'completada').length;
+    if (completadas < ejercicio.series) {
+      return { indiceEjercicio: indice, serie: completadas + 1, completada: false };
+    }
+  }
+  return null;
+}
+
+/**
+ * Una jornada está hecha si no le queda nada pendiente y tiene al menos una serie completada:
+ * una sola serie, o una sesión detenida por molestia sin series completadas, no cuentan como hecha.
+ */
+export function jornadaCompleta(dia: DiaRutina, series: readonly SerieRegistrada[]): boolean {
+  const tieneCompletadas = series.some((serie) => serie.dia === dia.nombre && serie.estado === 'completada');
+  return tieneCompletadas && primerPendiente(dia, series) === null;
+}
+
+export interface SesionRetomada {
+  progreso: ProgresoSesion;
+  /** Series de esta jornada guardadas hoy, para el resumen final. */
+  seriesDeHoy: SerieRegistrada[];
+}
+
+/**
+ * Si hoy ya se guardaron series de esta jornada y quedó a medias, indica dónde seguir. Devuelve null si hoy
+ * no se empezó o si ya se terminó (en ese caso, volver a hacerla es una decisión de la persona).
+ */
+export function retomarSesion(
+  dia: DiaRutina,
+  series: readonly SerieRegistrada[],
+  ahora: Date = new Date(),
+): SesionRetomada | null {
+  const seriesDeHoy = series.filter(
+    (serie) => serie.dia === dia.nombre && mismoDiaLocal(new Date(serie.registradaEn), ahora),
+  );
+  if (seriesDeHoy.length === 0) {
+    return null;
+  }
+  const progreso = primerPendiente(dia, seriesDeHoy);
+  return progreso === null ? null : { progreso, seriesDeHoy };
+}
